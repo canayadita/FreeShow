@@ -3,7 +3,7 @@ import { existsSync, copyFileSync } from "fs"
 import path from "path"
 import { getDataFolderPath } from "../utils/files"
 
-const BUNDLED_BIBLES = ["kjv.fsb", "niv.fsb", "tb.fsb", "bis.fsb"]
+const BUNDLED_BIBLES = ["Terjemahan Baru.fsb", "Bahasa Indonesia Sehari-hari.fsb", "King James Version.fsb", "World English Bible.fsb"]
 
 function getBiblesSourceDir(): string {
     if (app.isPackaged) return path.join(process.resourcesPath, "bibles")
