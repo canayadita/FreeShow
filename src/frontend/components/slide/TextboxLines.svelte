@@ -2,6 +2,7 @@
     import { createEventDispatcher, onDestroy, onMount } from "svelte"
     import type { Styles } from "../../../types/Settings"
     import type { Item, TemplateStyleOverride } from "../../../types/Show"
+    import type { AnimationConfig } from "../../../types/animation"
     import { createVirtualBreaks } from "../../show/slides"
     import { outputs, slidesOptions, styles, variables } from "../../stores"
     import { getItemText } from "../edit/scripts/textStyle"
@@ -47,6 +48,7 @@
     export let highlighedLines: { from: number; to: number; color: string }[] = []
     export let normalWrap = false
     export let updateDynamicValues = true
+    export let animationConfig: AnimationConfig | undefined = undefined
 
     $: lines = createVirtualBreaks(clone(item?.lines || []), outputStyle?.skipVirtualBreaks)
     $: if (linesStart !== null && linesEnd !== null && lines.length) {
@@ -306,6 +308,12 @@
     // $: isScripture = ref?.id === "scripture" || ref?.showId === "temp" || $showsCache[ref.showId || ""]?.reference?.type === "scripture"
 
     $: baseFontSize = fontSize || (style ? resolveFontSize(renderedLines[0]?.text[0]?.style, outputStyle) : 100)
+
+    function getLineStyle(index: number): string {
+        if (!animationConfig || animationConfig.type === "none") return ""
+        const delayMs = index * (animationConfig.delay ?? 150)
+        return `animation-name: anim-${animationConfig.type}; animation-duration: ${animationConfig.duration ?? 600}ms; animation-delay: ${delayMs}ms; animation-fill-mode: both; animation-timing-function: ${animationConfig.easing ?? "ease-out"};${animationConfig.repeat ? " animation-iteration-count: infinite;" : ""}`
+    }
 </script>
 
 <div class="align" class:hidden={hideContent} class:isStage class:scrolling={!isStage && item?.scrolling?.type} style="--scrollSpeed: {(item?.scrolling?.speed ?? 30) * 1.5}s;{style ? item?.align : null};" bind:clientWidth={alignWidth} bind:clientHeight={alignHeight}>
@@ -336,7 +344,7 @@
                                         class:normalWrap={normalWrap || (isStage ? typeof stageItem?.style === "string" && (stageItem?.style.includes("justify") || stageItem?.style.includes("nowrap")) : line.align?.includes("justify") || line.align?.includes("left") || JSON.stringify(line).includes("nowrap"))}
                                         class:reveal={(centerPreview || isStage) && item?.lineReveal && revealed < i}
                                         class:smallFontSize={smallFontSize || customFontSize || textAnimation.includes("font-size")}
-                                        style="position: relative;{style ? lineStyle : ''}{style ? line.align : ''}{height ? `height: ${height}px;` : ''}{item?.list?.enabled && line.text?.reduce((value, t) => (value += t.value || ''), '')?.length ? listStyle : ''}{item?.list?.enabled ? `color: ${getStyles(line.text[0]?.style).color || ''};` : ''}{lineHidden && outputStyle?.showAsFaded ? `opacity: ${(outputStyle.lineOpacity ?? 50) / 100};` : ''}"
+                                        style="position: relative;{style ? lineStyle : ''}{style ? line.align : ''}{height ? `height: ${height}px;` : ''}{item?.list?.enabled && line.text?.reduce((value, t) => (value += t.value || ''), '')?.length ? listStyle : ''}{item?.list?.enabled ? `color: ${getStyles(line.text[0]?.style).color || ''};` : ''}{lineHidden && outputStyle?.showAsFaded ? `opacity: ${(outputStyle.lineOpacity ?? 50) / 100};` : ''}{getLineStyle(i)}"
                                     >
                                         <!-- style Lines selection in center preview -->
                                         {#each highlighedLines || [] as box}
@@ -387,7 +395,7 @@
                             class:normalWrap={normalWrap || (isStage ? typeof stageItem?.style === "string" && (stageItem?.style.includes("justify") || stageItem?.style.includes("nowrap")) : line.align?.includes("justify") || line.align?.includes("left") || JSON.stringify(line).includes("nowrap"))}
                             class:reveal={(centerPreview || isStage) && item?.lineReveal && revealed < i}
                             class:smallFontSize={smallFontSize || customFontSize || textAnimation.includes("font-size")}
-                            style="position: relative;{style ? lineStyle : ''}{style ? line.align : ''}{height ? `height: ${height}px;` : ''}{item?.list?.enabled && line.text?.reduce((value, t) => (value += t.value || ''), '')?.length ? listStyle : ''}{item?.list?.enabled ? `color: ${getStyles(line.text[0]?.style).color || ''};` : ''}{lineHidden && outputStyle?.showAsFaded ? `opacity: ${(outputStyle.lineOpacity ?? 50) / 100};` : ''}"
+                            style="position: relative;{style ? lineStyle : ''}{style ? line.align : ''}{height ? `height: ${height}px;` : ''}{item?.list?.enabled && line.text?.reduce((value, t) => (value += t.value || ''), '')?.length ? listStyle : ''}{item?.list?.enabled ? `color: ${getStyles(line.text[0]?.style).color || ''};` : ''}{lineHidden && outputStyle?.showAsFaded ? `opacity: ${(outputStyle.lineOpacity ?? 50) / 100};` : ''}{getLineStyle(i)}"
                         >
                             <!-- style Lines selection in center preview -->
                             {#each highlighedLines || [] as box}
@@ -634,5 +642,74 @@
         to {
             transform: translateY(0);
         }
+    }
+
+    /* === FreeShowPlus Animations === */
+
+    @keyframes anim-fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    @keyframes anim-fadeInWords {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes anim-slideUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes anim-slideDown {
+        from { opacity: 0; transform: translateY(-40px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes anim-slideLeft {
+        from { opacity: 0; transform: translateX(60px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes anim-slideRight {
+        from { opacity: 0; transform: translateX(-60px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes anim-typewriter {
+        from { clip-path: inset(0 100% 0 0); opacity: 1; }
+        to   { clip-path: inset(0 0% 0 0);   opacity: 1; }
+    }
+
+    @keyframes anim-zoomIn {
+        from { opacity: 0; transform: scale(0.6); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes anim-zoomOut {
+        from { opacity: 0; transform: scale(1.4); }
+        to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes anim-bounceIn {
+        0%   { opacity: 0; transform: scale(0.3); }
+        50%  { opacity: 1; transform: scale(1.08); }
+        70%  { transform: scale(0.95); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes anim-glowPulse {
+        0%, 100% { text-shadow: 0 0 8px rgba(255,255,255,0.3); opacity: 1; }
+        50%       { text-shadow: 0 0 32px rgba(255,255,255,0.9), 0 0 60px rgba(255,255,255,0.4); opacity: 0.9; }
+    }
+
+    @keyframes anim-wipeLeft {
+        from { clip-path: inset(0 0 0 100%); }
+        to   { clip-path: inset(0 0 0 0); }
+    }
+
+    @keyframes anim-wipeRight {
+        from { clip-path: inset(0 100% 0 0); }
+        to   { clip-path: inset(0 0 0 0); }
     }
 </style>

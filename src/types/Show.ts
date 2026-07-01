@@ -147,6 +147,7 @@ export interface Item {
     fromTemplate?: boolean // these will be removed if another template is applied
     // media: fit, startAt, endAt
     // tag?: string; // p, div????
+    animationConfig?: import("./animation").AnimationConfig
     conditions?: { [key: string]: Condition }
     chart?: {
         type?: string

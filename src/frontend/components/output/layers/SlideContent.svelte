@@ -419,6 +419,7 @@
                 disableListTransition={mirror}
                 chords={item.chords?.enabled}
                 animationStyle={animationData.style || {}}
+                animationConfig={item.animationConfig}
                 item={timelineItems.get(`${current.outSlide?.id}-${current.outSlide?.layout}-${current.outSlide?.index}`)?.[index] || item}
                 transition={null}
                 {ratio}
@@ -445,6 +446,7 @@
                             disableListTransition={mirror}
                             chords={customItem.chords?.enabled}
                             animationStyle={animationData.style || {}}
+                            animationConfig={customItem.animationConfig}
                             item={timelineItems.get(`${customOut?.id}-${customOut?.layout}-${customOut?.index}`)?.[index] || customItem}
                             {transition}
                             {ratio}

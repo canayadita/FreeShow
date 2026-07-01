@@ -353,6 +353,7 @@
                                     {centerPreview}
                                     fontPreview={true}
                                     chords={item.chords?.enabled}
+                                    animationConfig={item.animationConfig}
                                 />
                             {/if}
                         {/each}

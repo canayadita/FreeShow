@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher, onDestroy, onMount, tick } from "svelte"
     import { OUTPUT } from "../../../types/Channels"
+    import type { AnimationConfig } from "../../../types/animation"
     import type { Styles } from "../../../types/Settings"
     import type { Item, Slide, TemplateStyleOverride, Transition } from "../../../types/Show"
     import { currentWindow, groups, outputs, overlays, scriptureSettings, showsCache, styles, templates, variables } from "../../stores"
@@ -33,6 +34,7 @@
     export let transition: Transition | null = null
     export let disableListTransition = false
     export let smallFontSize = false
+    export let animationConfig: AnimationConfig | undefined = undefined
     export let animationStyle: any = {}
     export let dynamicValues = true
     export let isStage = false
@@ -845,6 +847,7 @@
             {slideIndex}
             {key}
             {smallFontSize}
+            {animationConfig}
             {animationStyle}
             {dynamicValues}
             {isStage}
