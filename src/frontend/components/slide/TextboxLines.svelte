@@ -312,7 +312,7 @@
     function getLineStyle(index: number): string {
         if (!animationConfig || animationConfig.type === "none") return ""
         const delayMs = index * (animationConfig.delay ?? 150)
-        return `animation-name: anim-${animationConfig.type}; animation-duration: ${animationConfig.duration ?? 600}ms; animation-delay: ${delayMs}ms; animation-fill-mode: both; animation-timing-function: ${animationConfig.easing ?? "ease-out"};${animationConfig.repeat ? " animation-iteration-count: infinite;" : ""}`
+        return `animation-name: anim-${animationConfig.type}; animation-duration: ${animationConfig.duration ?? 600}ms; animation-delay: ${delayMs}ms; animation-fill-mode: both; animation-timing-function: ease-out;${animationConfig.repeat ? " animation-iteration-count: infinite;" : ""}`
     }
 </script>
 

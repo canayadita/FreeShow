@@ -1,4 +1,5 @@
 import type { AutosizeTypes } from "../frontend/components/edit/scripts/autosize"
+import type { AnimationConfig } from "./animation"
 import type { Input } from "./Input"
 import type { Animation } from "./Output"
 import type { Cropping, Resolution } from "./Settings"
@@ -147,7 +148,7 @@ export interface Item {
     fromTemplate?: boolean // these will be removed if another template is applied
     // media: fit, startAt, endAt
     // tag?: string; // p, div????
-    animationConfig?: import("./animation").AnimationConfig
+    animationConfig?: AnimationConfig
     conditions?: { [key: string]: Condition }
     chart?: {
         type?: string
