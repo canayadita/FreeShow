@@ -15,6 +15,9 @@
     import { addFilterString, addStyle, addStyleString, getItemStyleAtPos, getItemText, getLastLineAlign, getLineText, getSelectionRange } from "../scripts/textStyle"
     import { itemBoxes, setBoxInputValue } from "../values/boxes"
     import EditValues from "./EditValues.svelte"
+    import AnimationPicker from "../AnimationPicker.svelte"
+    import type { AnimationConfig } from "../../../../types/animation"
+    import { DEFAULT_ANIMATION_CONFIG } from "../../../../types/animation"
 
     export let id: ItemType
     export let allSlideItems: Item[] = []
@@ -636,6 +639,13 @@
         })
     }
 
+    // Animation config for current item
+    $: currentAnimConfig = (item?.animationConfig as AnimationConfig | undefined) ?? { ...DEFAULT_ANIMATION_CONFIG }
+
+    function handleAnimationChange(e: CustomEvent<AnimationConfig>) {
+        updateValue({ detail: { id: "animationConfig", value: e.detail } })
+    }
+
     $: boxSections = box?.sections || {}
     function updateValue2(e: any) {
         const input = e.detail
@@ -721,4 +731,7 @@
 
 {#if loaded}
     <EditValues sections={boxSections} {item} {styles} {customValues} type="text" on:change={updateValue2} />
+    {#if id === "text"}
+        <AnimationPicker config={currentAnimConfig} on:change={handleAnimationChange} />
+    {/if}
 {/if}
