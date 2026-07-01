@@ -49,6 +49,8 @@
     export let normalWrap = false
     export let updateDynamicValues = true
     export let animationConfig: AnimationConfig | undefined = undefined
+    // Delay (ms) before first text animation line starts — use to wait for slide transition
+    export let animationSlideDelay = 0
 
     $: lines = createVirtualBreaks(clone(item?.lines || []), outputStyle?.skipVirtualBreaks)
     $: if (linesStart !== null && linesEnd !== null && lines.length) {
@@ -311,7 +313,7 @@
 
     function getLineStyle(index: number): string {
         if (!animationConfig || animationConfig.type === "none") return ""
-        const delayMs = index * (animationConfig.delay ?? 150)
+        const delayMs = animationSlideDelay + index * (animationConfig.delay ?? 150)
         return `animation-name: anim-${animationConfig.type}; animation-duration: ${animationConfig.duration ?? 600}ms; animation-delay: ${delayMs}ms; animation-fill-mode: both; animation-timing-function: ease-out;${animationConfig.repeat ? " animation-iteration-count: infinite;" : ""}`
     }
 </script>

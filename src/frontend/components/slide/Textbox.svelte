@@ -848,6 +848,7 @@
             {key}
             {smallFontSize}
             {animationConfig}
+            animationSlideDelay={preview ? 0 : 600}
             {animationStyle}
             {dynamicValues}
             {isStage}
