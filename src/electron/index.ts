@@ -9,6 +9,7 @@ import type { Dictionary } from "../types/Settings"
 import { receiveAudio } from "./audio/receiveAudio"
 import { receiveBM } from "./blackmagic/bmdTalk"
 import { cloudConnect } from "./cloud/cloud"
+import { installBundledBibles } from "./data/bundledBibles"
 import { startExport } from "./data/export"
 import { cleanupProtectedCache, registerProtectedProtocol } from "./data/protected"
 import { config, setupStores } from "./data/store"
@@ -108,6 +109,8 @@ async function startApp() {
     setTimeout(createLoading)
 
     await setupStores()
+
+    installBundledBibles()
 
     registerProtectedProtocol()
     cleanupProtectedCache().catch((err) => console.error("Protected cache cleanup failed:", err))

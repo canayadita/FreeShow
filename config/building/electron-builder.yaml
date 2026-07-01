@@ -23,6 +23,10 @@ extraResources:
       to: slideshow
       filter:
           - connector-*
+    - from: public/bibles
+      to: bibles
+      filter:
+          - "*.fsb"
 
 # windows
 
