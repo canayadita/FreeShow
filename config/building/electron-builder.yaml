@@ -2,6 +2,11 @@ appId: app.freeshowplus
 productName: FreeShowPlus
 artifactName: FreeShowPlus-${version}-${arch}.${ext}
 
+publish:
+  provider: github
+  owner: canayadita
+  repo: FreeShow
+
 # WIDEVINE
 # Use castlabs electron builds to get widevine support
 # electronDownload:
