@@ -4,7 +4,7 @@
     import { getCloudUsers } from "../../utils/cloudSync"
     import { translateText } from "../../utils/language"
     import Icon from "../helpers/Icon.svelte"
-    import { toggleOutputs } from "../helpers/output"
+    import { startRtmpStreaming, stopRtmpStreaming, toggleOutputs } from "../helpers/output"
     import T from "../helpers/T.svelte"
     import Button from "../inputs/Button.svelte"
     import TopButton from "../inputs/TopButton.svelte"
@@ -61,6 +61,12 @@
 
     $: noPhysicalOutputWindows = (!$outputDisplay && !physicalOutputWindows.length) || disableClick
 
+    // RTMP stream button
+    $: rtmpOutputEntry = Object.entries($outputs).find(([_, o]) => o.enabled && o.rtmp && o.rtmpData?.key)
+    $: rtmpOutputId = rtmpOutputEntry?.[0] ?? ""
+    $: rtmpOutput = rtmpOutputEntry?.[1]
+    $: isStreaming = !!rtmpOutput?.rtmpData?.streaming
+
     $: users = getCloudUsers($cloudUsers)
     function goToUser(user: { [key: string]: any }) {
         if (user.activePage) activePage.set(user.activePage as any)
@@ -111,6 +117,19 @@
         <TopButton id="draw" red={$drawTool === "fill" || ($drawTool === "zoom" && $drawSettings.zoom?.size !== 100) || !!($drawTool === "paint" && $paintCache?.length)} hideLabel />
         {#if !settingsDisabled}
             <TopButton id="settings" hideLabel />
+        {/if}
+        {#if rtmpOutputId}
+            <Button
+                title={isStreaming ? "Stop YouTube Stream" : "Start YouTube Stream"}
+                on:click={() => (isStreaming ? stopRtmpStreaming(rtmpOutputId, true) : startRtmpStreaming(rtmpOutputId))}
+                red={isStreaming}
+                style="min-width: 44px; position: relative;"
+            >
+                <Icon id={isStreaming ? "stop" : "record"} size={1.4} white />
+                {#if isStreaming}
+                    <span class="stream-dot" />
+                {/if}
+            </Button>
         {/if}
 
         <!-- <MaterialButton id="output_window_button" class="context #output display {$outputDisplay ? 'on' : 'off'}" title="menu.{$outputDisplay ? (confirm ? 'again_confirm' : '_title_display_stop') : '_title_display'} [Ctrl+O]" style={$outputDisplay || disableClick ? "" : "border-bottom: 2px solid var(--secondary);"} on:click={toggleOutput} disabled={(!$outputDisplay && !physicalOutputWindows.length) || disableClick} red={$outputDisplay}>
@@ -219,6 +238,22 @@
         .top span:first-child {
             display: none;
         }
+    }
+
+    .stream-dot {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #ff4444;
+        animation: blink 1s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.2; }
     }
 
     .click_again {
