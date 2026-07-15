@@ -35,7 +35,7 @@
             --text: #f0f0ff;
             --textInvert: #131313;
             --secondary: #f0008c;
-            --secondary-opacity: rgba(240, 0, 140, 0.5);
+            --secondary-opacity: rgba(37, 99, 235, 0.5);
             --secondary-text: #f0f0ff;
             --transparent: #232530;
 
@@ -48,7 +48,7 @@
 
             --hover: rgb(255 255 255 / 0.05);
             --focus: rgb(255 255 255 / 0.1);
-            /* --active: rgb(230 52 156 / .8); */
+            /* --active: rgb(37 99 235 / .8); */
 
             /* --navigation-width: 18vw; */
             --navigation-width: 300px;

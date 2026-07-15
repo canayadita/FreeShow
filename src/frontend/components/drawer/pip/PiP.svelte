@@ -1,0 +1,549 @@
+<script lang="ts">
+    import { onMount } from "svelte"
+    import { uid } from "uid"
+    import type { MultiPane, Pane, PaneSourceType } from "../../../../types/Show"
+    import { multiPaneLayouts, ndiData, outputs, media } from "../../../stores"
+    import { cameraManager } from "../../../media/cameraManager"
+    import { getActiveOutputs, setOutput } from "../../helpers/output"
+    import { newToast } from "../../../utils/common"
+    import Icon from "../../helpers/Icon.svelte"
+    import MaterialButton from "../../inputs/MaterialButton.svelte"
+    import MaterialDropdown from "../../inputs/MaterialDropdown.svelte"
+    import MaterialNumberInput from "../../inputs/MaterialNumberInput.svelte"
+    import MaterialTextInput from "../../inputs/MaterialTextInput.svelte"
+    import T from "../../helpers/T.svelte"
+
+    export let active: string | null = null
+
+    const pipLayouts = [
+        { id: "pipBottomRight", name: "PiP Bottom Right", icon: "pip", description: "Small pane at bottom right" },
+        { id: "pipBottomLeft", name: "PiP Bottom Left", icon: "pip", description: "Small pane at bottom left" },
+        { id: "pipTopRight", name: "PiP Top Right", icon: "pip", description: "Small pane at top right" },
+        { id: "pipSideRight", name: "PiP Side Right", icon: "pip", description: "Side panel at right" },
+        { id: "pipBottomBar", name: "PiP Bottom Bar", icon: "pip", description: "Bottom bar" },
+        { id: "splitVertical", name: "Split Vertical", icon: "pip", description: "Two equal panes side by side" },
+        { id: "splitHorizontal", name: "Split Horizontal", icon: "pip", description: "Two equal panes stacked" },
+        { id: "grid2x2", name: "Grid 2x2", icon: "pip", description: "Four equal panes" }
+    ]
+
+    function getPipLayoutPanes(layoutId: string): Pane[] {
+        const layouts: { [key: string]: Pane[] } = {
+            pipBottomRight: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 65, height: 100 } },
+                { id: "2", sourceType: "camera", position: { x: 65, y: 60, width: 32, height: 35 }, zIndex: 1, shadow: true, borderRadius: 10 }
+            ],
+            pipBottomLeft: [
+                { id: "1", sourceType: "slide", position: { x: 35, y: 0, width: 65, height: 100 } },
+                { id: "2", sourceType: "camera", position: { x: 3, y: 60, width: 32, height: 35 }, zIndex: 1, shadow: true, borderRadius: 10 }
+            ],
+            pipTopRight: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 65, height: 60 } },
+                { id: "2", sourceType: "camera", position: { x: 65, y: 5, width: 32, height: 35 }, zIndex: 1, shadow: true, borderRadius: 10 }
+            ],
+            pipSideRight: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 65, height: 100 } },
+                { id: "2", sourceType: "camera", position: { x: 65, y: 0, width: 35, height: 100 }, zIndex: 1 }
+            ],
+            pipBottomBar: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 100, height: 80 } },
+                { id: "2", sourceType: "camera", position: { x: 0, y: 80, width: 100, height: 20 }, zIndex: 1 }
+            ],
+            splitVertical: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 50, height: 100 } },
+                { id: "2", sourceType: "camera", position: { x: 50, y: 0, width: 50, height: 100 }, zIndex: 1 }
+            ],
+            splitHorizontal: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 100, height: 50 } },
+                { id: "2", sourceType: "camera", position: { x: 0, y: 50, width: 100, height: 50 }, zIndex: 1 }
+            ],
+            grid2x2: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 50, height: 50 } },
+                { id: "2", sourceType: "camera", position: { x: 50, y: 0, width: 50, height: 50 }, zIndex: 1 },
+                { id: "3", sourceType: "screen", position: { x: 0, y: 50, width: 50, height: 50 }, zIndex: 1 },
+                { id: "4", sourceType: "video", position: { x: 50, y: 50, width: 50, height: 50 }, zIndex: 1 }
+            ]
+        }
+        return layouts[layoutId] || []
+    }
+
+    function applyPipLayout(layoutId: string) {
+        const panes = getPipLayoutPanes(layoutId)
+        const layout = pipLayouts.find((l) => l.id === layoutId)
+        const multiPane: MultiPane = {
+            id: uid(),
+            name: layout?.name || "PiP Layout",
+            panes,
+            visible: false // Don't show immediately
+        }
+        
+        const activeOutputIds = getActiveOutputs($outputs, true, true, true)
+        if (activeOutputIds.length > 0) {
+            setOutput("multiPane", multiPane, false, activeOutputIds[0])
+        } else {
+            setOutput("multiPane", multiPane)
+        }
+    }
+
+    function clearPip() {
+        setOutput("multiPane", null)
+    }
+
+    function togglePipVisibility() {
+        const currentOutputId = getActiveOutputs($outputs, true, true, true)[0] || ""
+        if (!currentOutputId) return
+
+        const currentMultiPane = $outputs[currentOutputId]?.out?.multiPane
+        if (!currentMultiPane) return
+
+        setOutput("multiPane", { ...currentMultiPane, visible: !currentMultiPane.visible })
+    }
+
+    function updatePaneSource(paneId: string, sourceType: PaneSourceType, sourceId?: string) {
+        updatePane(paneId, (p) => ({ ...p, sourceType, sourceId: sourceId || p.sourceId }))
+    }
+
+    // generic pane updater (position, size, shape...)
+    function updatePane(paneId: string, updater: (pane: Pane) => Pane) {
+        const currentOutputId = getActiveOutputs($outputs, true, true, true)[0] || ""
+        if (!currentOutputId) return
+
+        const currentMultiPane = $outputs[currentOutputId]?.out?.multiPane
+        if (!currentMultiPane) return
+
+        const updatedPanes = currentMultiPane.panes.map((p) => (p.id === paneId ? updater(p) : p))
+        setOutput("multiPane", { ...currentMultiPane, panes: updatedPanes })
+    }
+
+    function updatePanePosition(paneId: string, key: "x" | "y" | "width" | "height", value: number) {
+        const clamped = Math.max(key === "width" || key === "height" ? 1 : 0, Math.min(100, Number(value) || 0))
+        updatePane(paneId, (p) => ({ ...p, position: { ...p.position, [key]: clamped } }))
+    }
+
+    function updatePaneShape(paneId: string, key: "borderRadius" | "opacity" | "zIndex", value: number) {
+        updatePane(paneId, (p) => ({ ...p, [key]: Number(value) || 0 }))
+    }
+
+    function togglePaneShadow(paneId: string) {
+        updatePane(paneId, (p) => ({ ...p, shadow: !p.shadow }))
+    }
+
+    function addPane() {
+        if (!currentMultiPane) return
+        const newPane: Pane = { id: uid(5), sourceType: "camera", position: { x: 60, y: 60, width: 35, height: 35 }, zIndex: (currentMultiPane.panes.length || 0) + 1, shadow: true, borderRadius: 10 }
+        setOutput("multiPane", { ...currentMultiPane, panes: [...currentMultiPane.panes, newPane] })
+    }
+
+    function removePane(paneId: string) {
+        if (!currentMultiPane) return
+        setOutput("multiPane", { ...currentMultiPane, panes: currentMultiPane.panes.filter((p) => p.id !== paneId) })
+    }
+
+    // CUSTOM TEMPLATES (persisted)
+
+    let templateName = ""
+
+    function saveAsTemplate() {
+        if (!currentMultiPane) return
+        const name = templateName.trim() || `${currentMultiPane.name} (Custom)`
+        const id = uid()
+
+        multiPaneLayouts.update((a) => {
+            a[id] = { id, name, panes: clonePanes(currentMultiPane!.panes) }
+            return a
+        })
+
+        templateName = ""
+        newToast(`Template PiP '${name}' tersimpan!`)
+    }
+
+    function applyCustomLayout(id: string) {
+        const layout = $multiPaneLayouts[id]
+        if (!layout) return
+
+        const multiPane: MultiPane = { id: uid(), name: layout.name, panes: clonePanes(layout.panes), visible: false }
+        const activeOutputIds = getActiveOutputs($outputs, true, true, true)
+        if (activeOutputIds.length > 0) setOutput("multiPane", multiPane, false, activeOutputIds[0])
+        else setOutput("multiPane", multiPane)
+    }
+
+    function deleteCustomLayout(id: string) {
+        multiPaneLayouts.update((a) => {
+            delete a[id]
+            return a
+        })
+    }
+
+    function newBlankLayout() {
+        const multiPane: MultiPane = {
+            id: uid(),
+            name: "Custom PiP",
+            panes: [{ id: uid(5), sourceType: "slide", position: { x: 0, y: 0, width: 100, height: 100 } }],
+            visible: false
+        }
+        const activeOutputIds = getActiveOutputs($outputs, true, true, true)
+        if (activeOutputIds.length > 0) setOutput("multiPane", multiPane, false, activeOutputIds[0])
+        else setOutput("multiPane", multiPane)
+    }
+
+    function clonePanes(panes: Pane[]): Pane[] {
+        return JSON.parse(JSON.stringify(panes))
+    }
+
+    $: currentOutputId = getActiveOutputs($outputs, true, true, true)[0] || ""
+    $: currentMultiPane = currentOutputId ? $outputs[currentOutputId]?.out?.multiPane : null
+    $: isPipVisible = currentMultiPane?.visible || false
+
+    // Get available sources
+    let cameraList: { value: string; label: string }[] = []
+    $: ndiList = Object.keys($ndiData).map((id) => ({ value: id, label: id }))
+    $: videoList = Object.keys($media).filter((path) => {
+        const ext = path.split('.').pop()?.toLowerCase()
+        return ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext || '')
+    }).map((path) => ({ value: path, label: path.split('/').pop() || path }))
+
+    // Load cameras on mount
+    onMount(async () => {
+        const cameras = await cameraManager.getCamerasList()
+        cameraList = cameras.map((cam: any) => ({ value: cam.id, label: cam.name || `Camera ${cam.id}` }))
+    })
+
+    function getSourceOptions(pane: Pane) {
+        if (pane.sourceType === "camera") return cameraList
+        if (pane.sourceType === "ndi") return ndiList
+        if (pane.sourceType === "video" || pane.sourceType === "image") return videoList
+        // "slide" always mirrors the LIVE clicked slide - no source selection needed
+        return []
+    }
+
+    const paneSourceTypes: { value: PaneSourceType; label: string }[] = [
+        { value: "camera", label: "Camera" },
+        { value: "screen", label: "Screen" },
+        { value: "ndi", label: "NDI" },
+        { value: "blackmagic", label: "Blackmagic" },
+        { value: "video", label: "Video" },
+        { value: "image", label: "Image" },
+        { value: "player", label: "Player" },
+        { value: "slide", label: "Slide/Show" },
+        { value: "transparent", label: "Transparent" }
+    ]
+</script>
+
+<div class="pip-container">
+    <div class="header">
+        <h2><T id="tabs.pip" /></h2>
+        <p class="description"><T id="tabs.pip_info" /></p>
+    </div>
+
+    {#if currentMultiPane}
+        <div class="active-layout">
+            <div class="active-header">
+                <h3>{currentMultiPane.name}</h3>
+                <div class="header-actions">
+                    <MaterialButton 
+                        icon={isPipVisible ? "hide" : "show"} 
+                        on:click={togglePipVisibility}
+                        title={isPipVisible ? "Hide PiP" : "Show PiP"}
+                    >
+                        <T id={isPipVisible ? "actions.hide" : "actions.show"} />
+                    </MaterialButton>
+                    <MaterialButton icon="close" on:click={clearPip}>
+                        <T id="actions.disable" />
+                    </MaterialButton>
+                </div>
+            </div>
+
+            <div class="pane-configs">
+                {#each currentMultiPane.panes as pane, i}
+                    <div class="pane-config">
+                        <div class="pane-header">
+                            <Icon id="pip" size={1.2} />
+                            <span>Pane {i + 1}</span>
+                            <span class="pane-size">{pane.position.width}% × {pane.position.height}%</span>
+                            <MaterialButton icon="delete" title="Hapus pane" on:click={() => removePane(pane.id)} />
+                        </div>
+                        <div class="pane-controls">
+                            <MaterialDropdown
+                                label="Source Type"
+                                value={pane.sourceType}
+                                options={paneSourceTypes}
+                                on:change={(e) => updatePaneSource(pane.id, e.detail)}
+                            />
+                            {#if getSourceOptions(pane).length > 0}
+                                <MaterialDropdown
+                                    label="Source"
+                                    value={pane.sourceId || ""}
+                                    options={getSourceOptions(pane)}
+                                    on:change={(e) => updatePaneSource(pane.id, pane.sourceType, e.detail)}
+                                />
+                            {/if}
+
+                            <!-- position & size (percentage of output) -->
+                            <div class="pane-inputs">
+                                <MaterialNumberInput label="X (%)" value={pane.position.x} min={0} max={100} step={1} on:change={(e) => updatePanePosition(pane.id, "x", e.detail)} />
+                                <MaterialNumberInput label="Y (%)" value={pane.position.y} min={0} max={100} step={1} on:change={(e) => updatePanePosition(pane.id, "y", e.detail)} />
+                                <MaterialNumberInput label="Lebar (%)" value={pane.position.width} min={1} max={100} step={1} on:change={(e) => updatePanePosition(pane.id, "width", e.detail)} />
+                                <MaterialNumberInput label="Tinggi (%)" value={pane.position.height} min={1} max={100} step={1} on:change={(e) => updatePanePosition(pane.id, "height", e.detail)} />
+                            </div>
+
+                            <!-- shape -->
+                            <div class="pane-inputs">
+                                <MaterialNumberInput label="Radius sudut" value={pane.borderRadius || 0} min={0} max={200} step={2} on:change={(e) => updatePaneShape(pane.id, "borderRadius", e.detail)} />
+                                <MaterialNumberInput label="Layer (z)" value={pane.zIndex || 0} min={0} max={20} step={1} on:change={(e) => updatePaneShape(pane.id, "zIndex", e.detail)} />
+                                <MaterialButton icon="theme" variant={pane.shadow ? "contained" : "outlined"} title="Bayangan" on:click={() => togglePaneShadow(pane.id)}>
+                                    Shadow {pane.shadow ? "ON" : "OFF"}
+                                </MaterialButton>
+                            </div>
+                        </div>
+                    </div>
+                {/each}
+
+                <MaterialButton icon="add" variant="outlined" style="width: 100%; justify-content: center;" on:click={addPane}>Tambah Pane</MaterialButton>
+            </div>
+
+            <!-- save current layout as a custom template -->
+            <div class="save-template">
+                <MaterialTextInput label="Nama template" value={templateName} placeholder={currentMultiPane.name} on:change={(e) => (templateName = e.detail)} />
+                <MaterialButton icon="save" variant="outlined" on:click={saveAsTemplate}>Simpan Template</MaterialButton>
+            </div>
+        </div>
+    {/if}
+
+    <div class="layouts">
+        <h3><T id="templates.templates" /></h3>
+        <div class="layout-grid">
+            <button class="layout-card" on:click={newBlankLayout}>
+                <div class="layout-preview">
+                    <Icon id="add" size={2} />
+                </div>
+                <div class="layout-info">
+                    <span class="layout-name">Buat Manual</span>
+                    <span class="layout-description">Mulai dari 1 pane slide, tambah & atur sendiri</span>
+                </div>
+            </button>
+
+            {#each pipLayouts as layout}
+                <button
+                    class="layout-card"
+                    class:active={currentMultiPane?.name === layout.name}
+                    on:click={() => applyPipLayout(layout.id)}
+                >
+                    <div class="layout-preview">
+                        <Icon id="pip" size={2} />
+                    </div>
+                    <div class="layout-info">
+                        <span class="layout-name">{layout.name}</span>
+                        <span class="layout-description">{layout.description}</span>
+                    </div>
+                </button>
+            {/each}
+        </div>
+    </div>
+
+    {#if Object.keys($multiPaneLayouts).length}
+        <div class="layouts" style="margin-top: 16px;">
+            <h3>Template Custom</h3>
+            <div class="layout-grid">
+                {#each Object.values($multiPaneLayouts) as layout (layout.id)}
+                    <div class="layout-card custom" class:active={currentMultiPane?.name === layout.name}>
+                        <button class="card-main" on:click={() => applyCustomLayout(layout.id)}>
+                            <div class="layout-preview">
+                                <Icon id="pip" size={2} />
+                            </div>
+                            <div class="layout-info">
+                                <span class="layout-name">{layout.name}</span>
+                                <span class="layout-description">{layout.panes.length} pane</span>
+                            </div>
+                        </button>
+                        <MaterialButton icon="delete" title="Hapus template" on:click={() => deleteCustomLayout(layout.id)} />
+                    </div>
+                {/each}
+            </div>
+        </div>
+    {/if}
+</div>
+
+<style>
+    .pip-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow-y: auto;
+        padding: 16px;
+    }
+
+    .header {
+        margin-bottom: 16px;
+    }
+
+    .header h2 {
+        color: var(--text);
+        margin: 0 0 4px 0;
+        font-size: 1.2em;
+    }
+
+    .description {
+        color: var(--text);
+        opacity: 0.6;
+        font-size: 0.85em;
+        margin: 0;
+    }
+
+    .active-layout {
+        background: var(--primary-lighter);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 16px;
+    }
+
+    .active-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .active-header h3 {
+        color: var(--text);
+        margin: 0;
+        font-size: 1em;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .pane-configs {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .pane-config {
+        background: var(--primary-darker);
+        border-radius: 6px;
+        padding: 8px 12px;
+    }
+
+    .pane-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        color: var(--text);
+    }
+
+    .pane-size {
+        margin-left: auto;
+        opacity: 0.6;
+        font-size: 0.85em;
+    }
+
+    .pane-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .pane-inputs {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+    .pane-inputs > :global(*) {
+        flex: 1;
+    }
+
+    .save-template {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 12px;
+    }
+    .save-template > :global(:first-child) {
+        flex: 1;
+    }
+
+    .layout-card.custom {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        padding: 0;
+    }
+    .layout-card.custom .card-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: inherit;
+    }
+
+    .layouts h3 {
+        color: var(--text);
+        margin: 0 0 12px 0;
+        font-size: 1em;
+    }
+
+    .layout-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+    }
+
+    .layout-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px;
+        background: var(--primary-lighter);
+        border: 2px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .layout-card:hover {
+        background: var(--primary);
+        border-color: var(--secondary);
+    }
+
+    .layout-card.active {
+        border-color: var(--secondary);
+        background: var(--primary);
+    }
+
+    .layout-preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 40px;
+        margin-bottom: 8px;
+        background: var(--primary-darker);
+        border-radius: 4px;
+    }
+
+    .layout-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .layout-name {
+        color: var(--text);
+        font-size: 0.85em;
+        font-weight: 500;
+    }
+
+    .layout-description {
+        color: var(--text);
+        opacity: 0.6;
+        font-size: 0.7em;
+        margin-top: 2px;
+    }
+</style>

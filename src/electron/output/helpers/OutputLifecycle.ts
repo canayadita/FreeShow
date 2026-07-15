@@ -30,6 +30,9 @@ export class OutputLifecycle {
         if (output.webrtcData && output.webrtcData.streaming) {
             output.webrtcData.streaming = false
         }
+        if (output.rtmpData && output.rtmpData.streaming) {
+            output.rtmpData.streaming = false
+        }
 
         if (OutputHelper.getOutput(id)) {
             CaptureHelper.Lifecycle.stopCapture(id)
@@ -45,7 +48,7 @@ export class OutputLifecycle {
         const outputWindow = this.createOutputWindow({ ...output.bounds, alwaysOnTop: output.alwaysOnTop !== false, kiosk: output.kioskMode === true, backgroundColor: output.transparent ? "#00000000" : "#000000" }, id, output.name, output)
         // const previewWindow = this.createPreviewWindow({ ...output.bounds, backgroundColor: "#000000" })
 
-        OutputHelper.setOutput(id, { window: outputWindow, invisible: output.invisible, boundsLocked: output.boundsLocked, transparent: output.transparent, webrtcData: output.webrtcData })
+        OutputHelper.setOutput(id, { window: outputWindow, invisible: output.invisible, boundsLocked: output.boundsLocked, transparent: output.transparent, webrtcData: output.webrtcData, rtmpData: output.rtmpData })
         // OutputHelper.setOutput(id, { window: outputWindow, previewWindow: previewWindow })
         OutputHelper.Bounds.updateBounds({ id: output.id!, bounds: output.bounds })
 
@@ -57,7 +60,7 @@ export class OutputLifecycle {
             delete this.pendingCaptureStart[id]
 
             if (!CaptureHelper.Lifecycle || !OutputHelper.getOutput(id)) return // window closed before timeout finished
-            CaptureHelper.Lifecycle.startCapture(id, { ndi: output.ndi || false, blackmagic: !!output.blackmagic, webrtc: !!output.webrtcData?.streaming })
+            CaptureHelper.Lifecycle.startCapture(id, { ndi: output.ndi || false, blackmagic: !!output.blackmagic, webrtc: !!output.webrtcData?.streaming, rtmp: !!output.rtmpData?.streaming })
         }, 1200)
 
         // NDI

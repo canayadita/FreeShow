@@ -4,6 +4,7 @@ import { NdiSender } from "../ndi/NdiSender"
 import { getServerData, toServer } from "../servers"
 import { WebRtcHost } from "../webrtc/WebRtcHost"
 import { IcecastSender } from "./IcecastSender"
+import { RtmpSender } from "../rtmp/RtmpSender"
 
 // const isStopping = false
 const channelCount2 = 2
@@ -43,6 +44,11 @@ export async function processAudio(buffer: Buffer, icecast?: any) {
     // Stream system audio through WebRTC/WHIP
     if (WebRtcHost.isRunning()) {
         WebRtcHost.sendAudio(buffer, { sampleRate: sampleRate2, channelCount: channelCount2 })
+    }
+
+    // Stream system audio through RTMP (YouTube live etc.)
+    if (RtmpSender.anyActive()) {
+        RtmpSender.sendAudio(buffer, { sampleRate: sampleRate2, channelCount: channelCount2 })
     }
 }
 

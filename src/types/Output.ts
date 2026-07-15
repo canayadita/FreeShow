@@ -1,5 +1,5 @@
 import type { Cropping, Resolution } from "./Settings"
-import type { OutBackground, OutSlide, OutTransition } from "./Show"
+import type { MultiPane, OutBackground, OutSlide, OutTransition } from "./Show"
 
 export interface Outputs {
     [key: string]: Output
@@ -28,6 +28,8 @@ export interface Output {
     blackmagicData?: any
     webrtc?: boolean
     webrtcData?: any
+    rtmp?: boolean
+    rtmpData?: any
     forcedResolution?: Resolution
     invisible?: boolean
     taskbar?: boolean
@@ -43,6 +45,7 @@ export interface OutData {
     effects?: string[]
     overlays?: string[]
     transition?: null | OutTransition
+    multiPane?: null | MultiPane
 }
 
 export interface Animation {

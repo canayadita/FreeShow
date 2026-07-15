@@ -6,6 +6,7 @@ import type { History } from "../../../types/History"
 import { Main } from "../../../types/IPC/Main"
 import type { DropData, Selected } from "../../../types/Main"
 import type { Item, Slide, SlideAction } from "../../../types/Show"
+import { TEXT_PRESETS } from "../../../types/textPresets"
 import { sendMain } from "../../IPC/main"
 import { changeLayout, changeSlideGroups } from "../../show/slides"
 import { activeDrawerTab, activeEdit, activePage, activePopup, activeProject, activeShow, alertMessage, audioFolders, audioPlaylists, audioStreams, drawerTabsData, editingProjectTemplate, media, mediaFolders, overlays, playerVideos, projects, projectTemplates, scriptureSettings, shows, showsCache, templates, timers } from "../../stores"
@@ -17,6 +18,7 @@ import { addSlideAction, getActionTriggerId } from "../actions/actions"
 import { getActiveScripturesContent, getReferenceText, getScriptureShow, getScriptureSlidesNew } from "../drawer/bible/scripture"
 import { getVimeoName, getYouTubeName, trimPlayerId } from "../drawer/player/playerHelper"
 import { addItem, DEFAULT_ITEM_STYLE } from "../edit/scripts/itemHelpers"
+import { mergeStyleStrings } from "../edit/scripts/textStyle"
 import { clone, removeDuplicates } from "./array"
 import { projectDropFolders } from "./drop"
 import { history, historyAwait } from "./history"
@@ -715,6 +717,49 @@ const slideDrop = {
 
         h.newData = { key: "mics", data: mics, dataIsArray: true, indexes: [layoutSlide] }
         history(h)
+    },
+    // typography preset from the Typography drawer tab, dropped onto a slide
+    text_preset: ({ drag, drop }: Data) => {
+        const presetId = drag.data[0]?.presetId
+        const preset = TEXT_PRESETS.find((a) => a.id === presetId)
+        if (!preset) return
+
+        if (drop.index === undefined) {
+            newToast("Drop preset ke salah satu slide")
+            return
+        }
+
+        const showId = get(activeShow)?.id || ""
+        const slideRef = getLayoutRef(showId)[drop.index]
+        if (!slideRef) return
+
+        const slide = _show(showId).slides([slideRef.id]).get()[0]
+        if (!slide) return
+        if (slide.locked) {
+            newToast("output.state_locked")
+            return
+        }
+
+        const items: Item[] = slide.items || []
+        const textItems = items.map((item, i) => ((item.type || "text") === "text" ? i : -1)).filter((i) => i >= 0)
+        if (!textItems.length) {
+            newToast("Slide ini tidak punya text item")
+            return
+        }
+
+        const location = { page: get(activePage), show: get(activeShow)!, slide: slideRef.id, items: textItems }
+
+        // animation config
+        history({ id: "setItems", newData: { style: { key: "animationConfig", values: [clone(preset.animation)] } }, location })
+
+        // typography styles (merged into each item's existing style)
+        const cssString = [preset.style.lineStyle, preset.style.textStyle].filter(Boolean).join(";")
+        if (cssString) {
+            const values = textItems.map((i) => mergeStyleStrings(items[i].style || "", cssString))
+            history({ id: "setItems", newData: { style: { key: "style", values } }, location })
+        }
+
+        newToast(`Preset '${preset.name}' diterapkan!`)
     },
     slide: ({ drag, drop }: Data, history: History) => {
         const showId = drag.showId || drag.data[0]?.showId || get(activeShow)?.id || ""

@@ -4,10 +4,14 @@
     import { translateText } from "../../../utils/language"
     import { getAccess } from "../../../utils/profile"
     import { deleteAction } from "../../helpers/clipboard"
+    import { _show } from "../../helpers/shows"
     import { history } from "../../helpers/history"
     import { getExtension, getFileName, getMediaType } from "../../helpers/media"
     import { getFirstActiveOutput, getOutputResolution, percentageStylePos } from "../../helpers/output"
     import { createCSSVariables } from "../../helpers/showActions"
+    import { TEXT_PRESETS, type TextPreset } from "../../../../types/textPresets"
+    import { newToast } from "../../../utils/common"
+    import { getLayoutRef } from "../../helpers/show"
     import MaterialButton from "../../inputs/MaterialButton.svelte"
     import SlideItems from "../../slide/SlideItems.svelte"
     import EditboxCropping from "./EditboxCropping.svelte"
@@ -208,6 +212,160 @@
     $: fixedWidth = item?.type === "timer" || item?.type === "clock" ? "font-feature-settings: 'tnum' 1;" : ""
 
     $: noTextMode = ref?.type === "template" && $templates[ref?.id]?.settings?.mode === "item"
+
+    // Drag-and-drop preset from Typography tab
+    let isDragOver = false
+    let dragCounter = 0
+
+    function onDragEnter(e: DragEvent) {
+        if (!e.dataTransfer) return
+        // Only react if a preset is being dragged
+        if (!Array.from(e.dataTransfer.types).includes("application/x-proshow-preset")) return
+        dragCounter++
+        isDragOver = true
+    }
+    function onDragLeave(e: DragEvent) {
+        dragCounter--
+        if (dragCounter <= 0) {
+            dragCounter = 0
+            isDragOver = false
+        }
+    }
+    function onDragOver(e: DragEvent) {
+        if (!e.dataTransfer) return
+        if (!Array.from(e.dataTransfer.types).includes("application/x-proshow-preset")) return
+        e.preventDefault()
+        e.dataTransfer.dropEffect = "copy"
+    }
+    function onDrop(e: DragEvent) {
+        if (!e.dataTransfer) return
+        const presetId = e.dataTransfer.getData("application/x-proshow-preset")
+        if (!presetId) return
+        e.preventDefault()
+        e.stopPropagation()
+        isDragOver = false
+        dragCounter = 0
+
+        const preset = TEXT_PRESETS.find((p) => p.id === presetId)
+        if (!preset) return
+
+        // Only allow drop on text items
+        if (!item || (item.type || "text") !== "text") {
+            newToast("Preset hanya untuk text item")
+            return
+        }
+
+        // Make sure the dropped item is the selected one
+        activeEdit.update((ae) => {
+            if (!ae.items.includes(index)) ae.items = [index]
+            return ae
+        })
+
+        const slideId = getCurrentSlideId()
+        if (!slideId || !$activeShow) return
+
+        // 1) animation config
+        history({
+            id: "setItems",
+            newData: { style: { key: "animationConfig", values: [preset.animation] } },
+            location: { page: "edit", show: $activeShow, slide: slideId, items: [index] },
+        })
+
+        // 2) per-line typography (merged into item.style)
+        if (preset.style.lineStyle) {
+            const currentStyle = getCurrentStyleForItem(slideId, index)
+            const newStyle = buildStyleWithUpdates(currentStyle, preset.style.lineStyle)
+            if (newStyle !== null) {
+                history({
+                    id: "setItems",
+                    newData: { style: { key: "style", values: [newStyle] } },
+                    location: { page: "edit", show: $activeShow, slide: slideId, items: [index] },
+                })
+            }
+        }
+
+        // 3) per-text typography
+        if (preset.style.textStyle) {
+            const currentStyle = getCurrentStyleForItem(slideId, index)
+            const newStyle = buildStyleWithUpdates(currentStyle, preset.style.textStyle)
+            if (newStyle !== null) {
+                history({
+                    id: "setItems",
+                    newData: { style: { key: "style", values: [newStyle] } },
+                    location: { page: "edit", show: $activeShow, slide: slideId, items: [index] },
+                })
+            }
+        }
+
+        newToast(`Preset '${preset.name}' diterapkan!`)
+    }
+
+    function getCurrentStyleForItem(slideId: string, itemIndex: number): string {
+        const slide = _show().slides([slideId]).get()[0]
+        return slide?.items?.[itemIndex]?.style || ""
+    }
+
+    function buildStyleWithUpdates(oldStyle: string, cssString: string): string | null {
+        if (!cssString) return null
+        let style = oldStyle || ""
+        cssString
+            .split(";")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .forEach((statement) => {
+                const idx = statement.indexOf(":")
+                if (idx < 0) return
+                const key = statement.slice(0, idx).trim()
+                const value = statement.slice(idx + 1).trim()
+                if (!key || !value) return
+                style = addStyleString(style, [key, value])
+            })
+        return style
+    }
+
+    function getCurrentSlideId(): string | null {
+        if ($activeEdit.slide === null || $activeEdit.slide === undefined) return null
+        const ref = getLayoutRef()
+        return ref[$activeEdit.slide]?.id || null
+    }
+
+    function addStyleString(oldStyle: string, style: any[]): string {
+        if (!oldStyle) return style[1] !== null ? style.join(":") + ";" : ""
+        if (typeof oldStyle !== "string") return ""
+        let array: string[] = oldStyle.split(";")
+        if (!array[array.length - 1].length) array.pop()
+        array = array.filter((s) => s.split(":")[0].trim() !== style[0] && s.length > 0)
+        if (style[0] === "font") {
+            array.unshift(style.join(":"))
+        } else if (style[1] !== null) array.push(style.join(":"))
+        let newStyle: string = array.join(";")
+        if (newStyle.slice(-1) !== ";") newStyle += ";"
+        return newStyle
+    }
+
+    function applyTextStyleString(cssString: string) {
+        if (!cssString) return
+        const slideId = getCurrentSlideId()
+        if (!slideId || !$activeShow) return
+        cssString
+            .split(";")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .forEach((statement) => {
+                const idx = statement.indexOf(":")
+                if (idx < 0) return
+                const key = statement.slice(0, idx).trim()
+                const value = statement.slice(idx + 1).trim()
+                if (!key || !value) return
+                const oldStyle = item?.style || ""
+                const newStyle = addStyleString(oldStyle, [key, value])
+                history({
+                    id: "setItems",
+                    newData: { style: { key: "style", values: [newStyle] } },
+                    location: { page: "edit", show: $activeShow, slide: slideId, items: [index] },
+                })
+            })
+    }
 </script>
 
 <!-- on:mouseup={() => chordUp({ showRef: ref, itemIndex: index, item })} -->
@@ -222,10 +380,15 @@
     class:chords={chordsMode}
     class:isOptimized
     class:showOverflow={item?.type === "table" || cropActive}
+    class:preset-drag-over={isDragOver}
     style="{plain ? 'width: 100%;' : `${getCustomStyle(item?.style || '', customOutputId)}; outline: ${3 / ratio}px solid rgb(255 255 255 / 0.2);z-index: ${index + 1 + ($activeEdit.items.includes(index) ? 100 : 0)};${filter ? 'filter: ' + filter + ';' : ''}${backdropFilter ? 'backdrop-filter: ' + backdropFilter + ';' : ''}`}{cssVariables}{fixedWidth}"
     data-index={index}
     on:mousedown={mousedown}
     on:dblclick={dblclick}
+    on:dragenter={onDragEnter}
+    on:dragleave={onDragLeave}
+    on:dragover={onDragOver}
+    on:drop={onDrop}
 >
     {#if !plain}
         <EditboxPlain {item} {index} {ratio} hideMovebox={cropActive} />
@@ -273,6 +436,31 @@
     .item.selected :global(.align) {
         outline: 5px solid var(--secondary-opacity);
         overflow: visible !important;
+    }
+
+    /* Drag-over visual feedback for preset drop targets */
+    .item.preset-drag-over {
+        outline: 3px dashed #2563eb !important;
+        outline-offset: 4px;
+        background-color: rgba(37, 99, 235, 0.08);
+        box-shadow: 0 0 0 9999px rgba(37, 99, 235, 0.05);
+    }
+    .item.preset-drag-over::before {
+        content: "Drop preset di sini";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(37, 99, 235, 0.95);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        pointer-events: none;
+        z-index: 9999;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     .item.chords {

@@ -5,7 +5,7 @@ import type { Overlay, Template } from "../../types/Show"
 import { DEFAULT_ITEM_STYLE } from "../components/edit/scripts/itemHelpers"
 import { setShow } from "../components/helpers/setShow"
 import { activePopup, audioFolders, deletedDefaults, effects, folders, language, mediaFolders, outputs, overlays, projects, remotePassword, scriptures, shows, templates, variables } from "../stores"
-import { stageShows, templateCategories } from "./../stores"
+import { overlayCategories, stageShows, templateCategories } from "./../stores"
 import { translateText } from "./language"
 import { save } from "./save"
 
@@ -95,6 +95,25 @@ export function createData(paths: MainFilePaths) {
                 api: true,
                 id: "7bcaa2f2e77739d5-01",
                 name: "Bibel 2011 Nynorsk"
+            }
+            return a
+        })
+    }
+
+    // Indonesian: set Terjemahan Baru as default local bible
+    if (get(language) === "id_ID") {
+        scriptures.update((a) => {
+            // Clear API bibles for Indonesian users, use local bundled bibles instead
+            a = {}
+            a.tb = {
+                name: "Terjemahan Baru",
+                id: "tb",
+                copyright: "© Lembaga Alkitab Indonesia. Digunakan untuk ibadah."
+            }
+            a.bis = {
+                name: "Bahasa Indonesia Sehari-hari",
+                id: "bis",
+                copyright: "© Lembaga Alkitab Indonesia. Digunakan untuk ibadah."
             }
             return a
         })
@@ -204,12 +223,22 @@ export function setExampleOverlays() {
         return a
     })
 
+    ensureOverlayCategories()
     overlays.set({ ...get(overlays), ...getDefaultOverlays() })
+}
+
+function ensureOverlayCategories() {
+    overlayCategories.update((a) => {
+        if (!a.lower_thirds) a.lower_thirds = { default: true, name: "Lower Thirds", icon: "text" }
+        return a
+    })
 }
 
 function createDefaultOverlays() {
     const deletedIds = get(deletedDefaults).overlays || []
     const defaultOverlays = getDefaultOverlays()
+
+    ensureOverlayCategories()
 
     overlays.update((a) => {
         Object.keys(defaultOverlays).forEach((id) => {
@@ -228,13 +257,13 @@ function getDefaultOverlays() {
     a.watermark = {
         isDefault: true,
         name: translateText("example.watermark"),
-        color: "#F0008C",
+        color: "#2563EB",
         category: "notice",
         items: [
             {
                 style: "top:870px;left:1248px;height:170px;width:630px;",
                 align: "align-items:flex-end;",
-                lines: [{ align: "text-align: right;", text: [{ value: "FreeShow", style: "font-size:50px;font-weight:bold;color:#F0008C;" }] }]
+                lines: [{ align: "text-align: right;", text: [{ value: "ProShow", style: "font-size:50px;font-weight:bold;color:#2563EB;" }] }]
             }
         ]
     }
@@ -323,6 +352,270 @@ function getDefaultOverlays() {
     //     category: "visuals",
     //     items: [{ style: "left: 0px;width: calc(1920px * (var(--variable-slide) / var(--variable-slides)));height:20px;top:1060px;background-color:#FF851B;", lines: [{ align: "", text: [{ value: "", style: "" }] }] }]
     // }
+
+    // LOWER THIRDS
+
+    const ltSlide = () => ({ transition: { type: "slide" as const, duration: 500, easing: "cubic" } })
+    const ltFade = () => ({ transition: { type: "fade" as const, duration: 600, easing: "sine" } })
+
+    // Broadcast
+    a.lt_broadcast_blue = {
+        isDefault: true,
+        name: "LT Broadcast Blue",
+        color: "#0b57a2",
+        category: "lower_thirds",
+        items: [
+            { style: "top:880px;left:0px;height:130px;width:1030px;background:linear-gradient(90deg, #082f5c 0%, #0b57a2 85%, transparent 100%);box-shadow: 0 4px 18px rgb(0 0 0 / 0.5);", actions: ltSlide },
+            { style: "top:880px;left:0px;height:130px;width:14px;background-color:#74cbfb;", actions: ltSlide },
+            {
+                style: "top:888px;left:50px;height:70px;width:900px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Nama Pembicara", style: "font-family: Arial;font-size: 58px;font-weight: bold;text-shadow: 0 0 #000000;" }] }]
+            },
+            {
+                style: "top:955px;left:50px;height:45px;width:900px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "JABATAN / TEMA", style: "font-family: Arial;font-size: 32px;letter-spacing: 2px;color:#a8d6f7;text-transform:uppercase;text-shadow: 0 0 #000000;" }] }]
+            }
+        ]
+    }
+    a.lt_broadcast_red = {
+        isDefault: true,
+        name: "LT Broadcast Red",
+        color: "#c0182c",
+        category: "lower_thirds",
+        items: [
+            { style: "top:870px;left:80px;height:80px;width:850px;background-color:#f4f4f4;box-shadow: 0 4px 16px rgb(0 0 0 / 0.45);", actions: ltSlide },
+            { style: "top:950px;left:80px;height:52px;width:560px;background-color:#c0182c;", actions: ltSlide },
+            {
+                style: "top:878px;left:105px;height:64px;width:800px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Nama Lengkap", style: "font-family: Arial;font-size: 52px;font-weight: bold;color:#141414;text-shadow: 0 0 transparent;" }] }]
+            },
+            {
+                style: "top:955px;left:105px;height:42px;width:520px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "KETERANGAN SINGKAT", style: "font-family: Arial;font-size: 28px;letter-spacing: 3px;text-transform:uppercase;text-shadow: 0 0 #000000;" }] }]
+            }
+        ]
+    }
+    a.lt_live_badge = {
+        isDefault: true,
+        name: "LT Live Badge",
+        color: "#e11d48",
+        category: "lower_thirds",
+        items: [
+            { style: "top:880px;left:80px;height:78px;width:170px;background-color:#e11d48;border-radius:8px 0 0 8px;box-shadow: 0 4px 14px rgb(0 0 0 / 0.5);", actions: ltFade },
+            {
+                style: "top:896px;left:80px;height:50px;width:170px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: center;", text: [{ value: "● LIVE", style: "font-family: Arial;font-size: 36px;font-weight: bold;text-shadow: 0 0 #000000;" }] }]
+            },
+            { style: "top:880px;left:250px;height:78px;width:760px;background-color:rgb(10 10 14 / 0.85);border-radius:0 8px 8px 0;", actions: ltSlide },
+            {
+                style: "top:896px;left:275px;height:50px;width:710px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Ibadah Minggu — Pukul 09.00 WIB", style: "font-family: Arial;font-size: 36px;text-shadow: 0 0 #000000;" }] }]
+            }
+        ]
+    }
+
+    // Minimal modern
+    a.lt_minimal_line = {
+        isDefault: true,
+        name: "LT Minimal Line",
+        color: "#facc15",
+        category: "lower_thirds",
+        items: [
+            { style: "top:875px;left:90px;height:120px;width:8px;background-color:#facc15;border-radius:4px;", actions: ltFade },
+            {
+                style: "top:880px;left:125px;height:70px;width:900px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Nama Pembicara", style: "font-size: 60px;font-weight: 600;text-shadow: 0 2px 12px rgb(0 0 0 / 0.9);" }] }]
+            },
+            {
+                style: "top:950px;left:125px;height:45px;width:900px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Keterangan / jabatan", style: "font-size: 34px;font-weight: 300;opacity: 0.85;text-shadow: 0 2px 10px rgb(0 0 0 / 0.9);" }] }]
+            }
+        ]
+    }
+    a.lt_minimal_dark = {
+        isDefault: true,
+        name: "LT Minimal Dark",
+        color: "#222222",
+        category: "lower_thirds",
+        items: [
+            { style: "top:872px;left:80px;height:128px;width:880px;background-color:rgb(12 12 16 / 0.78);border-radius:14px;box-shadow: 0 6px 24px rgb(0 0 0 / 0.45);", actions: ltFade },
+            {
+                style: "top:886px;left:115px;height:64px;width:810px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Judul / Nama", style: "font-size: 52px;font-weight: 600;text-shadow: 0 0 #000000;" }] }]
+            },
+            {
+                style: "top:948px;left:115px;height:42px;width:810px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Informasi tambahan", style: "font-size: 30px;font-weight: 300;color:#c9c9cf;text-shadow: 0 0 #000000;" }] }]
+            }
+        ]
+    }
+    a.lt_minimal_underline = {
+        isDefault: true,
+        name: "LT Minimal Underline",
+        color: "#ffffff",
+        category: "lower_thirds",
+        items: [
+            {
+                style: "top:865px;left:90px;height:75px;width:1000px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Nama Besar", style: "font-size: 64px;font-weight: bold;letter-spacing: 1px;text-shadow: 0 2px 14px rgb(0 0 0 / 0.9);" }] }]
+            },
+            { style: "top:948px;left:95px;height:4px;width:340px;background:linear-gradient(90deg,#ffffff,transparent);", actions: ltSlide },
+            {
+                style: "top:960px;left:95px;height:40px;width:900px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "SUBJUDUL KECIL", style: "font-size: 28px;letter-spacing: 4px;text-transform:uppercase;opacity:0.85;text-shadow: 0 2px 10px rgb(0 0 0 / 0.9);" }] }]
+            }
+        ]
+    }
+
+    // Glass & gradient
+    a.lt_glass = {
+        isDefault: true,
+        name: "LT Glass",
+        color: "#9bb8d3",
+        category: "lower_thirds",
+        items: [
+            { style: "top:868px;left:80px;height:132px;width:900px;background-color:rgb(255 255 255 / 0.14);backdrop-filter: blur(18px);border:1px solid rgb(255 255 255 / 0.25);border-radius:16px;box-shadow: 0 8px 28px rgb(0 0 0 / 0.35);", actions: ltFade },
+            {
+                style: "top:884px;left:118px;height:64px;width:830px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Nama Pembicara", style: "font-size: 52px;font-weight: 600;text-shadow: 0 2px 8px rgb(0 0 0 / 0.6);" }] }]
+            },
+            {
+                style: "top:946px;left:118px;height:42px;width:830px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Tema / keterangan", style: "font-size: 30px;font-weight: 300;opacity:0.9;text-shadow: 0 2px 8px rgb(0 0 0 / 0.6);" }] }]
+            }
+        ]
+    }
+    a.lt_gradient = {
+        isDefault: true,
+        name: "LT Gradient",
+        color: "#7c3aed",
+        category: "lower_thirds",
+        items: [
+            { style: "top:875px;left:0px;height:125px;width:980px;background:linear-gradient(90deg,#4338ca 0%,#7c3aed 60%,transparent 100%);border-radius:0 62px 62px 0;box-shadow: 0 6px 22px rgb(0 0 0 / 0.45);", actions: ltSlide },
+            {
+                style: "top:888px;left:60px;height:62px;width:840px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Nama / Judul", style: "font-size: 52px;font-weight: bold;text-shadow: 0 0 #000000;" }] }]
+            },
+            {
+                style: "top:950px;left:60px;height:40px;width:840px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Keterangan tambahan", style: "font-size: 30px;font-weight: 300;color:#ddd6fe;text-shadow: 0 0 #000000;" }] }]
+            }
+        ]
+    }
+    a.lt_gold = {
+        isDefault: true,
+        name: "LT Gold Elegant",
+        color: "#d4af37",
+        category: "lower_thirds",
+        items: [
+            { style: "top:872px;left:80px;height:128px;width:880px;background-color:rgb(16 14 10 / 0.85);border-left:6px solid #d4af37;box-shadow: 0 6px 24px rgb(0 0 0 / 0.5);", actions: ltSlide },
+            { style: "top:872px;left:86px;height:2px;width:874px;background:linear-gradient(90deg,#d4af37,transparent);", actions: ltFade },
+            { style: "top:998px;left:86px;height:2px;width:874px;background:linear-gradient(90deg,#d4af37,transparent);", actions: ltFade },
+            {
+                style: "top:886px;left:120px;height:62px;width:800px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Nama Terhormat", style: "font-size: 50px;font-weight: 600;color:#f5e6c4;text-shadow: 0 0 #000000;" }] }]
+            },
+            {
+                style: "top:948px;left:120px;height:42px;width:800px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "GELAR / JABATAN", style: "font-size: 28px;letter-spacing: 4px;color:#d4af37;text-transform:uppercase;text-shadow: 0 0 #000000;" }] }]
+            }
+        ]
+    }
+
+    // Worship
+    a.lt_worship_song = {
+        isDefault: true,
+        name: "LT Song Title",
+        color: "#38bdf8",
+        category: "lower_thirds",
+        items: [
+            { style: "top:930px;left:0px;height:150px;width:1920px;background:linear-gradient(0deg, rgb(0 0 0 / 0.75) 0%, transparent 100%);", actions: ltFade },
+            {
+                style: "top:960px;left:90px;height:60px;width:1400px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Judul Lagu", style: "font-size: 50px;font-weight: 600;text-shadow: 0 2px 10px rgb(0 0 0 / 0.8);" }] }]
+            },
+            {
+                style: "top:1020px;left:90px;height:40px;width:1400px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: left;", text: [{ value: "Penulis / Artis — © Publisher", style: "font-size: 28px;font-weight: 300;opacity:0.8;text-shadow: 0 2px 10px rgb(0 0 0 / 0.8);" }] }]
+            }
+        ]
+    }
+    a.lt_scripture_ref = {
+        isDefault: true,
+        name: "LT Scripture Ref",
+        color: "#8b5cf6",
+        category: "lower_thirds",
+        items: [
+            { style: "top:920px;left:1330px;height:80px;width:510px;background-color:rgb(20 16 34 / 0.88);border-right:6px solid #8b5cf6;border-radius:10px 0 0 10px;box-shadow: 0 4px 18px rgb(0 0 0 / 0.5);", actions: ltSlide },
+            {
+                style: "top:936px;left:1355px;height:52px;width:460px;",
+                actions: ltSlide(),
+                type: "text",
+                lines: [{ align: "text-align: right;", text: [{ value: "Yohanes 3:16 (TB)", style: "font-size: 40px;font-weight: 600;color:#e9e2ff;text-shadow: 0 0 #000000;" }] }]
+            }
+        ]
+    }
+    a.lt_speaker_theme = {
+        isDefault: true,
+        name: "LT Speaker & Theme",
+        color: "#10b981",
+        category: "lower_thirds",
+        items: [
+            { style: "top:855px;left:660px;height:4px;width:600px;background:linear-gradient(90deg,transparent,#10b981,transparent);", actions: ltFade },
+            {
+                style: "top:872px;left:460px;height:66px;width:1000px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: center;", text: [{ value: "Pdt. Nama Pembicara", style: "font-size: 54px;font-weight: 600;text-shadow: 0 2px 12px rgb(0 0 0 / 0.9);" }] }]
+            },
+            {
+                style: "top:940px;left:460px;height:44px;width:1000px;",
+                actions: ltFade(),
+                type: "text",
+                lines: [{ align: "text-align: center;", text: [{ value: "“Tema Khotbah Hari Ini”", style: "font-size: 32px;font-style: italic;font-weight: 300;opacity:0.9;text-shadow: 0 2px 10px rgb(0 0 0 / 0.9);" }] }]
+            }
+        ]
+    }
 
     return a
 }
@@ -792,6 +1085,78 @@ function getDefaultTemplates() {
                     { align: "text-align: left", text: [{ value: "Bullet 2", style: "font-size: 100px;font-weight: bold;line-height:1.2em;" }] },
                     { align: "text-align: left", text: [{ value: "Bullet 3", style: "font-size: 100px;font-weight: bold;line-height:1.2em;" }] }
                 ]
+            }
+        ]
+    }
+
+    // PICTURE IN PICTURE (text in a smaller box, leaving room for camera/video feed)
+    a.pipBottomRight = {
+        isDefault: true,
+        name: "PiP Kanan Bawah",
+        color: "#0ea5e9",
+        category: "presentation",
+        items: [
+            {
+                style: "top:620px;left:1130px;width:740px;height:400px;background-color:rgb(8 10 16 / 0.75);border-radius:18px;padding:30px;",
+                align: "",
+                textFit: "shrinkToFit",
+                lines: [{ align: "", text: [{ value: "1", style: "font-size: 60px;font-weight: bold;" }] }]
+            }
+        ]
+    }
+    a.pipBottomLeft = {
+        isDefault: true,
+        name: "PiP Kiri Bawah",
+        color: "#0ea5e9",
+        category: "presentation",
+        items: [
+            {
+                style: "top:620px;left:50px;width:740px;height:400px;background-color:rgb(8 10 16 / 0.75);border-radius:18px;padding:30px;",
+                align: "",
+                textFit: "shrinkToFit",
+                lines: [{ align: "", text: [{ value: "1", style: "font-size: 60px;font-weight: bold;" }] }]
+            }
+        ]
+    }
+    a.pipTopRight = {
+        isDefault: true,
+        name: "PiP Kanan Atas",
+        color: "#0ea5e9",
+        category: "presentation",
+        items: [
+            {
+                style: "top:60px;left:1130px;width:740px;height:400px;background-color:rgb(8 10 16 / 0.75);border-radius:18px;padding:30px;",
+                align: "",
+                textFit: "shrinkToFit",
+                lines: [{ align: "", text: [{ value: "1", style: "font-size: 60px;font-weight: bold;" }] }]
+            }
+        ]
+    }
+    a.pipSideRight = {
+        isDefault: true,
+        name: "PiP Panel Samping",
+        color: "#0ea5e9",
+        category: "presentation",
+        items: [
+            {
+                style: "top:0px;left:1270px;width:650px;height:1080px;background:linear-gradient(270deg, rgb(8 10 16 / 0.92) 85%, transparent 100%);padding:60px 40px 60px 80px;",
+                align: "",
+                textFit: "shrinkToFit",
+                lines: [{ align: "text-align: left;", text: [{ value: "1", style: "font-size: 56px;font-weight: bold;" }] }]
+            }
+        ]
+    }
+    a.pipBottomBar = {
+        isDefault: true,
+        name: "PiP Strip Bawah",
+        color: "#0ea5e9",
+        category: "presentation",
+        items: [
+            {
+                style: "top:900px;left:0px;width:1920px;height:180px;background:linear-gradient(0deg, rgb(8 10 16 / 0.85) 0%, rgb(8 10 16 / 0.6) 80%, transparent 100%);padding:20px 60px;",
+                align: "",
+                textFit: "shrinkToFit",
+                lines: [{ align: "", text: [{ value: "1", style: "font-size: 64px;font-weight: bold;" }] }]
             }
         ]
     }

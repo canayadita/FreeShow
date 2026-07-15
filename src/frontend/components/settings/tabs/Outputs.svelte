@@ -4,13 +4,14 @@
     import { BLACKMAGIC, NDI, OUTPUT } from "../../../../types/Channels"
     import { Option } from "../../../../types/Main"
     import type { Output } from "../../../../types/Output"
+    import type { MultiPane, Pane, PaneSourceType } from "../../../../types/Show"
     import { AudioAnalyser } from "../../../audio/audioAnalyser"
-    import { activePage, activePopup, activeStage, activeStyle, alertMessage, currentOutputSettings, ndiData, os, outputDisplay, outputs, saved, settingsTab, stageShows, styles, toggleOutputEnabled } from "../../../stores"
+    import { activePage, activePopup, activeStage, activeStyle, alertMessage, currentOutputSettings, multiPaneLayouts, ndiData, os, outputDisplay, outputs, saved, settingsTab, stageShows, styles, toggleOutputEnabled } from "../../../stores"
     import { newToast } from "../../../utils/common"
     import { translateText } from "../../../utils/language"
     import { destroy, receive, send } from "../../../utils/request"
     import { clone, keysToID, sortByName, sortObject } from "../../helpers/array"
-    import { refreshOut, startStreaming, stopStreaming, toggleOutput, updateOutputWebrtcData } from "../../helpers/output"
+    import { refreshOut, setOutput, startRtmpStreaming, startStreaming, stopRtmpStreaming, stopStreaming, toggleOutput, updateOutputRtmpData, updateOutputWebrtcData } from "../../helpers/output"
     import InputRow from "../../input/InputRow.svelte"
     import Title from "../../input/Title.svelte"
     import MaterialButton from "../../inputs/MaterialButton.svelte"
@@ -51,7 +52,7 @@
             setTimeout(refreshOut)
         }
 
-        if (key === "ndi" || key === "webrtc") {
+        if (key === "ndi" || key === "webrtc" || key === "rtmp") {
             if (value) {
                 newToast("toast.output_capture_enabled")
 
@@ -63,7 +64,8 @@
                 }
 
                 if (key === "ndi") ndiMenuOpened = true
-                else webrtcMenuOpened = true
+                else if (key === "webrtc") webrtcMenuOpened = true
+                else rtmpMenuOpened = true
             }
         } else if (key === "blackmagic") {
             if (value === true) {
@@ -121,7 +123,7 @@
                 }
             }
 
-            if (key === "webrtc") {
+            if (key === "webrtc" || key === "rtmp") {
                 if (!value) AudioAnalyser.recorderDeactivate()
             }
 
@@ -141,7 +143,7 @@
 
             if (["blackmagic"].includes(key)) {
                 send(OUTPUT, ["SET_VALUE"], { id: outputId, key, value: a[outputId] })
-            } else if (["alwaysOnTop", "kioskMode", "transparent", "invisible", "ndi", "webrtc"].includes(key)) {
+            } else if (["alwaysOnTop", "kioskMode", "transparent", "invisible", "ndi", "webrtc", "rtmp"].includes(key)) {
                 send(OUTPUT, ["SET_VALUE"], { id: outputId, key, value })
             }
 
@@ -208,6 +210,37 @@
 
         saved.set(false)
     }
+
+    // rtmp (YouTube live etc.)
+    function updateRtmpData(e: any, key: string) {
+        let id = currentOutput?.id
+        if (!id) return
+
+        let value = e?.detail?.id ?? e
+        const updated = updateOutputRtmpData(id, key, value)
+        if (!updated) return
+
+        saved.set(false)
+    }
+
+    const rtmpResolutions = [
+        { value: "1920x1080", label: "1080p (1920×1080)" },
+        { value: "1280x720", label: "720p (1280×720)" },
+        { value: "854x480", label: "480p (854×480)" }
+    ]
+    const rtmpFramerates = [
+        { value: "24", label: "24 fps" },
+        { value: "25", label: "25 fps" },
+        { value: "30", label: "30 fps" },
+        { value: "50", label: "50 fps" },
+        { value: "60", label: "60 fps" }
+    ]
+    const rtmpBitrates = [
+        { value: "2500", label: "2500 kbps (480p/720p)" },
+        { value: "4500", label: "4500 kbps (1080p)" },
+        { value: "6000", label: "6000 kbps (1080p tajam)" },
+        { value: "9000", label: "9000 kbps (1080p60)" }
+    ]
 
     const framerates = [
         { value: "10", label: "10 fps" },
@@ -334,6 +367,100 @@
     let ndiMenuOpened = false
     let bmdMenuOpened = false
     let webrtcMenuOpened = false
+    let rtmpMenuOpened = false
+    let pipMenuOpened = false
+
+    // Picture-in-Picture
+    const paneSourceTypes: { value: PaneSourceType; label: string }[] = [
+        { value: "camera", label: "Camera" },
+        { value: "screen", label: "Screen" },
+        { value: "ndi", label: "NDI" },
+        { value: "blackmagic", label: "Blackmagic" },
+        { value: "video", label: "Video" },
+        { value: "image", label: "Image" },
+        { value: "player", label: "Player" },
+        { value: "transparent", label: "Transparent" }
+    ]
+
+    const pipLayouts = [
+        { value: "pipBottomRight", label: "PiP Bottom Right" },
+        { value: "pipBottomLeft", label: "PiP Bottom Left" },
+        { value: "pipTopRight", label: "PiP Top Right" },
+        { value: "pipSideRight", label: "PiP Side Right" },
+        { value: "pipBottomBar", label: "PiP Bottom Bar" },
+        { value: "splitVertical", label: "Split Vertical" },
+        { value: "splitHorizontal", label: "Split Horizontal" },
+        { value: "grid2x2", label: "Grid 2x2" }
+    ]
+
+    function getPipLayoutPanes(layoutId: string): Pane[] {
+        const layouts: { [key: string]: Pane[] } = {
+            pipBottomRight: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 65, height: 100 } },
+                { id: "2", sourceType: "camera", position: { x: 65, y: 60, width: 32, height: 35 }, zIndex: 1, shadow: true, borderRadius: 10 }
+            ],
+            pipBottomLeft: [
+                { id: "1", sourceType: "slide", position: { x: 35, y: 0, width: 65, height: 100 } },
+                { id: "2", sourceType: "camera", position: { x: 3, y: 60, width: 32, height: 35 }, zIndex: 1, shadow: true, borderRadius: 10 }
+            ],
+            pipTopRight: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 65, height: 60 } },
+                { id: "2", sourceType: "camera", position: { x: 65, y: 5, width: 32, height: 35 }, zIndex: 1, shadow: true, borderRadius: 10 }
+            ],
+            pipSideRight: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 65, height: 100 } },
+                { id: "2", sourceType: "camera", position: { x: 65, y: 0, width: 35, height: 100 }, zIndex: 1 }
+            ],
+            pipBottomBar: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 100, height: 80 } },
+                { id: "2", sourceType: "camera", position: { x: 0, y: 80, width: 100, height: 20 }, zIndex: 1 }
+            ],
+            splitVertical: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 50, height: 100 } },
+                { id: "2", sourceType: "camera", position: { x: 50, y: 0, width: 50, height: 100 }, zIndex: 1 }
+            ],
+            splitHorizontal: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 100, height: 50 } },
+                { id: "2", sourceType: "camera", position: { x: 0, y: 50, width: 100, height: 50 }, zIndex: 1 }
+            ],
+            grid2x2: [
+                { id: "1", sourceType: "slide", position: { x: 0, y: 0, width: 50, height: 50 } },
+                { id: "2", sourceType: "camera", position: { x: 50, y: 0, width: 50, height: 50 }, zIndex: 1 },
+                { id: "3", sourceType: "screen", position: { x: 0, y: 50, width: 50, height: 50 }, zIndex: 1 },
+                { id: "4", sourceType: "video", position: { x: 50, y: 50, width: 50, height: 50 }, zIndex: 1 }
+            ]
+        }
+        return layouts[layoutId] || []
+    }
+
+    function applyPipLayout(layoutId: string) {
+        const panes = getPipLayoutPanes(layoutId)
+        const multiPane: MultiPane = {
+            id: uid(),
+            name: pipLayouts.find((l) => l.value === layoutId)?.label || "PiP Layout",
+            panes
+        }
+        setOutput("multiPane", multiPane)
+    }
+
+    function clearPip() {
+        setOutput("multiPane", null)
+    }
+
+    function updatePaneSource(paneId: string, sourceType: PaneSourceType, sourceId?: string) {
+        if (!currentOutput?.id) return
+        const currentMultiPane = $outputs[currentOutput.id]?.out?.multiPane
+        if (!currentMultiPane) return
+
+        const updatedPanes = currentMultiPane.panes.map((p) => {
+            if (p.id === paneId) {
+                return { ...p, sourceType, sourceId }
+            }
+            return p
+        })
+
+        setOutput("multiPane", { ...currentMultiPane, panes: updatedPanes })
+    }
 </script>
 
 {#if outputsList.filter((a) => !a.stageOutput).length > 1 || !currentOutput?.enabled || currentOutput?.stageOutput}
@@ -381,7 +508,7 @@
     <svelte:fragment slot="menu">
         {#if currentOutput}
             <InputRow>
-                <MaterialTextInput label="inputs.name" value={currentOutput.ndiData?.name || `FreeShow NDI${currentOutput.name ? ` - ${currentOutput.name}` : ""}`} defaultValue={`FreeShow NDI${currentOutput.name ? ` - ${currentOutput.name}` : ""}`} on:change={(e) => updateNdiData(e.detail, "name")} />
+                <MaterialTextInput label="inputs.name" value={currentOutput.ndiData?.name || `ProShow NDI${currentOutput.name ? ` - ${currentOutput.name}` : ""}`} defaultValue={`ProShow NDI${currentOutput.name ? ` - ${currentOutput.name}` : ""}`} on:change={(e) => updateNdiData(e.detail, "name")} />
                 <MaterialTextInput label="inputs.group" title="settings.comma_seperated" value={currentOutput.ndiData?.groups || ""} defaultValue="" placeholder="public" on:change={(e) => updateNdiData(e.detail, "groups")} />
             </InputRow>
 
@@ -446,6 +573,61 @@
         </MaterialButton>
     </div>
 {/if}
+
+<!-- RTMP / YouTube Live -->
+<Title label="YouTube / RTMP Live" icon="record" />
+
+<InputRow arrow={currentOutput?.rtmp} bind:open={rtmpMenuOpened}>
+    <MaterialToggleSwitch label={translateText("actions.enable_specific", null, ["YouTube / RTMP"])} style="width: 100%;" checked={currentOutput?.rtmp} defaultValue={false} on:change={(e) => updateOutput("rtmp", e.detail)} />
+
+    <svelte:fragment slot="menu">
+        {#if currentOutput}
+            <MaterialTextInput label="RTMP URL" value={currentOutput.rtmpData?.url || ""} placeholder="rtmp://a.rtmp.youtube.com/live2" on:change={(e) => updateRtmpData(e.detail, "url")} />
+            <MaterialTextInput label="Stream Key" value={currentOutput.rtmpData?.key || ""} placeholder="xxxx-xxxx-xxxx-xxxx-xxxx" on:change={(e) => updateRtmpData(e.detail, "key")} />
+            <InputRow>
+                <MaterialDropdown label="settings.resolution" value={currentOutput.rtmpData?.resolution || "1920x1080"} options={rtmpResolutions} on:change={(e) => updateRtmpData(e.detail, "resolution")} />
+                <MaterialDropdown label="settings.frame_rate" value={String(currentOutput.rtmpData?.fps || 30)} options={rtmpFramerates} on:change={(e) => updateRtmpData(Number(e.detail?.id ?? e.detail), "fps")} />
+            </InputRow>
+            <MaterialDropdown label="Video Bitrate" value={String(currentOutput.rtmpData?.videoBitrate || 4500)} options={rtmpBitrates} on:change={(e) => updateRtmpData(Number(e.detail?.id ?? e.detail), "videoBitrate")} />
+        {/if}
+    </svelte:fragment>
+</InputRow>
+
+{#if currentOutput?.rtmp && currentOutput?.rtmpData?.key}
+    <div style="padding-bottom: 10px;">
+        <MaterialButton variant="outlined" icon={currentOutput.rtmpData?.streaming ? "stop" : "record"} style="width: 100%; justify-content: center; {currentOutput.rtmpData?.streaming ? 'background: #b60707 !important;' : ''}" on:click={() => (currentOutput?.rtmpData?.streaming ? stopRtmpStreaming(currentOutput.id || "", true) : startRtmpStreaming(currentOutput?.id || ""))} white>
+            {translateText(currentOutput.rtmpData?.streaming ? "output.stop_streaming" : "output.start_streaming")}
+        </MaterialButton>
+    </div>
+{/if}
+
+<!-- Picture-in-Picture -->
+<Title label="Picture-in-Picture" icon="pip" />
+
+<InputRow arrow={!!currentOutput?.out?.multiPane} bind:open={pipMenuOpened}>
+    <MaterialToggleSwitch label="output.enable_pip" style="width: 100%;" checked={!!currentOutput?.out?.multiPane} defaultValue={false} on:change={(e) => (e.detail ? applyPipLayout("pipBottomRight") : clearPip())} />
+
+    <svelte:fragment slot="menu">
+        {#if currentOutput?.out?.multiPane}
+            <MaterialDropdown label="output.pip_layout" value={currentOutput.out.multiPane.name} options={pipLayouts.map((l) => ({ label: l.label, value: l.value }))} on:change={(e) => applyPipLayout(e.detail)} />
+
+            <br />
+            <p style="font-size: 12px; opacity: 0.7; margin-bottom: 10px;">Configure each pane:</p>
+
+            {#each currentOutput.out.multiPane.panes as pane, i}
+                <div style="background: var(--background-lighter); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+                    <p style="font-size: 11px; opacity: 0.6; margin-bottom: 5px;">Pane {i + 1} ({pane.position.width}% x {pane.position.height}%)</p>
+                    <MaterialDropdown
+                        label="Source Type"
+                        value={pane.sourceType}
+                        options={paneSourceTypes}
+                        on:change={(e) => updatePaneSource(pane.id, e.detail)}
+                    />
+                </div>
+            {/each}
+        {/if}
+    </svelte:fragment>
+</InputRow>
 
 {#if currentOutput?.ndi || currentOutput?.blackmagic}
     <br />

@@ -6,6 +6,7 @@
     import Center from "../../system/Center.svelte"
     import Clock from "../../system/Clock.svelte"
     import Date from "../../system/Date.svelte"
+    import T from "../../helpers/T.svelte"
     import AudioInfo from "./AudioInfo.svelte"
     import CalendarInfo from "./CalendarInfo.svelte"
     import FunctionsInfo from "./FunctionsInfo.svelte"
@@ -38,6 +39,18 @@
         <CalendarInfo {optionsOpen} />
     {:else if !$forceClock && id === "functions"}
         <FunctionsInfo />
+    {:else if !$forceClock && id === "typography"}
+        <Center>
+            <p style="text-align: center; max-width: 200px; opacity: 0.7; font-size: 12px;">
+                <T id="tabs.typography_info" />
+            </p>
+        </Center>
+    {:else if !$forceClock && id === "pip"}
+        <Center>
+            <p style="text-align: center; max-width: 200px; opacity: 0.7; font-size: 12px;">
+                <T id="tabs.pip_info" />
+            </p>
+        </Center>
     {:else}
         <Center>
             <Clock />

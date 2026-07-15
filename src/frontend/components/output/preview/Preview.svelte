@@ -25,6 +25,7 @@
     import AudioMeter from "./AudioMeter.svelte"
     import ClearButtons from "./ClearButtons.svelte"
     import MultiOutputs from "./MultiOutputs.svelte"
+    import PiPControls from "./PiPControls.svelte"
     import PreviewOutputs from "./PreviewOutputs.svelte"
     import SpotifyController from "./SpotifyController.svelte"
 
@@ -293,6 +294,8 @@
                 {:else if $activeTimers}
                     <TimerControls />
                 {/if}
+            {:else if updatedActiveClear === "pip"}
+                <PiPControls {currentOutput} />
             {/if}
         </div>
 

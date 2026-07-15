@@ -528,10 +528,36 @@ export function buildFullReferenceRange(chapters: (number | string)[], versesPer
 }
 
 // return array with length of slidesCount containing the content with splitted verses
+// part/parts: an oversized verse is split across multiple slides, each showing one text chunk
+type VerseContext = { chapter: number | string; verse: number | string; part?: number; parts?: number }
+
+// split verse text into roughly equal chunks at word boundaries
+function splitTextIntoParts(text: string, parts: number): string[] {
+    if (parts <= 1) return [text]
+
+    const words = text.split(/\s+/).filter(Boolean)
+    const targetLength = Math.ceil(text.length / parts)
+    const result: string[] = []
+    let current = ""
+
+    for (const word of words) {
+        if (current && current.length + 1 + word.length > targetLength && result.length < parts - 1) {
+            result.push(current)
+            current = word
+        } else {
+            current = current ? `${current} ${word}` : word
+        }
+    }
+    if (current) result.push(current)
+    while (result.length < parts) result.push("")
+
+    return result
+}
+
 function splitContent(content: BibleContent[], perSlide: number): BibleContent[][] {
     // Create a flat list of all verse references, preserving chapter order.
     // This uses the first translation as the authority for verse structure.
-    const allVersesInOrder: { chapter: number | string; verse: number | string }[] = []
+    const allVersesInOrder: VerseContext[] = []
     if (content.length > 0) {
         content[0].chapters.forEach((chapterNum, chapterIndex) => {
             const chapterVerses = sortScriptureSelection(content[0].activeVerses[chapterIndex] || [])
@@ -547,7 +573,7 @@ function splitContent(content: BibleContent[], perSlide: number): BibleContent[]
     }
 
     const smartSplit = get(scriptureSettings).smartSplit !== false
-    let slidesVerseContexts: { chapter: number | string; verse: number | string }[][] = []
+    let slidesVerseContexts: VerseContext[][] = []
 
     if (smartSplit) {
         slidesVerseContexts = groupVersesSmartly(allVersesInOrder, content)
@@ -575,7 +601,12 @@ function splitContent(content: BibleContent[], perSlide: number): BibleContent[]
                     // Copy the verse text for the active verse
                     const verseKey = String(verseContext.verse)
                     if (bible?.verses[chapterIndex] && verseKey in bible.verses[chapterIndex]) {
-                        slideVersesText[chapterIndex][verseKey] = bible.verses[chapterIndex][verseKey]
+                        let text = bible.verses[chapterIndex][verseKey]
+                        // oversized verse split across multiple slides - only this part's chunk
+                        if (verseContext.parts && verseContext.parts > 1) {
+                            text = splitTextIntoParts(text, verseContext.parts)[verseContext.part ?? 0] ?? ""
+                        }
+                        slideVersesText[chapterIndex][verseKey] = text
                     }
                 }
             })
@@ -691,44 +722,80 @@ function estimateLinesForVerses(verses: { text: string; verseId: string }[], cha
     return lines
 }
 
-export function groupVersesSmartly(allVersesInOrder: { chapter: number | string; verse: number | string }[], biblesContent: BibleContent[]): { chapter: number | string; verse: number | string }[][] {
+export function groupVersesSmartly(allVersesInOrder: { chapter: number | string; verse: number | string }[], biblesContent: BibleContent[]): VerseContext[][] {
     const templateId = getScriptureTemplateId()
     const { charsPerLine, linesCount } = getSmartSplitDimensionsFromTemplate(templateId)
     const versesOnIndividualLines = get(scriptureSettings).versesOnIndividualLines
 
-    const groups: { chapter: number | string; verse: number | string }[][] = []
-    let currentGroup: { chapter: number | string; verse: number | string }[] = []
+    const groups: VerseContext[][] = []
+
+    function getVerseLines(verseContext: { chapter: number | string; verse: number | string }): number {
+        let maxLines = 0
+        for (const bible of biblesContent) {
+            const chapterIndex = bible.chapters.findIndex((c) => c == verseContext.chapter)
+            const text = bible?.verses[chapterIndex]?.[String(verseContext.verse)] || ""
+            if (!text) continue
+
+            const divider = getReferenceDivider()
+            const verseId = bible.chapters.length > 1 ? `${verseContext.chapter}${divider}${verseContext.verse}` : verseContext.verse.toString()
+            const lines = estimateLinesForVerses([{ text, verseId }], charsPerLine, versesOnIndividualLines)
+            maxLines = Math.max(maxLines, lines)
+        }
+        return maxLines
+    }
+
+    function getPartsNeeded(verseContext: { chapter: number | string; verse: number | string }): number {
+        const lines = getVerseLines(verseContext)
+        return Math.max(1, Math.ceil(lines / Math.max(1, linesCount)))
+    }
+
+    let currentGroup: VerseContext[] = []
+    let currentGroupLines = 0
 
     allVersesInOrder.forEach((verseContext) => {
-        if (currentGroup.length === 0) {
-            currentGroup.push(verseContext)
-        } else {
-            let fits = true
-            for (let b = 0; b < biblesContent.length; b++) {
-                const bible = biblesContent[b]
-                const proposedVerses = [...currentGroup, verseContext].map((vContext) => {
-                    const chapterIndex = bible.chapters.findIndex((c) => c == vContext.chapter)
-                    const verseKey = String(vContext.verse)
-                    const text = bible?.verses[chapterIndex]?.[verseKey] || ""
-                    const divider = getReferenceDivider()
-                    const verseId = bible.chapters.length > 1 ? `${vContext.chapter}${divider}${vContext.verse}` : vContext.verse.toString()
-                    return { text, verseId }
-                })
+        const partsNeeded = getPartsNeeded(verseContext)
 
-                const lines = estimateLinesForVerses(proposedVerses, charsPerLine, versesOnIndividualLines)
-                if (lines > linesCount) {
-                    fits = false
-                    break
-                }
-            }
-
-            if (fits) {
-                currentGroup.push(verseContext)
-            } else {
+        if (partsNeeded > 1) {
+            if (currentGroup.length > 0) {
                 groups.push(currentGroup)
-                currentGroup = [verseContext]
+                currentGroup = []
+                currentGroupLines = 0
+            }
+            for (let part = 0; part < partsNeeded; part++) {
+                groups.push([{ ...verseContext, part, parts: partsNeeded }])
+            }
+            return
+        }
+
+        const verseLines = getVerseLines(verseContext)
+
+        if (currentGroup.length > 0) {
+            const prevVerse = currentGroup[currentGroup.length - 1]
+            const prevId = getVerseIdParts(prevVerse.verse).id
+            const currId = getVerseIdParts(verseContext.verse).id
+            const isConsecutive = currId === prevId + 1
+            const spacerLines = versesOnIndividualLines ? 1 : (isConsecutive ? 0 : 2)
+            const newTotalLines = currentGroupLines + spacerLines + verseLines
+
+            if (newTotalLines > linesCount) {
+                groups.push(currentGroup)
+                currentGroup = []
+                currentGroupLines = 0
             }
         }
+
+        if (currentGroup.length === 0) {
+            currentGroupLines = verseLines
+        } else {
+            const prevVerse = currentGroup[currentGroup.length - 1]
+            const prevId = getVerseIdParts(prevVerse.verse).id
+            const currId = getVerseIdParts(verseContext.verse).id
+            const isConsecutive = currId === prevId + 1
+            const spacerLines = versesOnIndividualLines ? 1 : (isConsecutive ? 0 : 2)
+            currentGroupLines += spacerLines + verseLines
+        }
+
+        currentGroup.push(verseContext)
     })
 
     if (currentGroup.length > 0) {
@@ -1149,6 +1216,19 @@ export function getScriptureSlides({ biblesContent, selectedChapters, selectedVe
 
     const divider = getReferenceDivider()
 
+    // template-aware smart split (same grouping as the new scripture system):
+    // fits verses to the active template's textbox, and chunks oversized verses across slides
+    let smartGroups: VerseContext[][] | null = null
+    if (!onlyOne && get(scriptureSettings).smartSplit !== false) {
+        const allVersesInOrder: { chapter: number | string; verse: number | string }[] = []
+        selectedChapters.forEach((chapterNumber, chapterIndex) => {
+            sortScriptureSelection(clone(selectedVerses[chapterIndex] || [])).forEach((verseNum) => {
+                allVersesInOrder.push({ chapter: chapterNumber, verse: verseNum })
+            })
+        })
+        if (allVersesInOrder.length) smartGroups = groupVersesSmartly(allVersesInOrder, biblesContent)
+    }
+
     biblesContent.forEach((bible, bibleIndex) => {
         if (!bible) return
 
@@ -1173,144 +1253,155 @@ export function getScriptureSlides({ biblesContent, selectedChapters, selectedVe
         let slideIndex = 0
         slides[slideIndex].push(clone(emptyItem))
 
+        // plan the verses for each slide (smart split, fixed count, or all on one)
+        type PlannedVerse = { text: string; chapterNumber: number; verseId: string; hideNumber?: boolean }
+        let plannedSlides: PlannedVerse[][]
+        if (onlyOne) {
+            plannedSlides = [allVerses]
+        } else if (smartGroups) {
+            plannedSlides = smartGroups
+                .map((group) =>
+                    group
+                        .map((g) => {
+                            const chapterIdx = selectedChapters.findIndex((c) => c == g.chapter)
+                            let verseText = bible.verses[chapterIdx]?.[String(g.verse)] || ""
+                            // oversized verse chunked across multiple slides
+                            if (g.parts && g.parts > 1) verseText = splitTextIntoParts(verseText, g.parts)[g.part ?? 0] ?? ""
+                            return { text: verseText, chapterNumber: Number(g.chapter), verseId: String(g.verse), hideNumber: (g.part ?? 0) > 0 }
+                        })
+                        .filter((a) => a.text)
+                )
+                .filter((a) => a.length)
+        } else {
+            plannedSlides = []
+            const perSlide = get(scriptureSettings).versesPerSlide || 3
+            for (let i = 0; i < allVerses.length; i += perSlide) plannedSlides.push(allVerses.slice(i, i + perSlide))
+        }
+        if (!plannedSlides.length) plannedSlides = [allVerses]
+
+        const totalPlannedVerses = plannedSlides.reduce((count, slideVerses) => count + slideVerses.length, 0)
+
         let verseLine = 0
-        allVerses.forEach((v, rangeIndex) => {
-            const slideArr = slides[slideIndex][bibleIndex]
-            if (!slideArr?.lines?.[0]?.text) return
+        let rangeIndex = -1
+        plannedSlides.forEach((slideVerses, planSlideIndex) => {
+            slideVerses.forEach((v) => {
+                rangeIndex++
+                const slideArr = slides[slideIndex][bibleIndex]
+                if (!slideArr?.lines?.[0]?.text) return
 
-            let text: string = sanitizeVerseText(v.text || "")
-            if (!text) return
+                let text: string = sanitizeVerseText(v.text || "")
+                if (!text) return
 
-            let lineIndex = 0
-            // verses on individual lines
-            if (get(scriptureSettings).versesOnIndividualLines) {
-                lineIndex = verseLine
-                verseLine++
-                if (!slideArr.lines[lineIndex]) slideArr.lines[lineIndex] = { text: [], align: alignStyle }
-            }
-
-            // verse number
-            if (get(scriptureSettings).verseNumbers && allVerses.length > 1) {
-                let size = get(scriptureSettings).numberSize || 50
-                if (rangeIndex === 0) size *= 1.2
-                const verseNumberStyle = `${textStyle};font-size: ${size}px;color: ${get(scriptureSettings).numberColor || "#919191"};text-shadow: none;`
-
-                const { id, subverse, endNumber } = getVerseIdParts(v.verseId)
-                const showSuffix = get(scriptureSettings).splitLongVersesSuffix
-                const showBaseNumber = !subverse || subverse === 1 || showSuffix
-
-                let verseNumberValue = ""
-                if (showBaseNumber) verseNumberValue = `${id}${endNumber ? "-" + endNumber : ""}`
-                if (showSuffix && subverse) verseNumberValue += getVersePartLetter(Number(subverse))
-
-                if (verseNumberValue) {
-                    slideArr.lines[lineIndex].text.push({
-                        value: `${verseNumberValue} `,
-                        style: verseNumberStyle,
-                        customType: "disableTemplate" // dont let template style verse numbers
-                    })
+                let lineIndex = 0
+                // verses on individual lines
+                if (get(scriptureSettings).versesOnIndividualLines) {
+                    lineIndex = verseLine
+                    verseLine++
+                    if (!slideArr.lines[lineIndex]) slideArr.lines[lineIndex] = { text: [], align: alignStyle }
                 }
-            }
 
-            // custom Jesus red to JSON format: !{}!
-            text = text.replace(/<span class="wj" ?>(.*?)<\/span>/g, "!{$1}!")
-            text = text.replace(/<red ?>(.*?)<\/red>/g, "!{$1}!")
+                // verse number
+                if (get(scriptureSettings).verseNumbers && totalPlannedVerses > 1 && !v.hideNumber) {
+                    let size = get(scriptureSettings).numberSize || 50
+                    if (rangeIndex === 0) size *= 1.2
+                    const verseNumberStyle = `${textStyle};font-size: ${size}px;color: ${get(scriptureSettings).numberColor || "#919191"};text-shadow: none;`
 
-            // highlight Jesus text
-            const textArray: any[] = []
-            if (get(scriptureSettings).redJesus) {
-                const jesusWords: any[] = []
-                let jesusStart = text.indexOf("!{")
+                    const { id, subverse, endNumber } = getVerseIdParts(v.verseId)
+                    const showSuffix = get(scriptureSettings).splitLongVersesSuffix
+                    const showBaseNumber = !subverse || subverse === 1 || showSuffix
 
-                while (jesusStart > -1) {
-                    let jesusEnd = 0
+                    let verseNumberValue = ""
+                    if (showBaseNumber) verseNumberValue = `${id}${endNumber ? "-" + endNumber : ""}`
+                    if (showSuffix && subverse) verseNumberValue += getVersePartLetter(Number(subverse))
 
-                    const splitted = text.split("")
-                    splitted.find((letter, i) => {
-                        if (i < jesusStart + 1 || jesusEnd) return false
+                    if (verseNumberValue) {
+                        slideArr.lines[lineIndex].text.push({
+                            value: `${verseNumberValue} `,
+                            style: verseNumberStyle,
+                            customType: "disableTemplate" // dont let template style verse numbers
+                        })
+                    }
+                }
 
-                        if (letter === "}" && splitted[i + 1] === "!") {
-                            jesusEnd = i + 2
-                            return true
+                // custom Jesus red to JSON format: !{}!
+                text = text.replace(/<span class="wj" ?>(.*?)<\/span>/g, "!{$1}!")
+                text = text.replace(/<red ?>(.*?)<\/red>/g, "!{$1}!")
+
+                // highlight Jesus text
+                const textArray: any[] = []
+                if (get(scriptureSettings).redJesus) {
+                    const jesusWords: any[] = []
+                    let jesusStart = text.indexOf("!{")
+
+                    while (jesusStart > -1) {
+                        let jesusEnd = 0
+
+                        const splitted = text.split("")
+                        splitted.find((letter, i) => {
+                            if (i < jesusStart + 1 || jesusEnd) return false
+
+                            if (letter === "}" && splitted[i + 1] === "!") {
+                                jesusEnd = i + 2
+                                return true
+                            }
+
+                            return false
+                        })
+
+                        if (jesusEnd) {
+                            jesusWords.push([jesusStart, jesusEnd])
+                            jesusStart = text.indexOf("!{", jesusEnd)
+                        } else {
+                            jesusWords.push([jesusStart, text.length])
+                            jesusStart = -1
                         }
+                    }
 
-                        return false
+                    if (!jesusWords[0]) {
+                        textArray.push({ value: removeTags(formatBibleText(text)), style: textStyle })
+                    } else if (jesusWords[0]?.[0] > 0) {
+                        textArray.push({ value: removeTags(formatBibleText(text.slice(0, jesusWords[0][0]))), style: textStyle })
+                    }
+
+                    const redText = `color: ${get(scriptureSettings).jesusColor || "#FF4136"};`
+                    jesusWords.forEach(([start, end], i) => {
+                        textArray.push({ value: removeTags(formatBibleText(text.slice(start + 2, end - 2))), style: textStyle + redText, customType: "disableTemplate_jw" })
+
+                        if (!jesusWords[i + 1] || end < jesusWords[i + 1][0]) {
+                            const remainingText = removeTags(formatBibleText(text.slice(end, jesusWords[i + 1]?.[0] ?? -1)))
+                            if (remainingText.length) textArray.push({ value: remainingText, style: textStyle })
+                        }
                     })
+                } else {
+                    // allow bibles with custom html tags
+                    // text = removeTags(formatBibleText(text))
+                    text = formatBibleText(text)
 
-                    if (jesusEnd) {
-                        jesusWords.push([jesusStart, jesusEnd])
-                        jesusStart = text.indexOf("!{", jesusEnd)
-                    } else {
-                        jesusWords.push([jesusStart, text.length])
-                        jesusStart = -1
-                    }
+                    if (text.charAt(text.length - 1) !== " ") text += " "
+
+                    textArray.push({ value: text, style: textStyle })
                 }
 
-                if (!jesusWords[0]) {
-                    textArray.push({ value: removeTags(formatBibleText(text)), style: textStyle })
-                } else if (jesusWords[0]?.[0] > 0) {
-                    textArray.push({ value: removeTags(formatBibleText(text.slice(0, jesusWords[0][0]))), style: textStyle })
-                }
+                slideArr.lines[lineIndex].text.push(...textArray)
+            })
 
-                const redText = `color: ${get(scriptureSettings).jesusColor || "#FF4136"};`
-                jesusWords.forEach(([start, end], i) => {
-                    textArray.push({ value: removeTags(formatBibleText(text.slice(start + 2, end - 2))), style: textStyle + redText, customType: "disableTemplate_jw" })
-
-                    if (!jesusWords[i + 1] || end < jesusWords[i + 1][0]) {
-                        const remainingText = removeTags(formatBibleText(text.slice(end, jesusWords[i + 1]?.[0] ?? -1)))
-                        if (remainingText.length) textArray.push({ value: remainingText, style: textStyle })
-                    }
-                })
-            } else {
-                // allow bibles with custom html tags
-                // text = removeTags(formatBibleText(text))
-                text = formatBibleText(text)
-
-                if (text.charAt(text.length - 1) !== " ") text += " "
-
-                textArray.push({ value: text, style: textStyle })
-            }
-
-            slideArr.lines[lineIndex].text.push(...textArray)
-
-            // if (bibleIndex + 1 < biblesContent.length) return
-            if (onlyOne || (rangeIndex + 1) % get(scriptureSettings).versesPerSlide > 0) return
-
-            if (!disableReference && bibleIndex + 1 >= biblesContent.length) {
-                let range: any[] = onlyOne ? currentVerseNumbers : currentVerseNumbers.slice(rangeIndex - get(scriptureSettings).versesPerSlide + 1, rangeIndex + 1)
+            // slide reference + advance to the next slide
+            if (!disableReference && bibleIndex + 1 >= biblesContent.length && slideVerses.length) {
+                const slideNumbers = slideVerses.map((a) => `${selectedChapters.length > 1 && a.chapterNumber !== selectedChapters[0] ? `${a.chapterNumber}${divider}` : ""}${a.verseId}`)
+                let range: any[] = onlyOne ? currentVerseNumbers : slideNumbers
                 if (get(scriptureSettings).splitReference === false || get(scriptureSettings).firstSlideReference) range = currentVerseNumbers
                 let indexes = [biblesContent.length]
                 if (combineWithText) indexes = [...Array(biblesContent.length)].map((_, i) => i)
-                indexes.forEach((i) => addMeta(clone(get(scriptureSettings)), joinRange(range), v.chapterNumber, { slideIndex, itemIndex: i }))
+                indexes.forEach((i) => addMeta(clone(get(scriptureSettings)), joinRange(range), slideVerses[0]?.chapterNumber ?? selectedChapters[0], { slideIndex, itemIndex: i }))
             }
 
-            if (rangeIndex + 1 >= allVerses.length) return
+            if (planSlideIndex + 1 >= plannedSlides.length) return
 
             slideIndex++
             verseLine = 0
             if (!slides[slideIndex]) slides.push([clone(emptyItem)])
             else slides[slideIndex].push(clone(emptyItem))
         })
-
-        // add remaining
-        if (!disableReference && bibleIndex + 1 >= biblesContent.length) {
-            const remainder = onlyOne ? currentVerseNumbers.length : currentVerseNumbers.length % get(scriptureSettings).versesPerSlide
-            let range: any[] = currentVerseNumbers.slice(currentVerseNumbers.length - remainder, currentVerseNumbers.length)
-            if (get(scriptureSettings).splitReference === false || get(scriptureSettings).firstSlideReference) range = currentVerseNumbers
-            let indexes = [biblesContent.length]
-            if (combineWithText) indexes = [...Array(biblesContent.length)].map((_, i) => i)
-
-            // get chapter number based on first verse in current range
-            const currentChapterNumber = (() => {
-                if (selectedChapters.length === 1) return selectedChapters[0]
-                const firstVerse = range[0] || ""
-                const chapterMatch = firstVerse.toString().match(new RegExp(`^(\\d+)\\${divider}`))
-                if (chapterMatch) return Number(chapterMatch[1])
-                return selectedChapters[0]
-            })()
-
-            if (remainder) indexes.forEach((i) => addMeta(clone(get(scriptureSettings)), joinRange(range), currentChapterNumber, { slideIndex, itemIndex: i }))
-        }
 
         // auto size & item options
         slides.forEach((slide, i) => {

@@ -11,17 +11,19 @@
     import { custom } from "../../utils/transitions"
     import Draw from "../draw/Draw.svelte"
     import { clone } from "../helpers/array"
-    import { defaultLayers, getCurrentStyle, getMetadata, getOutputLines, getOutputTransitions, getResolution, getSlideFilter, getStyleTemplate, setTemplateStyle } from "../helpers/output"
+    import { defaultLayers, getCurrentStyle, getMetadata, getOutputLines, getOutputTransitions, getOutputResolution, getResolution, getSlideFilter, getStyleTemplate, setTemplateStyle } from "../helpers/output"
     import { _show } from "../helpers/shows"
     import Image from "../media/Image.svelte"
     import Zoomed from "../slide/Zoomed.svelte"
     import { updateAnimation } from "./animation"
     import EffectOutput from "./effects/EffectOutput.svelte"
     import Background from "./layers/Background.svelte"
+    import MultiPaneLayer from "./layers/MultiPaneLayer.svelte"
     import Overlay from "./layers/Overlay.svelte"
     import Overlays from "./layers/Overlays.svelte"
     import PdfOutput from "./layers/PdfOutput.svelte"
     import SlideContent from "./layers/SlideContent.svelte"
+    import Textbox from "../slide/Textbox.svelte"
     import Window from "./Window.svelte"
 
     export let outputId = ""
@@ -55,6 +57,7 @@
     let slide: OutSlide | null = null
     let background: OutBackground | null = null
     let clonedOverlays: TOverlays | null = null
+    let multiPanePanes: any[] = []
 
     let effectsIds: string[] = []
     $: allEffects = $effects
@@ -105,6 +108,31 @@
             effectsIds = clone(out.effects || [])
         }
     }
+    let cachedMultiPaneStr = ""
+    $: {
+        const newMultiPaneStr = JSON.stringify(out.multiPane || null)
+        if (newMultiPaneStr !== cachedMultiPaneStr) {
+            cachedMultiPaneStr = newMultiPaneStr
+            multiPanePanes = clone(out.multiPane?.panes || [])
+        }
+    }
+
+    // Also update from store directly for preview
+    $: multiPanePanes = clone($outputs[outputId]?.out?.multiPane?.panes || [])
+
+    $: pipTransparentPane = out.multiPane?.visible 
+        ? (out.multiPane?.panes || [])
+            .filter((p: any) => p.sourceType === "transparent")
+            .sort((a: any, b: any) => (b.position.width * b.position.height) - (a.position.width * a.position.height))[0]
+        : null
+
+    $: hasSlidePane = (out.multiPane?.panes || []).some((p: any) => p.sourceType === "slide")
+
+    $: slideClipPath = pipTransparentPane 
+        ? `inset(${pipTransparentPane.position.y}% ${100 - pipTransparentPane.position.x - pipTransparentPane.position.width}% ${100 - pipTransparentPane.position.y - pipTransparentPane.position.height}% ${pipTransparentPane.position.x}%)`
+        : hasSlidePane && out.multiPane?.visible
+        ? "inset(0% 100% 0% 0%)"
+        : "none"
 
     $: refreshOutput = out.refresh
     $: if (outputId || refreshOutput) updateOutData()
@@ -134,6 +162,9 @@
                 clonedOverlays = clone($overlays)
                 storedOverlays = JSON.stringify($overlays)
             }
+        }
+        if (!type || type === "multiPane") {
+            multiPanePanes = clone(out.multiPane?.panes || [])
         }
     }
 
@@ -192,6 +223,8 @@
     // slide styling
     // currentSlide?.settings?.resolution
     $: resolution = getResolution(null, { currentOutput, currentStyle }, false, outputId, styleIdOverride)
+    // actual pixel resolution (1920x1080) for PiP pane scaling calculations
+    $: outputPixelResolution = getOutputResolution(outputId, $outputs)
     $: transitions = getOutputTransitions(slideData, currentStyle.transition, $transitionData, mirror && !preview)
     $: slideFilter = getSlideFilter(slideData)
 
@@ -371,10 +404,38 @@
             {/if}
         </span>
     {:else if actualSlide && actualSlide?.type !== "pdf"}
-        <SlideContent {outputId} outSlide={actualSlide} isClearing={isSlideClearing} slideData={actualSlideData} currentSlide={actualCurrentSlide} {currentStyle} {animationData} currentLineId={actualCurrentLineId} {lines} {ratio} {mirror} {preview} transition={transitions.text} transitionEnabled={!mirror || preview} {styleIdOverride} />
+        <div style="clip-path: {slideClipPath};">
+            <SlideContent {outputId} outSlide={actualSlide} isClearing={isSlideClearing} slideData={actualSlideData} currentSlide={actualCurrentSlide} {currentStyle} {animationData} currentLineId={actualCurrentLineId} {lines} {ratio} {mirror} {preview} transition={transitions.text} transitionEnabled={!mirror || preview} {styleIdOverride} />
+        </div>
 
         <!-- metadata -->
         <Overlay overlay={{ items: currentMetadataItems }} isClearing={isMetadataClearing || isSlideClearing} {outputId} transition={transitions.text} />
+    {/if}
+
+    <!-- multi-pane / picture-in-picture -->
+    {#if multiPanePanes.length > 0 && layers.includes("slide")}
+        <MultiPaneLayer {outputId} multiPane={out.multiPane} resolution={outputPixelResolution} {mirror} {preview}>
+            <svelte:fragment slot="slide" let:paneResolution>
+                <!-- slide background color (fills the virtual canvas, scales with slideScaler) -->
+                <div style="position: absolute; inset: 0; background: {backgroundColor};" />
+                <!-- style template background image -->
+                {#if styleBackground && actualSlide?.type !== "pdf"}
+                    <Background data={styleBackgroundData} {outputId} transition={transitions.media} {currentStyle} {slideFilter} {ratio} mirror={false} styleBackground />
+                {/if}
+                <!-- output background media (image / video) -->
+                {#if (backgroundData?.ignoreLayer ? layers.includes("slide") : layers.includes("background")) && backgroundData}
+                    <Background data={backgroundData} {outputId} transition={transitions.media} {currentStyle} {slideFilter} {ratio} {mirror} />
+                {/if}
+                <!-- slide items -->
+                {#if actualSlide && actualSlide?.type !== "pdf" && actualSlide?.type !== "ppt" && actualCurrentSlide?.items?.length}
+                    {#each actualCurrentSlide.items as item}
+                        {#if item}
+                            <Textbox {item} {ratio} {outputId} outputStyle={currentStyle} {mirror} {preview} {styleIdOverride} customResolution={paneResolution} ref={{ type: "show", showId: actualSlide?.id, slideId: actualCurrentSlide?.id, id: actualCurrentSlide?.id || "", layoutId: actualSlide?.layout }} animationConfig={item.animationConfig} />
+                        {/if}
+                    {/each}
+                {/if}
+            </svelte:fragment>
+        </MultiPaneLayer>
     {/if}
 
     {#if layers.includes("overlays")}

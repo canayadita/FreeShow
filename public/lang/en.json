@@ -154,6 +154,7 @@
         "slide": "Slide",
         "overlays": "Overlays",
         "audio": "Audio",
+        "pip": "Picture-in-Picture",
         "to_start": "Go to start",
         "nextTimer": "Next slide timer",
         "lock": "Lock",
@@ -171,6 +172,7 @@
         "audio": "Clear audio",
         "nextTimer": "Clear next slide timer",
         "timer": "Clear timer",
+        "pip": "Clear Picture-in-Picture",
         "drawing": "Clear drawing",
         "search": "Clear search"
     },
@@ -428,6 +430,10 @@
         "triggers": "Triggers",
         "templates": "Templates",
         "web": "Web",
+        "typography": "Typography",
+        "typography_info": "Preset typography + animation templates untuk text lyric. Pilih text item di Edit mode, lalu klik salah satu preset untuk apply.",
+        "pip": "Picture-in-Picture",
+        "pip_info": "Create multi-pane layouts with different content sources like camera, screen, video, and more.",
         "search_tip": "Drawer content search"
     },
     "category": {
@@ -1452,7 +1458,9 @@
         "stop_streaming": "Stop streaming",
         "confirm_stop": "Are you sure you want to stop the stream?",
         "is_live": "LIVE",
-        "go_live": "Go live"
+        "go_live": "Go live",
+        "enable_pip": "Enable Picture-in-Picture",
+        "pip_layout": "PiP Layout"
     },
     "profile": {
         "profile": "Profile",

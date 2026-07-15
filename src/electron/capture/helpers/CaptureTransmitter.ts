@@ -8,6 +8,7 @@ import { OutputHelper } from "../../output/OutputHelper"
 import { getConnections, toServer } from "../../servers"
 import { BlackmagicSender } from "../../blackmagic/BlackmagicSender"
 import { WebRtcHost } from "../../webrtc/WebRtcHost"
+import { RtmpSender } from "../../rtmp/RtmpSender"
 import { CaptureHelper } from "../CaptureHelper"
 
 export type Channel = {
@@ -45,7 +46,7 @@ export class CaptureTransmitter {
         const captureOptions = OutputHelper.getOutput(captureId)?.captureOptions
         if (!captureOptions) return
 
-        const channelKeys = ["ndi", "blackmagic", "server", "stage", "webrtc"]
+        const channelKeys = ["ndi", "blackmagic", "server", "stage", "webrtc", "rtmp"]
         channelKeys.forEach((key) => {
             if (captureOptions.options[key]) this.startChannel(captureId, key)
         })
@@ -232,7 +233,18 @@ export class CaptureTransmitter {
             case "webrtc":
                 this.sendBufferToWebRtcHost(captureId, image)
                 break
+            case "rtmp":
+                this.sendBufferToRtmp(captureId, image)
+                break
         }
+    }
+
+    // RTMP (YouTube live stream etc.)
+    // ffmpeg expects BGRA, so no pixel conversion needed. RtmpSender re-paces frames internally,
+    // and the first frame received decides ffmpeg's raw input size.
+    static sendBufferToRtmp(outputId: string, image: NativeImage) {
+        if (!image) return
+        RtmpSender.sendFrame(outputId, image.toBitmap(), image.getSize())
     }
 
     private static getServerScale(): number {

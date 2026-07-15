@@ -1,83 +1,51 @@
 <script lang="ts">
-    import { onMount } from "svelte"
-    import { activePopup, activeProject, projects, projectView, quickSearchActive, showRecentlyUsedProjects, shows, special, version } from "../../stores"
+    import { onDestroy, onMount } from "svelte"
+    import { activePopup, activeProject, projects, projectView, quickSearchActive, showRecentlyUsedProjects, version } from "../../stores"
     import { history } from "../helpers/history"
     import Icon from "../helpers/Icon.svelte"
     import T from "../helpers/T.svelte"
-    import Link from "../inputs/Link.svelte"
     import MaterialButton from "../inputs/MaterialButton.svelte"
     import Center from "../system/Center.svelte"
-    import { getVOTD } from "./votd"
+    import { startVerseRotation, type BibleVerse } from "./votd"
 
     function createProject() {
-        // if opened project is empty go to project list (to reduce confusion)
         if ($projects[$activeProject || ""]?.shows?.length === 0) {
             activeProject.set(null)
             projectView.set(true)
         }
 
         history({ id: "UPDATE", location: { page: "show", id: "project" } })
-
         showRecentlyUsedProjects.set(false)
     }
 
-    let links: string[] = []
-    function extractLinksAndCleanText(text: string) {
-        links = []
+    let currentVerse: BibleVerse | null = null
+    let stopRotation: (() => void) | null = null
 
-        // extract and remove links from <a> tags
-        const textWithoutATags = text.replace(/<a\s[^>]*href=["'](https?:\/\/[^"']+)["'][^>]*>.*?<\/a>/gi, (_match, url) => {
-            links.push(url)
-            return ""
-        })
-        // extract and remove raw links from plain text
-        const finalText = textWithoutATags.replace(/https?:\/\/[^\s<>"']+/gi, (url) => {
-            links.push(url)
-            return ""
-        })
+    onMount(() => {
+        // rotate every 1 hour
+        stopRotation = startVerseRotation((verse) => {
+            currentVerse = verse
+        }, 60 * 60 * 1000)
+    })
 
-        return finalText.replaceAll("\n", "<br>").replace(/\s+/g, " ").trim()
-    }
-
-    let votd: string = ""
-    onMount(async () => {
-        if ($special.splashText) return
-        votd = await getVOTD()
+    onDestroy(() => {
+        if (stopRotation) stopRotation()
     })
 </script>
 
 <Center class="context #splash">
-    <h1>FreeShow</h1>
-    <p style="opacity: 0.7;">v{$version}</p>
-    {#if $special.splashText}
-        <p style="padding-top: 30px">
-            {@html extractLinksAndCleanText($special.splashText)}
-            <span class="links" style="display: flex;flex-direction: column;align-items: center;">
-                {#each links as link}
-                    <Link url={link}>
-                        {link.replace(/^(https?:\/\/)/, "")}
-                        <Icon id="launch" white />
-                    </Link>
-                {/each}
-            </span>
-        </p>
-    {:else if Object.keys($shows).length < 20}
-        <!-- shows up for new users (can be found in "About" menu) -->
-        <p style="padding-top: 30px">
-            <Link url="https://freeshow.app/docs">
-                <T id="main.docs" />
-                <Icon id="launch" white />
-            </Link>
-        </p>
-    {:else if votd}
-        <p class="votd" style="padding-top: 30px" data-title="Verse of the Day [votd.org]">
-            <Link url="https://votd.org/">
-                {votd}
-            </Link>
-        </p>
+    <h1>FreeShow<span class="plus">+</span></h1>
+    <p style="opacity: 0.5;">v{$version}</p>
+
+    {#if currentVerse}
+        <div class="verse-block">
+            <p class="verse-id">{currentVerse.id}</p>
+            <p class="verse-en">{currentVerse.en}</p>
+            <p class="verse-ref">— {currentVerse.ref} / {currentVerse.refEn}</p>
+        </div>
     {/if}
 
-    <span style="padding-top: 30px" class="buttons">
+    <span style="padding-top: 24px" class="buttons">
         <MaterialButton icon="search" title="main.quick_search" on:click={() => quickSearchActive.set(true)}>
             <T id="main.quick_search" />
         </MaterialButton>
@@ -100,12 +68,51 @@
 
 <style>
     h1 {
-        font-size: 4em;
+        font-size: 3.5em;
         overflow: initial;
     }
 
-    p {
-        overflow: initial;
+    .plus {
+        color: var(--secondary);
+    }
+
+    .verse-block {
+        margin-top: 28px;
+        max-width: 560px;
+        padding: 16px 20px;
+        border-left: 3px solid var(--secondary);
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 0 6px 6px 0;
+        text-align: left;
+        white-space: normal;
+    }
+
+    .verse-id {
+        font-size: 0.92em;
+        line-height: 1.6;
+        margin-bottom: 8px;
+        opacity: 0.95;
+        white-space: normal;
+        overflow: visible;
+        word-break: break-word;
+    }
+
+    .verse-en {
+        font-size: 0.82em;
+        line-height: 1.5;
+        opacity: 0.65;
+        font-style: italic;
+        margin-bottom: 8px;
+        white-space: normal;
+        overflow: visible;
+        word-break: break-word;
+    }
+
+    .verse-ref {
+        font-size: 0.78em;
+        opacity: 0.5;
+        font-weight: 600;
+        letter-spacing: 0.03em;
     }
 
     .buttons {
@@ -119,31 +126,11 @@
         padding: 8px 12px;
     }
 
-    .votd {
-        padding: 0 10px;
-        max-width: 580px;
-        white-space: normal;
-        text-align: left;
-        font-style: italic;
-        font-size: 0.9em;
-    }
-    .votd :global(a) {
-        text-decoration: none;
-    }
-
     @media screen and (max-height: 500px) {
-        h1 {
-            font-size: 3em;
-        }
+        h1 { font-size: 2.5em; }
+        .verse-block { display: none; }
     }
-    @media screen and (max-height: 400px) {
-        h1 {
-            font-size: 2em;
-        }
-    }
-    @media screen and (max-width: 800px) {
-        h1 {
-            font-size: 2em;
-        }
+    @media screen and (max-height: 400px), screen and (max-width: 800px) {
+        h1 { font-size: 2em; }
     }
 </style>

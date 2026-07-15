@@ -758,13 +758,52 @@ export function updateOutputWebrtcData(outputId: string, key: string, value: any
     return newData
 }
 
+// RTMP live streaming (YouTube etc.)
+
+export function startRtmpStreaming(outputId: string) {
+    updateOutputRtmpData(outputId, "streaming", true)
+}
+
+export async function stopRtmpStreaming(outputId: string, confirmStop: boolean = false) {
+    if (confirmStop) {
+        const confirmed = await confirmCustom(translateText("output.confirm_stop"))
+        if (!confirmed) return
+    }
+
+    updateOutputRtmpData(outputId, "streaming", false)
+}
+
+export function updateOutputRtmpData(outputId: string, key: string, value: any) {
+    const output = get(outputs)[outputId]
+    if (!output) return null
+
+    const newData = { ...(output.rtmpData || {}), [key]: value }
+
+    if (key === "streaming") {
+        if (!output.rtmp || !output.rtmpData?.key) return
+
+        // audio recorder feeds processAudio, which also drives the RTMP audio track
+        if (value) AudioAnalyser.recorderActivate()
+        else AudioAnalyser.recorderDeactivate()
+    }
+
+    outputs.update((a: any) => {
+        if (!a[outputId]) return a
+        a[outputId].rtmpData = newData
+        return a
+    })
+
+    send(OUTPUT, ["SET_VALUE"], { id: outputId, key: "rtmpData", value: newData })
+    return newData
+}
+
 // settings
 
 export const defaultOutput: Output = {
     enabled: true,
     active: true,
     name: "Output",
-    color: "#F0008C",
+    color: "#2563EB",
     bounds: { x: 0, y: 0, width: 1920, height: 1080 }, // x: 1920 ?
     screen: null
 }

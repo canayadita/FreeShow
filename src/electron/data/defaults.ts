@@ -21,7 +21,7 @@ export const defaultSettings: { [key in SaveListSettings]: any } = {
             enabled: true,
             active: true,
             name: "Primary",
-            color: "#F0008C",
+            color: "#2563EB",
             bounds: { x: 0, y: 0, width: 1920, height: 1080 },
             screen: null,
             style: "default",
@@ -99,7 +99,8 @@ export const defaultSyncedSettings: { [key in SaveListSyncedSettings]: any } = {
     overlayCategories: {
         offers: { name: "category.offers", icon: "cash", default: true },
         notice: { name: "category.notice", icon: "info", default: true },
-        visuals: { name: "category.visuals", icon: "star", default: true }
+        visuals: { name: "category.visuals", icon: "star", default: true },
+        lower_thirds: { name: "Lower Thirds", icon: "text", default: true }
     },
     templateCategories: {
         song: { name: "category.song", icon: "song", default: true },
@@ -117,6 +118,7 @@ export const defaultSyncedSettings: { [key in SaveListSyncedSettings]: any } = {
     interactions: {},
     audioStreams: {},
     audioPlaylists: {},
+    multiPaneLayouts: {},
     scriptures: {
         kjv: {
             name: "King James (Authorised) Version",

@@ -77,6 +77,7 @@ import SongbeamerImport from "../components/main/popups/SongbeamerImport.svelte"
 import SyncFolders from "../components/main/popups/SyncFolders.svelte"
 import TemplateInfo from "../components/main/popups/TemplateInfo.svelte"
 import TemplateStyleOverrides from "../components/main/popups/TemplateStyleOverrides.svelte"
+import TextPresetPicker from "../components/main/popups/TextPresetPicker.svelte"
 import Timecode from "../components/main/popups/Timecode.svelte"
 import TimelineSettings from "../components/main/popups/TimelineSettings.svelte"
 import Timer from "../components/main/popups/Timer.svelte"
@@ -169,7 +170,8 @@ export const popups: { [key in Popups]: ComponentType } = {
     template_info: TemplateInfo,
     cleaning_utility: CleaningUtility,
     pco_picker: PcoServicePicker,
-    sync_folders: SyncFolders
+    sync_folders: SyncFolders,
+    text_preset_picker: TextPresetPicker
 }
 
 export function waitForPopupData(popupId: Popups): Promise<any> {

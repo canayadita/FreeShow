@@ -37,7 +37,8 @@
         slide: () => clearSlide(),
         overlays: () => clearOverlays(),
         audio: () => clearAudio("", { clearPlaylist: true, commonClear: true }),
-        nextTimer: () => clearTimers()
+        nextTimer: () => clearTimers(),
+        pip: () => clearPip()
     }
 
     function clear(key: string) {
@@ -83,6 +84,17 @@
     $: lockedOverlay = !overlayCleared && isOutCleared("overlays", $outputs, false)
 
     $: slideTimerCleared = [isOutCleared("transition", $outputs), !!$overlayTimers, !!$activeTimers][0]
+
+    // PiP
+    $: pipActive = !!output.out?.multiPane
+    $: pipCleared = !pipActive
+
+    function clearPip() {
+        if ($outLocked) return
+        autoChange = true
+        setOutput("multiPane", null)
+        timelineRecordingAction.set({ id: "clear_pip" })
+    }
 
     // audio fade out
     let audioIcon = "audio"
@@ -196,6 +208,20 @@
                 {/if}
             </div>
         {/if}
+
+        <!-- PiP -->
+        <div class="combinedButton">
+            <MaterialButton style="padding: 0.3em 0.6em;" disabled={$outLocked || pipCleared} title="clear.pip" on:click={clearPip} red>
+                <Icon id="pip" size={1.2} white />
+            </MaterialButton>
+            {#if !allCleared}
+                <MaterialButton style="padding: 2px !important;min-height: 15px;" isActive={activeClear === "pip"} disabled={pipCleared} on:click={() => openPreview("pip")} title="preview.pip">
+                    {#if activeClear === "pip"}
+                        <Icon style="opacity: 0.8;" id="expand" size={0.7} white />
+                    {/if}
+                </MaterialButton>
+            {/if}
+        </div>
     </span>
 </div>
 

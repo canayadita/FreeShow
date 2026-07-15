@@ -21,6 +21,7 @@ export type SaveListSyncedSettings =
     | "interactions"
     | "audioStreams"
     | "audioPlaylists"
+    | "multiPaneLayouts"
     | "scriptures"
     | "scriptureSettings"
     | "groups"

@@ -49,18 +49,28 @@
 </script>
 
 {#key retryCount}
+    <!-- background blending (Resolume style): media blends with the color layer painted below it -->
+    {#if mediaStyle.blendMode && mediaStyle.blendColor}
+        <div class="blendColor" style="background: {mediaStyle.blendColor};"></div>
+    {/if}
+
     {#if type === "video"}
-        <div class="video">
+        <div class="video" style={mediaStyle.blendMode ? `mix-blend-mode: ${mediaStyle.blendMode};` : ""}>
             <Video {path} bind:video bind:videoData bind:videoTime startAt={data.startAt} {mediaStyle} {animationStyle} {mirror} {volume} on:loaded on:ended on:error={reload} />
         </div>
     {:else if type === "image"}
-        <div class="image" style="height: 100%;{animationStyle}">
+        <div class="image" style="height: 100%;{animationStyle}{mediaStyle.blendMode ? `mix-blend-mode: ${mediaStyle.blendMode};` : ''}">
             <Image path={useAlternative ? path2 : path} {mediaStyle} on:error={reload} on:loaded />
         </div>
     {/if}
 {/key}
 
 <style>
+    .blendColor {
+        position: absolute;
+        inset: 0;
+    }
+
     .video {
         height: 100%;
         transition: opacity 0.5s;

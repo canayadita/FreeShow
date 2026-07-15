@@ -5,6 +5,7 @@
     import LazyLoad from "./components/helpers/LazyLoad.svelte"
     import ProfileChangerMenu from "./components/main/ProfileChangerMenu.svelte"
     import Tipbar from "./components/main/Tipbar.svelte"
+    import VerseBar from "./components/main/VerseBar.svelte"
     import Top from "./components/main/Top.svelte"
     import Preview from "./components/output/preview/Preview.svelte"
     import SettingsTabs from "./components/settings/SettingsTabs.svelte"
@@ -121,6 +122,7 @@
     {/if}
 
     <Tipbar />
+    <VerseBar />
 </div>
 
 <style>

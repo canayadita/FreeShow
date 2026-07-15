@@ -18,6 +18,8 @@
     import AnimationPicker from "../AnimationPicker.svelte"
     import type { AnimationConfig } from "../../../../types/animation"
     import { DEFAULT_ANIMATION_CONFIG } from "../../../../types/animation"
+    import { popupData } from "../../../stores"
+    import type { TextPreset } from "../../../../types/textPresets"
 
     export let id: ItemType
     export let allSlideItems: Item[] = []
@@ -302,7 +304,7 @@
         if (item.device?.name) setBoxInputValue(box, "default", "device", "name", item.device.name)
     }
     $: if (id === "slide_tracker" && item) {
-        setBoxInputValue(box, "default", "tracker.accent", "value", item.tracker?.accent || $themes[$theme]?.colors?.secondary || "#F0008C")
+        setBoxInputValue(box, "default", "tracker.accent", "value", item.tracker?.accent || $themes[$theme]?.colors?.secondary || "#2563EB")
 
         const defaultMetadataKeys = Object.keys(initializeMetadata({}))
         const metadataOptions = [{ value: "name", label: "show.name" }, ...Object.keys(getCustomMetadata()).map((key) => ({ value: key, label: defaultMetadataKeys.includes(key) ? `meta.${key}` : key }))]
@@ -646,6 +648,39 @@
         updateValue({ detail: { id: "animationConfig", value: e.detail } })
     }
 
+    function applyTextStyleString(cssString: string) {
+        if (!cssString) return
+        // Parse "key: value; key2: value2;" into individual updateValue calls
+        cssString
+            .split(";")
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .forEach((statement) => {
+                const idx = statement.indexOf(":")
+                if (idx < 0) return
+                const key = statement.slice(0, idx).trim()
+                const value = statement.slice(idx + 1).trim()
+                if (!key || !value) return
+                updateValue({ detail: { id: "style", key, value } })
+            })
+    }
+
+    function handleOpenPresets() {
+        activePopup.set("text_preset_picker")
+        const unsubscribe = popupData.subscribe((d) => {
+            if (d.id !== "text_preset_picker") return
+            unsubscribe()
+            const preset = d.value as TextPreset | undefined
+            if (!preset) return
+            // 1) animation config
+            updateValue({ detail: { id: "animationConfig", value: preset.animation } })
+            // 2) per-line typography
+            applyTextStyleString(preset.style.lineStyle || "")
+            // 3) per-text typography (font family etc.)
+            applyTextStyleString(preset.style.textStyle || "")
+        })
+    }
+
     $: boxSections = box?.sections || {}
     function updateValue2(e: any) {
         const input = e.detail
@@ -732,6 +767,6 @@
 {#if loaded}
     <EditValues sections={boxSections} {item} {styles} {customValues} type="text" on:change={updateValue2} />
     {#if id === "text"}
-        <AnimationPicker config={currentAnimConfig} on:change={handleAnimationChange} />
+        <AnimationPicker config={currentAnimConfig} on:change={handleAnimationChange} on:openPresets={handleOpenPresets} />
     {/if}
 {/if}

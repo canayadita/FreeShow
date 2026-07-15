@@ -1,15 +1,13 @@
 <p align='center'>
- <a href='https://freeshow.app/'>
-  <img src='https://github.com/ChurchApps/FreeShow/assets/17619496/02ac9807-1f47-47fc-b895-b35f857c2b57' width=150 />
- </a>
+  <h1>ProShow</h1>
 </p>
 
 <h1 align='center'>
-  FreeShow
+  ProShow
 </h1>
 
 <p align='center'>
-  FreeShow is a free software with a user-friendly interface that offers powerful features for creating and editing slideshows. 
+  ProShow is a free software with a user-friendly interface that offers powerful features for creating and editing slideshows. 
 </p>
 
 <p align='center'>

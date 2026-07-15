@@ -153,6 +153,7 @@
         "slide": "Slide",
         "overlays": "Overlays",
         "audio": "Suara",
+        "pip": "Picture-in-Picture",
         "to_start": "Pergi ke awal",
         "nextTimer": "Timer slide berikutnya",
         "lock": "Kunci",
@@ -170,6 +171,7 @@
         "audio": "Bersihkan audio",
         "nextTimer": "Hapus timer slide berikutnya",
         "timer": "Hapus timer",
+        "pip": "Hapus Picture-in-Picture",
         "drawing": "Hapus goresan",
         "search": "Hapus pencarian"
     },
@@ -399,6 +401,8 @@
         "triggers": "Triggers",
         "templates": "Templat",
         "web": "Web",
+        "pip": "Picture-in-Picture",
+        "pip_info": "Buat layout multi-pane dengan berbagai sumber konten seperti kamera, layar, video, dan lainnya.",
         "search_tip": "Pencarian konten"
     },
     "category": {
@@ -1394,7 +1398,9 @@
         "state_locked": "Terkunci",
         "disabled_layers": "Layer yang dinonaktifkan",
         "mute": "Nonaktifkan suara output",
-        "unmute": "Aktifkan suara output"
+        "unmute": "Aktifkan suara output",
+        "enable_pip": "Aktifkan Picture-in-Picture",
+        "pip_layout": "Layout PiP"
     },
     "profile": {
         "profiles_hint": "Buat beberapa profil/peran untuk membatasi akses pengguna tertentu dalam mengontrol/mengedit bagian program yang dipilih.",

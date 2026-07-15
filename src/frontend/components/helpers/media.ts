@@ -380,7 +380,9 @@ export function getMediaStyle(mediaObj: MediaStyle | undefined, currentStyle: St
         toTime: 0,
         softLoop: 0,
         videoType: "",
-        cropping: {}
+        cropping: {},
+        blendMode: "",
+        blendColor: ""
     }
 
     if (!mediaObj && !currentStyle) return mediaStyle

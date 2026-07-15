@@ -50,7 +50,7 @@ export const storeFilesData = {
 }
 
 export const appDataPath = path.dirname(config.path)
-checkStores(appDataPath)
+setImmediate(() => checkStores(appDataPath))
 
 export async function setupStores() {
     const oldLocation = await migrateConfig()

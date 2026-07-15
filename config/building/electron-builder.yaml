@@ -1,6 +1,6 @@
-appId: app.freeshow
-productName: FreeShow
-artifactName: FreeShow-${version}-${arch}.${ext}
+appId: app.freeshowplus
+productName: FreeShowPlus
+artifactName: FreeShowPlus-${version}-${arch}.${ext}
 
 # WIDEVINE
 # Use castlabs electron builds to get widevine support
@@ -36,11 +36,6 @@ win:
     asarUnpack:
         - "**/node_modules/macadam/**/*.node"
         - "**/node_modules/libspotifyctl/**/*"
-    azureSignOptions:
-        publisherName: Live Church Solutions
-        endpoint: https://wus2.codesigning.azure.net/
-        certificateProfileName: FreeShow
-        codeSigningAccountName: FreeShow
 
 # linux
 
@@ -68,6 +63,7 @@ mac:
     icon: build/public/icon.png
     asarUnpack:
         - "**/node_modules/macadam/**/*.node"
+        - "**/node_modules/ffmpeg-static/**"
     target:
         - target: dmg
           arch:

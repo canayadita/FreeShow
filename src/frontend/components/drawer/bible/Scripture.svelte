@@ -572,51 +572,65 @@
         const result = currentBibleData?.bibleData?.bookSearch(searchValue)
         if (!result) return
 
+        // Fallback: if bookSearch returns book=0 (not found), try custom Indonesian book name search
+        let finalResult = result
+        if (!result.book && books?.length) {
+            const searchLower = searchValue.toLowerCase().trim()
+            const matchedBook = books.find((book) => {
+                const bookNameLower = book.name?.toLowerCase() || ""
+                return bookNameLower === searchLower || bookNameLower.startsWith(searchLower) || searchLower.startsWith(bookNameLower)
+            })
+            if (matchedBook) {
+                // Re-run bookSearch with the exact book name to get proper parsing
+                finalResult = currentBibleData?.bibleData?.bookSearch(`${matchedBook.name} ${searchValue.replace(/^[^\d]*/i, "").trim()}`) || result
+            }
+        }
+
         // json-bible returns empty verses when chapter is not loaded, this fixes search issues
-        if (result.chapter && !result.verses?.length) {
+        if (finalResult.chapter && !finalResult.verses?.length) {
             const verseMatch = searchValue.match(/[:.,]\s*(\d+)(?:-(\d+))?[^a-zA-Z]*$/)
             if (verseMatch) {
                 const start = parseInt(verseMatch[1])
                 const end = verseMatch[2] ? parseInt(verseMatch[2]) : start
                 if (start > 0 && start <= 150) {
-                    result.verses = Array.from({ length: end - start + 1 }, (_, i) => start + i)
+                    finalResult.verses = Array.from({ length: end - start + 1 }, (_, i) => start + i)
                 }
             }
         }
 
-        const autocompleteChanged = result.autocompleted && result.autocompleted !== searchValue
-        if (result.autocompleted) searchValue = result.autocompleted
+        const autocompleteChanged = finalResult.autocompleted && finalResult.autocompleted !== searchValue
+        if (finalResult.autocompleted) searchValue = finalResult.autocompleted
 
-        const bookChanged = result.book && result.book.toString() !== activeReference.book?.toString()
-        const chapterChanged = result.chapter && (!activeReference.chapters.length || result.chapter.toString() !== activeReference.chapters[0]?.toString())
+        const bookChanged = finalResult.book && finalResult.book.toString() !== activeReference.book?.toString()
+        const chapterChanged = finalResult.chapter && (!activeReference.chapters.length || finalResult.chapter.toString() !== activeReference.chapters[0]?.toString())
 
         let newVerses: (number | string)[][] | undefined = undefined
-        if (result.verses?.length) {
-            newVerses = !bookChanged && !chapterChanged && splittedVerses ? [splittedVerses.filter((a) => result.verses.includes(a.number)).map((a) => a.id)] : [result.verses]
+        if (finalResult.verses?.length) {
+            newVerses = !bookChanged && !chapterChanged && splittedVerses ? [splittedVerses.filter((a) => finalResult.verses.includes(a.number)).map((a) => a.id)] : [finalResult.verses]
         }
 
         let success = true
         if (bookChanged) {
             // prevent inputs right after auto complete
-            if (!result.chapter) {
+            if (!finalResult.chapter) {
                 freezeInput = searchValue
                 freezeTimeout = setTimeout(() => (freezeInput = null), 1500)
             }
-            success = await openBook(result.book, result.chapter ? [result.chapter] : undefined, newVerses)
-        } else if (autocompleteChanged && !result.chapter) {
+            success = await openBook(finalResult.book, finalResult.chapter ? [finalResult.chapter] : undefined, newVerses)
+        } else if (autocompleteChanged && !finalResult.chapter) {
             // prevent inputs right after auto complete to already opened book
             freezeInput = searchValue
             freezeTimeout = setTimeout(() => (freezeInput = null), 1500)
         } else if (chapterChanged) {
-            success = await openChapter([result.chapter], newVerses)
-        } else if (result.chapter) {
+            success = await openChapter([finalResult.chapter], newVerses)
+        } else if (finalResult.chapter) {
             // Same book and chapter
             if (newVerses) openVerse(newVerses)
         }
 
         if (searchId !== currentSearchId || !success) return
 
-        if (result.chapter && !newVerses) {
+        if (finalResult.chapter && !newVerses) {
             selectAllTimeout = setTimeout(selectAllVerses)
         }
     }
@@ -767,9 +781,43 @@
     let contentSearchValue = ""
     let contentSearchResults: VerseReference[] | null = null
 
+    // Reference input like "matius 3:2" (case-insensitive, partial book names like "kej" or "1 kor")
+    // is normalized to the exact book name ("Matius 3:2") so bookSearch can resolve it.
+    function parseReferenceInput(value: string): string | null {
+        const match = value.trim().match(/^(\d\s?)?([^\d:.,]+?)\s+(\d+)(?:\s*[:.,]\s*(\d+(?:[-+]\d+)?))?$/)
+        if (!match) return null
+
+        const bookPart = `${match[1] || ""}${match[2]}`.replace(/\s+/g, " ").trim().toLowerCase()
+        if (bookPart.length < 2) return null
+
+        const found = (books || []).find((b) => {
+            const name = (b.name || "").toLowerCase()
+            if (name === bookPart || name.startsWith(bookPart)) return true
+            return name.replace(/\s+/g, "") === bookPart.replace(/\s+/g, "")
+        })
+        if (!found) return null
+
+        return `${found.name} ${match[3]}${match[4] ? ":" + match[4] : ""}`
+    }
+
+    let referenceJumpTimeout: NodeJS.Timeout | null = null
+
     // auto search when char length is 5 or longer
     function searchValueChanged(e: any) {
         contentSearchValue = e.target?.value || ""
+
+        if (referenceJumpTimeout) clearTimeout(referenceJumpTimeout)
+
+        // reference input jumps straight to the verse (after a short pause, so the box is not cleared mid typing)
+        const reference = parseReferenceInput(contentSearchValue)
+        if (reference) {
+            contentSearchResults = null
+            referenceJumpTimeout = setTimeout(() => {
+                searchValue = reference
+            }, 700)
+            return
+        }
+
         if (contentSearchValue.length < 5) {
             contentSearchResults = null
             return
@@ -779,6 +827,15 @@
     }
 
     async function searchInBible() {
+        // Enter/blur with a reference jumps immediately
+        const reference = parseReferenceInput(contentSearchValue)
+        if (reference) {
+            if (referenceJumpTimeout) clearTimeout(referenceJumpTimeout)
+            contentSearchResults = null
+            searchValue = reference
+            return
+        }
+
         if (contentSearchValue.length < 3) {
             contentSearchResults = null
             return
@@ -794,8 +851,18 @@
         }
     }
 
-    // reset if another reference is loaded
-    $: if (activeReference) resetContentSearch()
+    // reset only when the loaded reference actually CHANGES (never while typing),
+    // and keep the input when the change came from our own reference jump
+    // (clearing would wipe the text before the user finishes typing e.g. "matius 1:1-10")
+    let lastReferenceKey = ""
+    $: referenceKey = JSON.stringify([activeReference.book, activeReference.chapters, activeReference.verses])
+    $: if (referenceKey !== lastReferenceKey) onReferenceChanged()
+    function onReferenceChanged() {
+        lastReferenceKey = referenceKey
+        if (parseReferenceInput(contentSearchValue)) return
+        resetContentSearch()
+    }
+
     function resetContentSearch() {
         contentSearchValue = ""
         contentSearchResults = null

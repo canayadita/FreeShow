@@ -17,6 +17,7 @@ import {
     audioEffects,
     audioFolders,
     audioPlaylists,
+    multiPaneLayouts,
     audioStreams,
     autoOutput,
     autosave,
@@ -122,6 +123,21 @@ export function updateSettings(data: any) {
         delete data.equalizerConfig
     }
 
+    // ProShow rebrand: migrate default output color (pink → deep blue)
+    // must run BEFORE updateList so the store gets the new value
+    if (data.outputs) {
+        let outputsChanged = false
+        for (const [id, output] of Object.entries(data.outputs as Record<string, any>)) {
+            if (output?.color?.toLowerCase() === "#f0008c") {
+                ;(data.outputs as any)[id] = { ...output, color: "#2563EB" }
+                outputsChanged = true
+            }
+        }
+        if (outputsChanged) {
+            console.info("Migrated output colors: pink → deep blue (ProShow rebrand)")
+        }
+    }
+
     Object.entries(data).forEach(([key, value]: any) => {
         if (updateList[key as SaveListSettings]) updateList[key as SaveListSettings](value)
         else console.info("RECEIVED UNKNOWN SETTINGS KEY:", key)
@@ -164,7 +180,54 @@ export function updateSettings(data: any) {
             })
         }
 
+        // migrate pink/magenta secondary → deep blue (ProShow rebrand)
+        const isOldPinkSecondary = currentTheme.colors.secondary?.toLowerCase() === "#f0008c" || currentTheme.colors.secondary?.toLowerCase() === "#fbe1fe"
+        if (isOldPinkSecondary) {
+            themes.update((a) => {
+                const themeId = data.theme
+                if (a[themeId]?.colors) {
+                    a[themeId] = clone(a[themeId])
+                    a[themeId].colors = { ...a[themeId].colors }
+                    a[themeId].colors.secondary = themeId === "white" ? "#DBEAFE" : "#2563EB"
+                    a[themeId].colors["secondary-opacity"] = themeId === "white" ? "rgba(219, 234, 254, 0.5)" : themeId === "light" ? "rgb(37 99 235 / 0.5)" : "rgba(37, 99, 235, 0.5)"
+                }
+                currentTheme = a[themeId]
+                return a
+            })
+        }
+
         updateThemeValues(currentTheme)
+    }
+
+    // migrate default watermark overlay (FreeShow pink → ProShow deep blue)
+    const watermarkOverlay = get(overlays).watermark
+    if (watermarkOverlay?.color?.toLowerCase() === "#f0008c") {
+        overlays.update((a) => {
+            a = clone(a)
+            if (a.watermark) {
+                a.watermark = clone(a.watermark)
+                a.watermark.color = "#2563EB"
+                const items = a.watermark.items
+                if (Array.isArray(items) && items[0]?.lines?.[0]?.text?.[0]) {
+                    a.watermark.items = clone(items)
+                    a.watermark.items[0] = clone(items[0])
+                    a.watermark.items[0].lines = clone(items[0].lines)
+                    a.watermark.items[0].lines[0] = clone(items[0].lines[0])
+                    a.watermark.items[0].lines[0].text = clone(items[0].lines[0].text)
+                    const textObj = a.watermark.items[0].lines[0].text[0]
+                    if (textObj.value === "FreeShow") textObj.value = "ProShow"
+                    if (typeof textObj.style === "string") {
+                        textObj.style = textObj.style.replace(/#F0008C/gi, "#2563EB")
+                    }
+                }
+            }
+            return a
+        })
+    }
+
+    // migrate default output color (ProShow rebrand: pink → deep blue)
+    if (false) {
+        // (moved to top of updateSettings to run before updateList)
     }
 
     // load all shows
@@ -357,6 +420,7 @@ const updateList: { [key in SaveListSettings | SaveListSyncedSettings]: any } = 
     interactions: (v: any) => interactions.set(v),
     audioStreams: (v: any) => audioStreams.set(v),
     audioPlaylists: (v: any) => audioPlaylists.set(v),
+    multiPaneLayouts: (v: any) => multiPaneLayouts.set(v),
     theme: (v: any) => theme.set(v),
     transitionData: (v: any) => transitionData.set(v),
     volume: (v: any) => volume.set(v),

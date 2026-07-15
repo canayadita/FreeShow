@@ -312,10 +312,58 @@
     $: baseFontSize = fontSize || (style ? resolveFontSize(renderedLines[0]?.text[0]?.style, outputStyle) : 100)
 
     function getLineStyle(index: number): string {
-        if (!animationConfig || animationConfig.type === "none") return ""
-        const delayMs = animationSlideDelay + index * (animationConfig.delay ?? 150)
-        return `animation-name: anim-${animationConfig.type}; animation-duration: ${animationConfig.duration ?? 600}ms; animation-delay: ${delayMs}ms; animation-fill-mode: both; animation-timing-function: ease-out;${animationConfig.repeat ? " animation-iteration-count: infinite;" : ""}`
+        const bg = animationConfig?.background
+        const hasBg = bg?.enabled && bg.type !== "none"
+        const deco = animationConfig?.decoration
+        const hasDeco = !!deco?.type && deco.type !== "none"
+
+        if (!animationConfig || (animationConfig.type === "none" && !hasBg && !hasDeco)) return ""
+
+        const parts: string[] = []
+
+        // Primary entrance animation
+        if (animationConfig.type !== "none") {
+            const delayMs = animationSlideDelay + index * (animationConfig.delay ?? 150)
+            parts.push(
+                `animation-name: anim-${animationConfig.type}`,
+                `animation-duration: ${animationConfig.duration ?? 600}ms`,
+                `animation-delay: ${delayMs}ms`,
+                `animation-fill-mode: both`,
+                `animation-timing-function: ease-out`
+            )
+            if (animationConfig.repeat) parts.push(`animation-iteration-count: infinite`)
+        }
+
+        // Hand-drawn decoration pops in right after the entrance animation lands
+        if (hasDeco) {
+            const entranceEnd = animationConfig.type !== "none" ? animationSlideDelay + index * (animationConfig.delay ?? 150) + (animationConfig.duration ?? 600) : animationSlideDelay
+            parts.push(`--deco-delay: ${entranceEnd + 100}ms`, `--deco-dur: 550ms`, `--deco-color: ${deco!.color || "#FFD54F"}`)
+        }
+
+        // Secondary background/loop animation — applied via CSS variables
+        // on the .break wrapper, and the CSS rule for .with-blend will
+        // forward the animation to the inner .textContainer spans.
+        if (hasBg) {
+            const bgDelayMs = (bg.startDelay ?? 0) + index * (bg.delay ?? 100)
+            const iter = bg.loop === false ? "1" : "infinite"
+            parts.push(
+                `--blend-anim: anim-${bg.type}`,
+                `--blend-dur: ${bg.duration ?? 2000}ms`,
+                `--blend-delay: ${bgDelayMs}ms`,
+                `--blend-iter: ${iter}`,
+                `--blend-opacity: ${(bg.opacity ?? 100) / 100}`,
+                `--blend-transparency: ${(bg.transparency ?? 0) / 100}`,
+                `--blend-mode: ${bg.blendMode ?? "normal"}`
+            )
+        }
+
+        return parts.join("; ") + ";"
     }
+
+    $: hasBlend = !!animationConfig?.background?.enabled && animationConfig.background.type !== "none"
+    // extra class per blend type for static styles that cannot live in keyframes (e.g. gradient text clip)
+    $: blendClass = hasBlend ? ` blend-${animationConfig!.background!.type}` : ""
+    $: decoClass = animationConfig?.decoration?.type && animationConfig.decoration.type !== "none" ? ` deco deco-${animationConfig.decoration.type}` : ""
 </script>
 
 <div class="align" class:hidden={hideContent} class:isStage class:scrolling={!isStage && item?.scrolling?.type} style="--scrollSpeed: {(item?.scrolling?.speed ?? 30) * 1.5}s;{style ? item?.align : null};" bind:clientWidth={alignWidth} bind:clientHeight={alignHeight}>
@@ -342,10 +390,11 @@
                                 <!-- class:height={!line.text[0]?.value.length} -->
                                 {#if !chordOnly}
                                     <div
-                                        class="break"
+                                        class="break{blendClass}"
                                         class:normalWrap={normalWrap || (isStage ? typeof stageItem?.style === "string" && (stageItem?.style.includes("justify") || stageItem?.style.includes("nowrap")) : line.align?.includes("justify") || line.align?.includes("left") || JSON.stringify(line).includes("nowrap"))}
                                         class:reveal={(centerPreview || isStage) && item?.lineReveal && revealed < i}
                                         class:smallFontSize={smallFontSize || customFontSize || textAnimation.includes("font-size")}
+                                        class:with-blend={hasBlend}
                                         style="position: relative;{style ? lineStyle : ''}{style ? line.align : ''}{height ? `height: ${height}px;` : ''}{item?.list?.enabled && line.text?.reduce((value, t) => (value += t.value || ''), '')?.length ? listStyle : ''}{item?.list?.enabled ? `color: ${getStyles(line.text[0]?.style).color || ''};` : ''}{lineHidden && outputStyle?.showAsFaded ? `opacity: ${(outputStyle.lineOpacity ?? 50) / 100};` : ''}{getLineStyle(i)}"
                                     >
                                         <!-- style Lines selection in center preview -->
@@ -363,7 +412,7 @@
                                                 {@const fontRatio = text.customType?.includes("disableTemplate") && !text.customType?.includes("jw") ? customTypeRatio : 1}
 
                                                 <!-- NOTE: must be on the same line for rendering ...>{@html -->
-                                                <span class="textContainer" style="{style ? getCustomStyle(text.style) : ''}{getColor(text.style)}{customStyle}{text.customType?.includes('disableTemplate') ? text.style : ''}{fontSize ? `;font-size: ${fontSize * fontRatio}px;` : style ? getCustomFontSize(text.style, outputStyle) : ''};--base-font-size: {baseFontSize}px;">{@html getTextValue(value, i, ti, updateDynamic)}</span>
+                                                <span class="textContainer{decoClass}" style="{style ? getCustomStyle(text.style) : ''}{getColor(text.style)}{customStyle}{text.customType?.includes('disableTemplate') ? text.style : ''}{fontSize ? `;font-size: ${fontSize * fontRatio}px;` : style ? getCustomFontSize(text.style, outputStyle) : ''};--base-font-size: {baseFontSize}px;">{@html getTextValue(value, i, ti, updateDynamic)}</span>
                                             {/each}
                                         {/if}
                                     </div>
@@ -393,10 +442,11 @@
                     <!-- class:height={!line.text[0]?.value.length} -->
                     {#if !chordOnly}
                         <div
-                            class="break"
+                            class="break{blendClass}"
                             class:normalWrap={normalWrap || (isStage ? typeof stageItem?.style === "string" && (stageItem?.style.includes("justify") || stageItem?.style.includes("nowrap")) : line.align?.includes("justify") || line.align?.includes("left") || JSON.stringify(line).includes("nowrap"))}
                             class:reveal={(centerPreview || isStage) && item?.lineReveal && revealed < i}
                             class:smallFontSize={smallFontSize || customFontSize || textAnimation.includes("font-size")}
+                            class:with-blend={hasBlend}
                             style="position: relative;{style ? lineStyle : ''}{style ? line.align : ''}{height ? `height: ${height}px;` : ''}{item?.list?.enabled && line.text?.reduce((value, t) => (value += t.value || ''), '')?.length ? listStyle : ''}{item?.list?.enabled ? `color: ${getStyles(line.text[0]?.style).color || ''};` : ''}{lineHidden && outputStyle?.showAsFaded ? `opacity: ${(outputStyle.lineOpacity ?? 50) / 100};` : ''}{getLineStyle(i)}"
                         >
                             <!-- style Lines selection in center preview -->
@@ -414,7 +464,7 @@
                                     {@const fontRatio = text.customType?.includes("disableTemplate") && !text.customType?.includes("jw") ? customTypeRatio : 1}
 
                                     <!-- NOTE: must be on the same line for rendering ...>{@html -->
-                                    <span class="textContainer" style="{style ? getCustomStyle(text.style) : ''}{getColor(text.style)}{customStyle}{text.customType?.includes('disableTemplate') ? text.style : ''}{fontSize ? `;font-size: ${fontSize * fontRatio}px;` : style ? getCustomFontSize(text.style, outputStyle) : ''};--base-font-size: {baseFontSize}px;">{@html getTextValue(value, i, ti, updateDynamic)}</span>
+                                    <span class="textContainer{decoClass}" style="{style ? getCustomStyle(text.style) : ''}{getColor(text.style)}{customStyle}{text.customType?.includes('disableTemplate') ? text.style : ''}{fontSize ? `;font-size: ${fontSize * fontRatio}px;` : style ? getCustomFontSize(text.style, outputStyle) : ''};--base-font-size: {baseFontSize}px;">{@html getTextValue(value, i, ti, updateDynamic)}</span>
                                 {/each}
                             {/if}
                         </div>
@@ -646,72 +696,20 @@
         }
     }
 
-    /* === FreeShowPlus Animations === */
 
-    @keyframes anim-fadeIn {
-        from { opacity: 0; }
-        to   { opacity: 1; }
-    }
+    /* === Blend layer — apply secondary animation to text content === */
 
-    @keyframes anim-fadeInWords {
-        from { opacity: 0; transform: translateY(6px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes anim-slideUp {
-        from { opacity: 0; transform: translateY(40px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes anim-slideDown {
-        from { opacity: 0; transform: translateY(-40px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes anim-slideLeft {
-        from { opacity: 0; transform: translateX(60px); }
-        to   { opacity: 1; transform: translateX(0); }
-    }
-
-    @keyframes anim-slideRight {
-        from { opacity: 0; transform: translateX(-60px); }
-        to   { opacity: 1; transform: translateX(0); }
-    }
-
-    @keyframes anim-typewriter {
-        from { clip-path: inset(0 100% 0 0); opacity: 1; }
-        to   { clip-path: inset(0 0% 0 0);   opacity: 1; }
-    }
-
-    @keyframes anim-zoomIn {
-        from { opacity: 0; transform: scale(0.6); }
-        to   { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes anim-zoomOut {
-        from { opacity: 0; transform: scale(1.4); }
-        to   { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes anim-bounceIn {
-        0%   { opacity: 0; transform: scale(0.3); }
-        50%  { opacity: 1; transform: scale(1.08); }
-        70%  { transform: scale(0.95); }
-        100% { transform: scale(1); }
-    }
-
-    @keyframes anim-glowPulse {
-        0%, 100% { text-shadow: 0 0 8px rgba(255,255,255,0.3); opacity: 1; }
-        50%       { text-shadow: 0 0 32px rgba(255,255,255,0.9), 0 0 60px rgba(255,255,255,0.4); opacity: 0.9; }
-    }
-
-    @keyframes anim-wipeLeft {
-        from { clip-path: inset(0 0 0 100%); }
-        to   { clip-path: inset(0 0 0 0); }
-    }
-
-    @keyframes anim-wipeRight {
-        from { clip-path: inset(0 100% 0 0); }
-        to   { clip-path: inset(0 0 0 0); }
+    .break.with-blend :global(.textContainer) {
+        opacity: var(--blend-opacity, 1);
+        /* filter opacity is reduced by transparency value, so
+           transparency:0 = 100% filter opacity (no change) */
+        filter: opacity(calc(1 - var(--blend-transparency, 0)));
+        mix-blend-mode: var(--blend-mode, normal);
+        animation-name: var(--blend-anim, none);
+        animation-duration: var(--blend-dur, 2000ms);
+        animation-delay: var(--blend-delay, 0ms);
+        animation-iteration-count: var(--blend-iter, infinite);
+        animation-fill-mode: both;
+        animation-timing-function: ease-in-out;
     }
 </style>

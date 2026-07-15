@@ -6,12 +6,14 @@
     import Scripture from "./bible/Scripture.svelte"
     import Calendar from "./calendar/Calendar.svelte"
     import Media from "./media/Media.svelte"
+    import PiP from "./pip/PiP.svelte"
     import Actions from "./pages/Actions.svelte"
     import Interactions from "./pages/Interactions.svelte"
     import OBS from "./pages/OBS.svelte"
     import Overlays from "./pages/Overlays.svelte"
     import Shows from "./pages/Shows.svelte"
     import Templates from "./pages/Templates.svelte"
+    import Typography from "./pages/Typography.svelte"
     import Variables from "./pages/Variables.svelte"
     import Timers from "./timers/Timers.svelte"
 
@@ -76,6 +78,10 @@
         {:else if active === "obs"}
             <OBS {searchValue} />
         {/if}
+    {:else if id === "typography"}
+        <Typography />
+    {:else if id === "pip"}
+        <PiP {active} />
     {/if}
 </div>
 

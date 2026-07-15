@@ -646,3 +646,29 @@ export type ItemType = "text" | "list" | "media" | "camera" | "timer" | "clock" 
 export type ShowType = "DIVIDER" | "show" | "image" | "video" | "audio" | "player" | "section" | "overlay" | "effect" | "pdf" | "ppt" | "screen" | "ndi" | "camera" | "folder" | "show_placeholder" // "private"
 export type TransitionType = "none" | "blur" | "fade" | "crossfade" | "fly" | "scale" | "slide" | "spin"
 export type MediaType = "media" | "video" | "image" | "effect" | "screen" | "ndi" | "camera" | "player" | "audio"
+
+// Multi-Pane / Picture-in-Picture types
+export type PaneSourceType = "slide" | "camera" | "screen" | "ndi" | "blackmagic" | "video" | "image" | "player" | "transparent"
+
+export interface MultiPane {
+    id: ID
+    name: string
+    panes: Pane[]
+    visible?: boolean
+}
+
+export interface Pane {
+    id: ID
+    sourceType: PaneSourceType
+    sourceId?: string // camera/screen/ndi/blackmagic/video/image/player ID
+    sourcePath?: string // for video/image
+    position: { x: number; y: number; width: number; height: number } // percentage 0-100
+    zIndex?: number
+    muted?: boolean
+    loop?: boolean
+    flipped?: boolean
+    opacity?: number // 0-100
+    borderRadius?: number
+    border?: { width: number; color: string }
+    shadow?: boolean
+}

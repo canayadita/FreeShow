@@ -108,6 +108,24 @@ export function addStyleString(oldStyle: string, style: any[]): string {
     return newStyle
 }
 
+// merge a full CSS declaration string (e.g. "font-weight: 800; letter-spacing: 0.02em;") into an existing style string
+export function mergeStyleStrings(oldStyle: string, cssString: string): string {
+    let style = oldStyle || ""
+    cssString
+        .split(";")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .forEach((statement) => {
+            const idx = statement.indexOf(":")
+            if (idx < 0) return
+            const key = statement.slice(0, idx).trim()
+            const value = statement.slice(idx + 1).trim()
+            if (!key || !value) return
+            style = addStyleString(style, [key, value])
+        })
+    return style
+}
+
 // add new filter to string and remove old if existing
 export function addFilterString(oldFilter: string, filter: any[]): string {
     let array: string[] = oldFilter.split(" ")

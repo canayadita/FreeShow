@@ -65,22 +65,126 @@ const BIBLES = [
         bookNames: ID_BOOK_NAMES,
     },
     {
-        // BIS (Bahasa Indonesia Sehari-hari) is not freely available in digital form.
-        // Using Terjemahan Baru data from godlytalias as fallback.
+        // Real BIS text fetched chapter-by-chapter from the public SABDA API.
         key: "bis",
         name: "Bahasa Indonesia Sehari-hari",
+        fileName: "Bahasa Indonesia Sehari-hari.fsb",
         copyright: "© Lembaga Alkitab Indonesia. Digunakan untuk ibadah.",
-        format: "godlytalias",
-        url: "https://raw.githubusercontent.com/godlytalias/Bible-Database/master/Indonesian/bible.json",
+        format: "sabda",
+        version: "bis",
         bookNames: ID_BOOK_NAMES,
+        bundledRevision: 3,
     },
 ]
 
 async function fetchBible(bible) {
     console.log(`Downloading ${bible.name}...`)
+    if (bible.format === "sabda") return await fetchSabda(bible)
     const res = await fetch(bible.url)
     if (!res.ok) throw new Error(`HTTP ${res.status} for ${bible.url}`)
     return await res.json()
+}
+
+// SABDA public API (alkitab.sabda.org) - fetches one chapter at a time
+const SABDA_CHAPTER_URL = "https://alkitab.sabda.org/api/chapter.php"
+const SABDA_DELAY_MS = 100
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+function decodeEntities(text) {
+    return text
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#0?39;/g, "'")
+        .replace(/&apos;/g, "'")
+        .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+        .replace(/&amp;/g, "&")
+}
+
+function parseSabdaChapter(xml) {
+    const chapterCount = Number(xml.match(/<chapter_count>(\d+)<\/chapter_count>/)?.[1] || 0)
+    const verses = []
+    for (const verseXml of xml.matchAll(/<verse>([\s\S]*?)<\/verse>/g)) {
+        const number = Number(verseXml[1].match(/<number>(\d+)<\/number>/)?.[1] || 0)
+        const rawText = verseXml[1].match(/<text>([\s\S]*?)<\/text>/)?.[1] || ""
+        // strip nested tags (e.g. pericope titles are separate <title> elements, but be safe)
+        const text = decodeEntities(rawText.replace(/<[^>]*>/g, "")).trim()
+        if (number > 0 && text) verses.push({ number, text })
+    }
+    return { chapterCount, verses }
+}
+
+async function fetchSabdaChapter(bookNumber, chapterNumber, version, attempt = 1) {
+    const url = `${SABDA_CHAPTER_URL}?book=${bookNumber}&chapter=${chapterNumber}&version=${version}`
+    try {
+        const res = await fetch(url)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        return parseSabdaChapter(await res.text())
+    } catch (err) {
+        if (attempt >= 3) throw new Error(`${url} -> ${err.message}`)
+        await sleep(1000 * attempt)
+        return fetchSabdaChapter(bookNumber, chapterNumber, version, attempt + 1)
+    }
+}
+
+async function fetchSabda(bible) {
+    const books = []
+    for (let bookNumber = 1; bookNumber <= 66; bookNumber++) {
+        const first = await fetchSabdaChapter(bookNumber, 1, bible.version)
+        if (!first.verses.length) throw new Error(`Book ${bookNumber}: no verses returned`)
+
+        const chapters = [{ number: 1, verses: first.verses }]
+        for (let c = 2; c <= first.chapterCount; c++) {
+            await sleep(SABDA_DELAY_MS)
+            const chapter = await fetchSabdaChapter(bookNumber, c, bible.version)
+            if (!chapter.verses.length) throw new Error(`Book ${bookNumber} chapter ${c}: no verses returned`)
+            chapters.push({ number: c, verses: chapter.verses })
+        }
+
+        books.push({
+            number: bookNumber,
+            name: bible.bookNames[bookNumber - 1] ?? `Book ${bookNumber}`,
+            abbreviation: ABBREVS[bookNumber - 1] ?? "",
+            chapters,
+        })
+        console.log(`  ${bible.bookNames[bookNumber - 1]} (${chapters.length} pasal) ✓`)
+        await sleep(SABDA_DELAY_MS)
+    }
+    return { name: bible.name, copyright: bible.copyright, books }
+}
+
+// BIS (like the printed edition) merges verse ranges into one block; SABDA returns
+// "(c:v)" placeholders for the merged continuation verses. Collapse them into the
+// anchor verse with endNumber, so it renders as e.g. "5-16" with the combined text.
+function mergeContinuationVerses(books) {
+    for (const book of books) {
+        for (const chapter of book.chapters) {
+            const continuations = new Map() // anchor verse number -> highest continuation number
+            const kept = []
+
+            for (const verse of chapter.verses) {
+                const marker = verse.text.trim().match(/^\((\d+):(\d+)(?:-\d+)?\)$/)
+                if (marker && Number(marker[1]) === Number(chapter.number)) {
+                    const anchor = Number(marker[2])
+                    continuations.set(anchor, Math.max(continuations.get(anchor) || 0, verse.number))
+                    continue
+                }
+                kept.push(verse)
+            }
+
+            for (const [anchor, end] of continuations) {
+                const anchorVerse = kept.find((v) => v.number === anchor)
+                if (anchorVerse && end > anchorVerse.number) anchorVerse.endNumber = end
+            }
+            chapter.verses = kept
+        }
+    }
+    return books
+}
+
+function convertSabda(raw) {
+    return { ...raw, books: mergeContinuationVerses(raw.books) }
 }
 
 // Converter for thiagobodruk format: [{book, chapters: string[][]}]
@@ -141,23 +245,33 @@ function convert(raw, meta) {
         case "thiagobodruk": return convertThiagobodruk(raw, meta)
         case "getbible":     return convertGetbible(raw, meta)
         case "godlytalias":  return convertGodlytalias(raw, meta)
+        case "sabda":        return convertSabda(raw)
         default: throw new Error(`Unknown format: ${meta.format}`)
     }
 }
 
 async function main() {
+    // optional filter: node scripts/prepare-bibles.mjs bis
+    const onlyKeys = process.argv.slice(2)
+    const biblesToProcess = onlyKeys.length ? BIBLES.filter((b) => onlyKeys.includes(b.key)) : BIBLES
+
     let allOk = true
-    for (const bible of BIBLES) {
+    for (const bible of biblesToProcess) {
         try {
             const raw = await fetchBible(bible)
             const fsb = convert(raw, bible)
-            const outPath = join(OUT_DIR, `${bible.key}.fsb`)
-            writeFileSync(outPath, JSON.stringify(fsb), "utf8")
+            if (bible.bundledRevision) fsb.bundledRevision = bible.bundledRevision
+
+            // FreeShow bundle format: [id, { name, copyright, books }]
+            const fileName = bible.fileName || `${bible.key}.fsb`
+            const outPath = join(OUT_DIR, fileName)
+            writeFileSync(outPath, JSON.stringify([bible.key, fsb]), "utf8")
+
             const totalVerses = fsb.books.reduce(
                 (s, b) => s + b.chapters.reduce((cs, c) => cs + c.verses.length, 0),
                 0
             )
-            console.log(`  ✓ ${bible.key}.fsb — ${fsb.books.length} kitab, ${totalVerses.toLocaleString()} ayat`)
+            console.log(`  ✓ ${fileName} — ${fsb.books.length} kitab, ${totalVerses.toLocaleString()} ayat`)
         } catch (err) {
             console.error(`  ✗ ${bible.key}: ${err.message}`)
             allOk = false

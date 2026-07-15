@@ -93,6 +93,7 @@ export type SelectIds =
     | "metronome"
     | "overlay"
     | "template"
+    | "text_preset"
     | "action"
     | "effect"
     | "screen"
@@ -191,6 +192,8 @@ export interface MediaStyle {
     pitch?: number // audio
     tempo?: number // audio
     rendering?: string // image rendering
+    blendMode?: string // mix-blend-mode for background blending (Resolume style)
+    blendColor?: string // color/gradient layer rendered under the media for the blend mode to interact with
     info?: any // cached codec/mime data
     tracks?: Subtitle[]
     subtitle?: string
@@ -452,6 +455,7 @@ export type Popups =
     | "cleaning_utility"
     | "pco_picker"
     | "sync_folders"
+    | "text_preset_picker"
 
 export type DefaultProjectNames = "date" | "today" | "sunday" | "week" | "custom" | "blank"
 

@@ -1,0 +1,29 @@
+NOTICE
+======
+
+This is a modified version of FreeShow, originally developed by ChurchApps.
+
+Original Project:
+  - Name: FreeShow
+  - Repository: https://github.com/ChurchApps/FreeShow
+  - Author: ChurchApps <support@livecs.org>
+  - License: GNU General Public License v3.0
+
+Modified Version:
+  - Name: ProShow
+  - Modified by: Mika Mulyanto
+  - Date: 2026
+
+Changes made:
+  - Rebranded from "FreeShow" to "ProShow"
+  - Fixed smart split logic for scripture lower third templates
+    (long Bible verses are now properly split across multiple slides
+    when the template textbox cannot fit the full text)
+
+This modified version is released under the same license:
+GNU General Public License v3.0 (GPL-3.0)
+
+The source code of this modified version is available upon request,
+in compliance with the GPL-3.0 license terms.
+
+A copy of the original license is included in the LICENSE file.

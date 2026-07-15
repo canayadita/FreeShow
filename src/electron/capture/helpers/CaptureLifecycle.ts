@@ -3,6 +3,7 @@ import { OutputHelper } from "../../output/OutputHelper"
 import { CaptureHelper } from "../CaptureHelper"
 import { CaptureTransmitter } from "./CaptureTransmitter"
 import { WebRtcHost } from "../../webrtc/WebRtcHost"
+import { RtmpSender } from "../../rtmp/RtmpSender"
 
 export class CaptureLifecycle {
     private static readonly BACKPRESSURE_LOOKUP = [
@@ -29,6 +30,7 @@ export class CaptureLifecycle {
                 this.updateCaptureToggles(id, output.captureOptions, toggle)
                 CaptureHelper.Transmitter.startTransmitting(id)
                 this.updateWebRtcHostState()
+                this.updateRtmpState()
             }
             return
         }
@@ -66,6 +68,7 @@ export class CaptureLifecycle {
 
         this.activeCaptures.add(id)
         this.updateWebRtcHostState()
+        this.updateRtmpState()
 
         this.runCaptureLoop(id, token, output)
     }
@@ -188,7 +191,7 @@ export class CaptureLifecycle {
             capture.frameSubscription = null
         }
 
-        const channels = ["ndi", "blackmagic", "server", "stage", "webrtc"]
+        const channels = ["ndi", "blackmagic", "server", "stage", "webrtc", "rtmp"]
         channels.forEach((channel) => CaptureHelper.Transmitter.stopChannel(id, channel))
 
         console.info("Capture - stopping: " + id)
@@ -196,6 +199,7 @@ export class CaptureLifecycle {
         this.cleanupListeners(capture.window)
         delete output.captureOptions
         this.updateWebRtcHostState()
+        this.updateRtmpState()
     }
 
     private static cleanupListeners(window: any) {
@@ -237,5 +241,19 @@ export class CaptureLifecycle {
         } else {
             WebRtcHost.stop()
         }
+    }
+
+    private static updateRtmpState() {
+        const allOutputs = OutputHelper.getAllOutputs()
+
+        allOutputs.forEach((o) => {
+            if (!o.id) return
+
+            if (o.captureOptions?.options?.rtmp && o.rtmpData?.streaming) {
+                RtmpSender.start(o.id, o.rtmpData)
+            } else {
+                RtmpSender.stop(o.id)
+            }
+        })
     }
 }

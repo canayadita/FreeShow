@@ -28,6 +28,7 @@
     export let transition: any = {}
     export let transitionEnabled = false
     export let styleIdOverride = ""
+    export let customResolution: { width: number; height: number } | null = null
 
     let origin = ""
     $: if (outSlide.id) updateShow()
@@ -432,7 +433,7 @@
                 {mirror}
                 {preview}
                 slideIndex={current.outSlide?.index}
-                {styleIdOverride}
+                {styleIdOverride} {customResolution}
                 autoSizeKey={createAutoSizeKey(item, index)}
                 updateDynamicValues={!isClearing}
             />
@@ -459,7 +460,7 @@
                             {mirror}
                             {preview}
                             slideIndex={customOut?.index}
-                            {styleIdOverride}
+                            {styleIdOverride} {customResolution}
                             autoSizeKey={createAutoSizeKey(item, index)}
                             updateDynamicValues={!isClearing}
                         />
@@ -473,7 +474,7 @@
 {#if precomputeTargets.length}
     <div class="autosize-precompute" aria-hidden="true">
         {#each precomputeTargets as target (target.key)}
-            <Textbox item={target.item} {ratio} {outputId} outputStyle={currentStyle} {mirror} {preview} {styleIdOverride} ref={{ type: "show", showId: outSlide?.id, slideId: currentSlide?.id, id: currentSlide?.id || "", layoutId: outSlide?.layout }} autoSizeKey={target.key} on:autosizeReady={handlePrecomputeReady} updateDynamicValues={!isClearing} animationConfig={target.item.animationConfig} />
+            <Textbox item={target.item} {ratio} {outputId} outputStyle={currentStyle} {mirror} {preview} {styleIdOverride} {customResolution} ref={{ type: "show", showId: outSlide?.id, slideId: currentSlide?.id, id: currentSlide?.id || "", layoutId: outSlide?.layout }} autoSizeKey={target.key} on:autosizeReady={handlePrecomputeReady} updateDynamicValues={!isClearing} animationConfig={target.item.animationConfig} />
         {/each}
     </div>
 {/if}

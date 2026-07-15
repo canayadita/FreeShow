@@ -10,15 +10,29 @@ function getBiblesSourceDir(): string {
     return path.join(__dirname, "../../../public/bibles")
 }
 
-function isValidFsbFormat(filePath: string): boolean {
+function readFsb(filePath: string): any | null {
     try {
-        const raw = readFileSync(filePath, "utf8")
-        const data = JSON.parse(raw)
+        const data = JSON.parse(readFileSync(filePath, "utf8"))
         // FreeShow format: [id, { name, books: [...] }]
-        return Array.isArray(data) && data.length >= 2 && Array.isArray(data[1]?.books)
+        if (Array.isArray(data) && data.length >= 2 && Array.isArray(data[1]?.books)) return data
+        return null
     } catch {
-        return false
+        return null
     }
+}
+
+// Bundled bibles carry a bundledRevision number - when the bundled copy is newer
+// than the installed one (e.g. corrected BIS text), the installed file is replaced.
+function isUpToDate(target: string, source: string): boolean {
+    const installed = readFsb(target)
+    if (!installed) return false
+
+    const bundled = readFsb(source)
+    if (!bundled) return true // no valid source to compare against - keep installed
+
+    const installedRevision = Number(installed[1]?.bundledRevision) || 0
+    const bundledRevision = Number(bundled[1]?.bundledRevision) || 0
+    return installedRevision >= bundledRevision
 }
 
 export function installBundledBibles(): void {
@@ -27,8 +41,8 @@ export function installBundledBibles(): void {
 
     for (const file of BUNDLED_BIBLES) {
         const target = path.join(targetDir, file)
-        // Skip only if file exists AND is already valid FreeShow format
-        if (existsSync(target) && isValidFsbFormat(target)) continue
+        // Skip only if installed file is valid AND at least as new as the bundled copy
+        if (existsSync(target) && isUpToDate(target, path.join(sourceDir, file))) continue
 
         const source = path.join(sourceDir, file)
         if (!existsSync(source)) {

@@ -29,7 +29,36 @@ const defaultMedia = splitIntoRows([
     },
     { id: "fit", type: "dropdown", value: "", values: { label: "media.fit", defaultValue: "", options: [{ value: "", label: "themes.default" }, ...mediaFitOptions] } },
     { id: "flipped", type: "checkbox", value: false, values: { label: "media.flip_horizontally" } },
-    { id: "flippedY", type: "checkbox", value: false, values: { label: "media.flip_vertically" } }
+    { id: "flippedY", type: "checkbox", value: false, values: { label: "media.flip_vertically" } },
+    // background blending (Resolume style) - blend the media with the color layer below it
+    {
+        id: "blendMode",
+        type: "dropdown",
+        value: "",
+        values: {
+            label: "Blend Mode",
+            defaultValue: "",
+            options: [
+                { value: "", label: "example.default" },
+                { value: "screen", label: "Screen" },
+                { value: "multiply", label: "Multiply" },
+                { value: "overlay", label: "Overlay" },
+                { value: "soft-light", label: "Soft Light" },
+                { value: "hard-light", label: "Hard Light" },
+                { value: "color-dodge", label: "Color Dodge (Add)" },
+                { value: "color-burn", label: "Color Burn" },
+                { value: "lighten", label: "Lighten" },
+                { value: "darken", label: "Darken" },
+                { value: "difference", label: "Difference" },
+                { value: "exclusion", label: "Exclusion" },
+                { value: "hue", label: "Hue" },
+                { value: "saturation", label: "Saturation" },
+                { value: "color", label: "Color" },
+                { value: "luminosity", label: "Luminosity" }
+            ]
+        }
+    },
+    { id: "blendColor", type: "color", value: "", values: { label: "Blend Color", allowGradients: true, allowOpacity: true, allowEmpty: true } }
 ])
 
 export const mediaBoxes: { [key in MediaType]?: BoxContent2 } = {

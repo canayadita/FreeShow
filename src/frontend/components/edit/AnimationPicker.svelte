@@ -1,11 +1,18 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte"
-    import type { AnimationConfig, AnimationType } from "../../../types/animation"
-    import { DEFAULT_ANIMATION_CONFIG } from "../../../types/animation"
+    import type {
+        AnimationConfig,
+        AnimationType,
+        BackgroundAnimation,
+        BackgroundAnimationType,
+        BlendMode,
+        DecorationType,
+    } from "../../../types/animation"
+    import { DEFAULT_ANIMATION_CONFIG, DEFAULT_BACKGROUND_ANIMATION } from "../../../types/animation"
 
     export let config: AnimationConfig = { ...DEFAULT_ANIMATION_CONFIG }
 
-    const dispatch = createEventDispatcher<{ change: AnimationConfig }>()
+    const dispatch = createEventDispatcher<{ change: AnimationConfig; openPresets: void }>()
 
     const ANIMATION_OPTIONS: { value: AnimationType; label: string; icon: string }[] = [
         { value: "none",        label: "Tidak Ada",     icon: "—" },
@@ -22,20 +29,116 @@
         { value: "glowPulse",   label: "Glow Pulse",    icon: "✺" },
         { value: "wipeLeft",    label: "Wipe Kiri",     icon: "▶" },
         { value: "wipeRight",   label: "Wipe Kanan",    icon: "◀" },
+        { value: "popIn",       label: "Pop Spring",    icon: "✹" },
+        { value: "flipIn",      label: "Flip 3D",       icon: "▱" },
+        { value: "blurIn",      label: "Blur In",       icon: "◌" },
+        { value: "trackingIn",  label: "Tracking",      icon: "⟷" },
+        { value: "glitchIn",    label: "Glitch In",     icon: "▓" },
     ]
 
+    const BACKGROUND_OPTIONS: { value: BackgroundAnimationType; label: string; icon: string }[] = [
+        { value: "none",        label: "Tidak Ada",    icon: "—" },
+        { value: "breathe",     label: "Breathe",      icon: "❍" },
+        { value: "shimmer",     label: "Shimmer",      icon: "✧" },
+        { value: "float",       label: "Float",        icon: "↕" },
+        { value: "sway",        label: "Sway",         icon: "↻" },
+        { value: "rainbow",     label: "Rainbow",      icon: "🌈" },
+        { value: "blurPulse",   label: "Blur Pulse",   icon: "▒" },
+        { value: "shadowGrow",  label: "Shadow Grow",  icon: "◉" },
+        { value: "letterDance", label: "Letter Dance", icon: "✦" },
+        { value: "neon",        label: "Neon",         icon: "⚡" },
+        { value: "flicker",     label: "Flicker",      icon: "✺" },
+        { value: "wave",        label: "Wave",         icon: "∿" },
+        { value: "colorCycle",  label: "Color Cycle",  icon: "●" },
+        { value: "gradientSweep", label: "Gradient Sweep", icon: "◧" },
+        { value: "glitch",      label: "Glitch",       icon: "▓" },
+        { value: "chromatic",   label: "Chromatic",    icon: "◑" },
+    ]
+
+    const BLEND_MODE_OPTIONS: { value: BlendMode; label: string }[] = [
+        { value: "normal",       label: "Normal" },
+        { value: "multiply",     label: "Multiply" },
+        { value: "screen",       label: "Screen" },
+        { value: "overlay",      label: "Overlay" },
+        { value: "darken",       label: "Darken" },
+        { value: "lighten",      label: "Lighten" },
+        { value: "color-dodge",  label: "Color Dodge" },
+        { value: "color-burn",   label: "Color Burn" },
+        { value: "hard-light",   label: "Hard Light" },
+        { value: "soft-light",   label: "Soft Light" },
+        { value: "difference",   label: "Difference" },
+        { value: "exclusion",    label: "Exclusion" },
+        { value: "hue",          label: "Hue" },
+        { value: "saturation",   label: "Saturation" },
+        { value: "color",        label: "Color" },
+        { value: "luminosity",   label: "Luminosity" },
+    ]
+
+    const DECORATION_OPTIONS: { value: DecorationType; label: string; icon: string }[] = [
+        { value: "none",          label: "Tidak Ada",     icon: "—" },
+        { value: "underline",     label: "Coret Bawah",   icon: "▁" },
+        { value: "underlineWavy", label: "Coret Wavy",    icon: "﹏" },
+        { value: "highlight",     label: "Stabilo",       icon: "▮" },
+        { value: "box",           label: "Kotak",         icon: "▭" },
+        { value: "circle",        label: "Lingkaran",     icon: "◯" },
+        { value: "rays",          label: "Burst / Sinar", icon: "✳" },
+        { value: "splash",        label: "Splash Dots",   icon: "⁘" },
+        { value: "speedLines",    label: "Garis Speed",   icon: "≡" },
+    ]
+
+    // Derive a complete background config with defaults so the UI never
+    // has to deal with undefined fields.
+    $: background = {
+        ...DEFAULT_BACKGROUND_ANIMATION,
+        ...(config.background || {}),
+    } as BackgroundAnimation
+
     function update() {
-        dispatch("change", { ...config })
+        dispatch("change", { ...config, background: { ...background } })
     }
 
     function selectType(type: AnimationType) {
         config = { ...config, type }
         update()
     }
+
+    function selectBgType(type: BackgroundAnimationType) {
+        background = { ...background, type }
+        update()
+    }
+
+    function toggleBg() {
+        background = { ...background, enabled: !background.enabled }
+        update()
+    }
+
+    $: decoration = config.decoration || { type: "none" as DecorationType, color: "#FFD54F" }
+
+    function selectDecoType(type: DecorationType) {
+        config = { ...config, decoration: { ...decoration, type } }
+        update()
+    }
+
+    function setDecoColor(e: any) {
+        config = { ...config, decoration: { ...decoration, color: e.target?.value || "#FFD54F" } }
+        update()
+    }
 </script>
 
 <div class="animation-picker">
-    <div class="section-title">Animasi Teks</div>
+    <div class="section-title section-flex">
+        <span>Animasi Teks</span>
+        <button
+            class="preset-btn"
+            on:click={() => dispatch("openPresets")}
+            title="Pilih preset typography + animasi"
+        >
+            <span class="preset-icon">✦</span>
+            <span>Preset Template</span>
+        </button>
+    </div>
+
+    <div class="section-title" style="margin-top: 6px;">Animasi Utama (Entrance)</div>
 
     <div class="anim-grid">
         {#each ANIMATION_OPTIONS as opt}
@@ -71,6 +174,112 @@
             </label>
         </div>
     {/if}
+
+    <!-- ====== Background / Blend Animation ====== -->
+    <div class="divider"></div>
+
+    <div class="section-title section-flex">
+        <span>Animasi Background (Blend)</span>
+        <label class="mini-toggle" title="Aktifkan / nonaktifkan animasi background">
+            <input type="checkbox" checked={background.enabled} on:change={toggleBg} />
+            <span class="switch"></span>
+        </label>
+    </div>
+
+    {#if background.enabled}
+        <div class="anim-grid anim-grid-bg">
+            {#each BACKGROUND_OPTIONS as opt}
+                <button
+                    class="anim-btn"
+                    class:active={background.type === opt.value}
+                    on:click={() => selectBgType(opt.value)}
+                    title={opt.label}
+                >
+                    <span class="anim-icon">{opt.icon}</span>
+                    <span class="anim-label">{opt.label}</span>
+                </button>
+            {/each}
+        </div>
+
+        {#if background.type !== "none"}
+            <div class="anim-params">
+                <label>
+                    <span>Durasi Loop</span>
+                    <input type="range" min="200" max="6000" step="100" bind:value={background.duration} on:input={update} />
+                    <span class="val">{background.duration}ms</span>
+                </label>
+
+                <label>
+                    <span>Delay antar baris</span>
+                    <input type="range" min="0" max="800" step="25" bind:value={background.delay} on:input={update} />
+                    <span class="val">{background.delay}ms</span>
+                </label>
+
+                <label>
+                    <span>Mulai setelah</span>
+                    <input type="range" min="0" max="3000" step="50" bind:value={background.startDelay} on:input={update} />
+                    <span class="val">{background.startDelay}ms</span>
+                </label>
+
+                <label>
+                    <span>Opacity</span>
+                    <input type="range" min="0" max="100" step="1" bind:value={background.opacity} on:input={update} />
+                    <span class="val">{background.opacity}%</span>
+                </label>
+
+                <label>
+                    <span>Transparansi</span>
+                    <input type="range" min="0" max="100" step="1" bind:value={background.transparency} on:input={update} />
+                    <span class="val">{background.transparency}%</span>
+                </label>
+
+                <label>
+                    <span>Blend Mode</span>
+                    <select bind:value={background.blendMode} on:change={update} class="blend-select">
+                        {#each BLEND_MODE_OPTIONS as bm}
+                            <option value={bm.value}>{bm.label}</option>
+                        {/each}
+                    </select>
+                </label>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" bind:checked={background.loop} on:change={update} />
+                    <span>Loop (ulangi terus)</span>
+                </label>
+            </div>
+        {/if}
+    {:else}
+        <p class="hint">Aktifkan untuk menggabungkan 2 animasi: animasi entrance + animasi background/loop yang berjalan terus.</p>
+    {/if}
+
+    <!-- ====== Hand-drawn Decoration ====== -->
+    <div class="divider"></div>
+
+    <div class="section-title">Dekorasi Pemanis (setelah teks tayang)</div>
+
+    <div class="anim-grid">
+        {#each DECORATION_OPTIONS as opt}
+            <button
+                class="anim-btn"
+                class:active={decoration.type === opt.value}
+                on:click={() => selectDecoType(opt.value)}
+                title={opt.label}
+            >
+                <span class="anim-icon">{opt.icon}</span>
+                <span class="anim-label">{opt.label}</span>
+            </button>
+        {/each}
+    </div>
+
+    {#if decoration.type !== "none"}
+        <div class="anim-params">
+            <label>
+                <span>Warna dekorasi</span>
+                <input type="color" value={decoration.color || "#FFD54F"} on:input={setDecoColor} />
+                <span class="val">{decoration.color || "#FFD54F"}</span>
+            </label>
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -85,11 +294,58 @@
         opacity: 0.5;
         margin-bottom: 8px;
     }
+    .section-flex {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .section-flex span:first-child {
+        opacity: 0.5;
+    }
+    .preset-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 14px;
+        border: 1px solid rgba(37, 99, 235, 0.4);
+        background: rgba(37, 99, 235, 0.12);
+        color: inherit;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+        opacity: 1;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+    .preset-btn:hover {
+        background: rgba(37, 99, 235, 0.25);
+        border-color: #2563eb;
+    }
+    .preset-icon {
+        font-size: 11px;
+        color: #2563eb;
+    }
+    .divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.08);
+        margin: 14px 0 10px;
+    }
+    .hint {
+        font-size: 10px;
+        opacity: 0.45;
+        font-style: italic;
+        margin: 4px 0 0;
+        line-height: 1.4;
+    }
     .anim-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 4px;
         margin-bottom: 10px;
+    }
+    .anim-grid-bg {
+        grid-template-columns: repeat(3, 1fr);
     }
     .anim-btn {
         display: flex;
@@ -108,8 +364,8 @@
         background: rgba(255, 255, 255, 0.1);
     }
     .anim-btn.active {
-        background: rgba(99, 102, 241, 0.25);
-        border-color: #6366f1;
+        background: rgba(37, 99, 235, 0.25);
+        border-color: #2563eb;
     }
     .anim-icon {
         font-size: 14px;
@@ -139,15 +395,70 @@
         flex-shrink: 0;
     }
     .val {
-        width: 40px;
+        width: 48px;
         text-align: right;
         font-size: 10px;
         opacity: 0.6;
+        flex-shrink: 0;
     }
     input[type="range"] {
         flex: 1;
     }
     .checkbox-label {
         gap: 6px;
+    }
+    .blend-select {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        color: inherit;
+        padding: 3px 6px;
+        font-size: 11px;
+        cursor: pointer;
+    }
+    .blend-select:focus {
+        outline: 1px solid #2563eb;
+    }
+
+    /* mini toggle switch */
+    .mini-toggle {
+        position: relative;
+        display: inline-block;
+        width: 32px;
+        height: 18px;
+        margin: 0;
+        flex-shrink: 0;
+        cursor: pointer;
+        opacity: 1;
+    }
+    .mini-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .mini-toggle .switch {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 18px;
+        transition: 0.2s;
+    }
+    .mini-toggle .switch::before {
+        content: "";
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        left: 2px;
+        top: 2px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.2s;
+    }
+    .mini-toggle input:checked + .switch {
+        background: #2563eb;
+    }
+    .mini-toggle input:checked + .switch::before {
+        transform: translateX(14px);
     }
 </style>

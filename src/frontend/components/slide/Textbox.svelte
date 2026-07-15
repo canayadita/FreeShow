@@ -64,6 +64,7 @@
     export let centerPreview = false
     export let revealed = -1
     export let styleIdOverride = ""
+    export let customResolution: { width: number; height: number } | null = null
     // expose an optional key so parents can track autosize readiness per item
     export let autoSizeKey = ""
     export let updateDynamicValues = true
@@ -131,7 +132,10 @@
     $: if (!outputId) customOutputId = getActiveOutputs($outputs, true, true, true)[0]
 
     function getCustomStyle(currentStyle: string, outputId = "", styleIdOverride = "", _updater: any = null) {
-        if (outputId && !isMirrorItem && !isStage) {
+        if (customResolution) {
+            // rendering inside a PiP pane: re-layout items to the pane's aspect ratio
+            currentStyle = percentageStylePos(currentStyle, customResolution)
+        } else if (outputId && !isMirrorItem && !isStage) {
             let outputResolution = getOutputResolution(outputId, $outputs, true, styleIdOverride)
             currentStyle = percentageStylePos(currentStyle, outputResolution)
         }

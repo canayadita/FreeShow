@@ -13,7 +13,7 @@ import type { History, HistoryNew } from "../types/History"
 import type { ActiveEdit, Clipboard, Interaction, Media, MediaOptions, NumberObject, OS, Popups, Profiles, Selected, SlidesOptions, Variable } from "../types/Main"
 import type { Folders, Projects, ShowRef } from "../types/Projects"
 import type { Dictionary, Styles, Themes } from "../types/Settings"
-import type { Action, Emitter, ID, Overlays, ShowGroups, ShowList, Shows, ShowType, SlideTimer, Tag, Templates, Timer, Transition, TrimmedShows } from "../types/Show"
+import type { Action, Emitter, ID, MultiPane, Overlays, ShowGroups, ShowList, Shows, ShowType, SlideTimer, Tag, Templates, Timer, Transition, TrimmedShows } from "../types/Show"
 import type { ServerData } from "../types/Socket"
 import type { ActiveStage, StageLayouts } from "../types/Stage"
 import type { BibleCategories, Categories, DrawerTabs, SettingsTabs, TopViews } from "../types/Tabs"
@@ -259,6 +259,9 @@ export const effects: Writable<Effects> = writable({}) // {default}
 // OVERLAYS
 export const overlayCategories: Writable<Categories> = writable({}) // {default}
 export const overlays: Writable<Overlays> = writable({}) // {default}
+
+// MULTI-PANE / PICTURE-IN-PICTURE
+export const multiPaneLayouts: Writable<{ [key: string]: MultiPane }> = writable({}) // {}
 
 export const deletedDefaults: Writable<{ [key: string]: string[] }> = writable({}) // {}
 

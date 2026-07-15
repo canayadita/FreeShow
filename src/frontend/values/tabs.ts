@@ -8,7 +8,10 @@ export const drawerTabs = {
     scripture: { name: "tabs.scripture", icon: "scripture", title: "" },
     calendar: { name: "tabs.calendar", icon: "calendar", title: "" },
 
-    functions: { name: "tabs.functions", icon: "functions", title: "" }
+    functions: { name: "tabs.functions", icon: "functions", title: "" },
+
+    typography: { name: "tabs.typography", icon: "text", title: "tabs.typography_info" },
+    pip: { name: "tabs.pip", icon: "pip", title: "tabs.pip_info" }
 }
 
 // export const drawerTabs = {
