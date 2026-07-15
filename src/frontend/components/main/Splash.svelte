@@ -34,7 +34,7 @@
 </script>
 
 <Center class="context #splash">
-    <h1>FreeShow<span class="plus">+</span></h1>
+    <h1>ProShow</h1>
     <p style="opacity: 0.5;">v{$version}</p>
 
     {#if currentVerse}
@@ -70,10 +70,6 @@
     h1 {
         font-size: 3.5em;
         overflow: initial;
-    }
-
-    .plus {
-        color: var(--secondary);
     }
 
     .verse-block {
