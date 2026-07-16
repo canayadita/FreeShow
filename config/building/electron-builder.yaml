@@ -1,6 +1,6 @@
-appId: app.proshow
-productName: ProShow
-artifactName: ProShow-${version}-${arch}.${ext}
+appId: app.freeshowplus
+productName: FreeShow+
+artifactName: FreeShowPlus-${version}-${arch}.${ext}
 
 publish:
   provider: github

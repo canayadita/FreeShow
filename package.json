@@ -1,5 +1,5 @@
 {
-    "name": "proshow",
+    "name": "freeshowplus",
     "version": "1.6.4-plus.1",
     "private": true,
     "main": "build/electron/index.js",
