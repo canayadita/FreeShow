@@ -62,7 +62,7 @@
     $: noPhysicalOutputWindows = (!$outputDisplay && !physicalOutputWindows.length) || disableClick
 
     // RTMP stream button
-    $: rtmpOutputEntry = Object.entries($outputs).find(([_, o]) => o.enabled && o.rtmp && o.rtmpData?.key)
+    $: rtmpOutputEntry = Object.entries($outputs).find(([_, o]) => o.rtmp && o.rtmpData?.key)
     $: rtmpOutputId = rtmpOutputEntry?.[0] ?? ""
     $: rtmpOutput = rtmpOutputEntry?.[1]
     $: isStreaming = !!rtmpOutput?.rtmpData?.streaming
