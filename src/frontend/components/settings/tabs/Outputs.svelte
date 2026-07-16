@@ -582,8 +582,8 @@
 
     <svelte:fragment slot="menu">
         {#if currentOutput}
-            <MaterialTextInput label="RTMP URL" value={currentOutput.rtmpData?.url || ""} placeholder="rtmp://a.rtmp.youtube.com/live2" on:change={(e) => updateRtmpData(e.detail, "url")} />
-            <MaterialTextInput label="Stream Key" value={currentOutput.rtmpData?.key || ""} placeholder="xxxx-xxxx-xxxx-xxxx-xxxx" on:change={(e) => updateRtmpData(e.detail, "key")} />
+            <MaterialTextInput label="RTMP URL" value={currentOutput.rtmpData?.url || ""} placeholder="rtmp://a.rtmp.youtube.com/live2" pasteBtn on:change={(e) => updateRtmpData(e.detail, "url")} />
+            <MaterialTextInput label="Stream Key" value={currentOutput.rtmpData?.key || ""} placeholder="xxxx-xxxx-xxxx-xxxx-xxxx" pasteBtn on:change={(e) => updateRtmpData(e.detail, "key")} />
             <InputRow>
                 <MaterialDropdown label="settings.resolution" value={currentOutput.rtmpData?.resolution || "1920x1080"} options={rtmpResolutions} on:change={(e) => updateRtmpData(e.detail, "resolution")} />
                 <MaterialDropdown label="settings.frame_rate" value={String(currentOutput.rtmpData?.fps || 30)} options={rtmpFramerates} on:change={(e) => updateRtmpData(Number(e.detail?.id ?? e.detail), "fps")} />

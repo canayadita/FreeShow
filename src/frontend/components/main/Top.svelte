@@ -106,7 +106,7 @@
             <div class="unsaved" />
         {/if}
         <!-- logo -->
-        <h1 style="align-self: center;width: 100%;padding: 0px 10px;text-align: center;font-size: 1.8em;">FreeShow<span style="color: var(--secondary);">+</span></h1>
+        <h1 style="align-self: center;width: 100%;padding: 0px 4px;text-align: center;font-size: 1.5em;white-space: nowrap;overflow: visible;">FreeShow<span style="color: var(--secondary);">+</span></h1>
     </span>
     <span>
         <TopButton id="show" />
