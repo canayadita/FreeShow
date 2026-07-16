@@ -350,6 +350,217 @@ p {
     50%      { text-shadow: -5px 0 rgba(255, 0, 80, 0.6), 5px 0 rgba(0, 220, 255, 0.6); }
 }
 
+/* ===== New entrance animations ===== */
+
+@keyframes anim-shakeIn {
+    0%   { opacity: 0; transform: translateX(-30px); }
+    20%  { transform: translateX(12px); }
+    40%  { transform: translateX(-10px); }
+    60%  { transform: translateX(7px); }
+    80%  { transform: translateX(-4px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes anim-dropBounce {
+    0%   { opacity: 0; transform: translateY(-80px) scaleY(1.2); }
+    60%  { opacity: 1; transform: translateY(10px) scaleY(0.9); }
+    80%  { transform: translateY(-6px) scaleY(1.05); }
+    100% { transform: translateY(0) scaleY(1); }
+}
+
+@keyframes anim-elastic {
+    0%   { opacity: 0; transform: scale(0.3); }
+    40%  { opacity: 1; transform: scale(1.15); }
+    60%  { transform: scale(0.9); }
+    75%  { transform: scale(1.07); }
+    90%  { transform: scale(0.96); }
+    100% { transform: scale(1); }
+}
+
+@keyframes anim-rollIn {
+    0%   { opacity: 0; transform: translateX(-100%) rotate(-120deg); }
+    100% { opacity: 1; transform: translateX(0) rotate(0deg); }
+}
+
+@keyframes anim-tada {
+    0%   { opacity: 0; transform: scale(0.5) rotate(-8deg); }
+    40%  { opacity: 1; transform: scale(1.1) rotate(6deg); }
+    60%  { transform: scale(1.05) rotate(-4deg); }
+    80%  { transform: scale(1.02) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes anim-comicPop {
+    0%   { opacity: 0; transform: scale(0); filter: blur(4px); }
+    50%  { opacity: 1; transform: scale(1.35) rotate(-3deg); filter: blur(0); }
+    70%  { transform: scale(0.9) rotate(2deg); }
+    85%  { transform: scale(1.08) rotate(-1deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes anim-kapow {
+    0%   { opacity: 0; transform: scale(2) rotate(12deg); filter: blur(8px); }
+    40%  { opacity: 1; transform: scale(0.85) rotate(-4deg); filter: blur(0); }
+    65%  { transform: scale(1.08) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes anim-rubberBand {
+    0%   { opacity: 0; transform: scaleX(0.1); }
+    30%  { opacity: 1; transform: scaleX(1.25) scaleY(0.75); }
+    50%  { transform: scaleX(0.85) scaleY(1.1); }
+    70%  { transform: scaleX(1.06) scaleY(0.96); }
+    100% { transform: scaleX(1) scaleY(1); }
+}
+
+@keyframes anim-slingshot {
+    0%   { opacity: 0; transform: translateX(-150%) scale(1.4) rotate(10deg); }
+    60%  { opacity: 1; transform: translateX(8%) scale(0.92) rotate(-2deg); }
+    80%  { transform: translateX(-3%) scale(1.03); }
+    100% { transform: translateX(0) scale(1) rotate(0deg); }
+}
+
+@keyframes anim-lightSpeed {
+    0%   { opacity: 0; transform: translateX(120%) skewX(-30deg); }
+    50%  { opacity: 1; transform: skewX(12deg); }
+    70%  { transform: skewX(-6deg); }
+    100% { transform: translateX(0) skewX(0deg); }
+}
+
+@keyframes anim-jackInBox {
+    0%   { opacity: 0; transform: scale(0.1) rotate(30deg); transform-origin: bottom center; }
+    50%  { transform: rotate(-12deg); }
+    70%  { transform: rotate(6deg); }
+    80%  { opacity: 1; transform: rotate(-4deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes anim-hinge {
+    0%   { opacity: 1; transform: rotate(0); transform-origin: top left; }
+    20%, 60% { transform: rotate(80deg); transform-origin: top left; }
+    40%, 80% { transform: rotate(60deg); transform-origin: top left; }
+    100% { opacity: 1; transform: translate(0) rotate(0); }
+}
+
+@keyframes anim-neonFlash {
+    0%   { opacity: 0; text-shadow: none; }
+    10%  { opacity: 1; text-shadow: 0 0 20px #fff, 0 0 40px currentColor, 0 0 80px currentColor; }
+    20%  { opacity: 0.3; text-shadow: none; }
+    30%  { opacity: 1; text-shadow: 0 0 10px #fff, 0 0 30px currentColor, 0 0 60px currentColor; }
+    50%  { opacity: 0.5; }
+    100% { opacity: 1; text-shadow: 0 0 5px currentColor; }
+}
+
+/* ===== New loop/background animations ===== */
+
+@keyframes anim-shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-5px); }
+    40%      { transform: translateX(5px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+}
+
+@keyframes anim-bounce {
+    0%, 100% { transform: translateY(0); animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1); }
+    40%      { transform: translateY(-14px); animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06); }
+    70%      { transform: translateY(-6px); }
+}
+
+@keyframes anim-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.08); }
+}
+
+@keyframes anim-swing {
+    0%, 100% { transform: rotate(0deg); transform-origin: top center; }
+    20%      { transform: rotate(12deg); transform-origin: top center; }
+    50%      { transform: rotate(-8deg); transform-origin: top center; }
+    75%      { transform: rotate(5deg); transform-origin: top center; }
+}
+
+@keyframes anim-heartbeat {
+    0%, 100% { transform: scale(1); }
+    14%      { transform: scale(1.12); }
+    28%      { transform: scale(1); }
+    42%      { transform: scale(1.08); }
+    70%      { transform: scale(1); }
+}
+
+@keyframes anim-jello {
+    0%, 100% { transform: skew(0deg); }
+    25%      { transform: skewX(-8deg) skewY(-8deg); }
+    50%      { transform: skewX(4deg) skewY(4deg); }
+    75%      { transform: skewX(-2deg) skewY(-2deg); }
+}
+
+@keyframes anim-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes anim-electric {
+    0%, 90%, 100% { text-shadow: none; opacity: 1; }
+    92% { text-shadow: -2px 0 #00f7ff, 2px 0 #ff0080; opacity: 0.8; transform: translate(-1px, 1px); }
+    94% { text-shadow: 2px 0 #00f7ff, -2px 0 #ff0080; opacity: 1; transform: translate(1px, -1px); }
+    96% { text-shadow: -3px 0 #00f7ff; transform: translate(-2px, 0); }
+    98% { text-shadow: 3px 0 #ff0080; transform: translate(2px, 0); }
+}
+
+@keyframes anim-disco {
+    0%   { color: #ff4444; text-shadow: 0 0 10px #ff4444; }
+    16%  { color: #ff8800; text-shadow: 0 0 10px #ff8800; }
+    33%  { color: #ffee00; text-shadow: 0 0 10px #ffee00; }
+    50%  { color: #00ff88; text-shadow: 0 0 10px #00ff88; }
+    66%  { color: #0088ff; text-shadow: 0 0 10px #0088ff; }
+    83%  { color: #cc44ff; text-shadow: 0 0 10px #cc44ff; }
+    100% { color: #ff4444; text-shadow: 0 0 10px #ff4444; }
+}
+
+@keyframes anim-earthquake {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    10%      { transform: translate(-3px, -2px) rotate(-0.5deg); }
+    20%      { transform: translate(3px, 2px) rotate(0.5deg); }
+    30%      { transform: translate(-2px, 1px) rotate(-0.3deg); }
+    40%      { transform: translate(2px, -1px) rotate(0.3deg); }
+    50%      { transform: translate(-1px, 2px) rotate(-0.2deg); }
+    60%      { transform: translate(1px, -2px) rotate(0.2deg); }
+    70%      { transform: translate(-2px, 1px); }
+    80%      { transform: translate(2px, 1px); }
+    90%      { transform: translate(-1px, -1px); }
+}
+
+@keyframes anim-pendulum {
+    0%   { transform: rotate(0deg); transform-origin: top center; }
+    25%  { transform: rotate(20deg); transform-origin: top center; }
+    75%  { transform: rotate(-20deg); transform-origin: top center; }
+    100% { transform: rotate(0deg); transform-origin: top center; }
+}
+
+@keyframes anim-rubbery {
+    0%, 100% { transform: scaleX(1) scaleY(1); }
+    25%      { transform: scaleX(1.15) scaleY(0.85); }
+    50%      { transform: scaleX(0.88) scaleY(1.1); }
+    75%      { transform: scaleX(1.05) scaleY(0.95); }
+}
+
+@keyframes anim-sparkle {
+    0%, 100% { text-shadow: none; opacity: 1; }
+    25%      { text-shadow: 0 0 8px #fff, 0 0 20px currentColor; opacity: 0.9; }
+    50%      { text-shadow: 0 0 15px #fff, 0 0 35px currentColor, 0 0 60px currentColor; opacity: 1; }
+    75%      { text-shadow: 0 0 5px #fff, 0 0 12px currentColor; opacity: 0.95; }
+}
+
+@keyframes anim-comicVibrate {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    15%      { transform: translate(-2px, -1px) rotate(-1deg); }
+    30%      { transform: translate(2px, 1px) rotate(1deg); }
+    45%      { transform: translate(-1px, 2px) rotate(-0.5deg); }
+    60%      { transform: translate(1px, -2px) rotate(0.5deg); }
+    75%      { transform: translate(-2px, 0) rotate(-1deg); }
+    90%      { transform: translate(2px, 0) rotate(1deg); }
+}
+
 /* ===== Hand-drawn text decorations (animate in after text entrance) =====
    Applied via .deco-* classes on the .textContainer spans (which carry the real
    font-size, so em units scale with the text and the decoration hugs the text).

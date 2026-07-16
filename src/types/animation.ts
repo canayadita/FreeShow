@@ -18,6 +18,19 @@ export type AnimationType =
   | "blurIn"
   | "trackingIn"
   | "glitchIn"
+  | "shakeIn"
+  | "dropBounce"
+  | "elastic"
+  | "rollIn"
+  | "tada"
+  | "comicPop"
+  | "kapow"
+  | "rubberBand"
+  | "slingshot"
+  | "lightSpeed"
+  | "jackInBox"
+  | "hinge"
+  | "neonFlash"
 
 // Background / loop animations — designed to run continuously
 // and blend together with the primary entrance animation.
@@ -38,6 +51,20 @@ export type BackgroundAnimationType =
   | "gradientSweep"
   | "glitch"
   | "chromatic"
+  | "shake"
+  | "bounce"
+  | "pulse"
+  | "swing"
+  | "heartbeat"
+  | "jello"
+  | "spin"
+  | "electric"
+  | "disco"
+  | "earthquake"
+  | "pendulum"
+  | "rubbery"
+  | "sparkle"
+  | "comicVibrate"
 
 // CSS mix-blend-mode values for compositing the animated text
 // with whatever is rendered behind it.
