@@ -106,7 +106,7 @@
             <div class="unsaved" />
         {/if}
         <!-- logo -->
-        <h1 style="align-self: center;width: 100%;padding: 0px 10px;text-align: center;font-size: 1.8em;">ProShow</h1>
+        <h1 style="align-self: center;width: 100%;padding: 0px 10px;text-align: center;font-size: 1.8em;">FreeShow<span style="color: var(--secondary);">+</span></h1>
     </span>
     <span>
         <TopButton id="show" />
@@ -118,19 +118,21 @@
         {#if !settingsDisabled}
             <TopButton id="settings" hideLabel />
         {/if}
-        {#if rtmpOutputId}
-            <Button
-                title={isStreaming ? "Stop YouTube Stream" : "Start YouTube Stream"}
-                on:click={() => (isStreaming ? stopRtmpStreaming(rtmpOutputId, true) : startRtmpStreaming(rtmpOutputId))}
-                red={isStreaming}
-                style="min-width: 44px; position: relative;"
-            >
-                <Icon id={isStreaming ? "stop" : "record"} size={1.4} white />
-                {#if isStreaming}
-                    <span class="stream-dot" />
-                {/if}
-            </Button>
-        {/if}
+        <Button
+            title={isStreaming ? "Stop YouTube Stream" : rtmpOutputId ? "Start YouTube Stream" : "Setup RTMP stream in Settings → Outputs first"}
+            on:click={() => {
+                if (!rtmpOutputId) { settingsTab.set("display_settings"); activePage.set("settings") }
+                else if (isStreaming) stopRtmpStreaming(rtmpOutputId, true)
+                else startRtmpStreaming(rtmpOutputId)
+            }}
+            red={isStreaming}
+            style="min-width: 44px; position: relative; {!rtmpOutputId ? 'opacity: 0.4;' : ''}"
+        >
+            <Icon id={isStreaming ? "stop" : "record"} size={1.4} white />
+            {#if isStreaming}
+                <span class="stream-dot" />
+            {/if}
+        </Button>
 
         <!-- <MaterialButton id="output_window_button" class="context #output display {$outputDisplay ? 'on' : 'off'}" title="menu.{$outputDisplay ? (confirm ? 'again_confirm' : '_title_display_stop') : '_title_display'} [Ctrl+O]" style={$outputDisplay || disableClick ? "" : "border-bottom: 2px solid var(--secondary);"} on:click={toggleOutput} disabled={(!$outputDisplay && !physicalOutputWindows.length) || disableClick} red={$outputDisplay}>
             {#if $outputDisplay}
