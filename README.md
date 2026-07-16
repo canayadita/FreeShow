@@ -1,23 +1,45 @@
 <p align='center'>
-  <h1>ProShow</h1>
+  <h1>FreeShow+</h1>
 </p>
 
 <h1 align='center'>
-  ProShow
+  FreeShow+
 </h1>
 
 <p align='center'>
-  ProShow is a free software with a user-friendly interface that offers powerful features for creating and editing slideshows. 
+  FreeShow+ adalah fork dari FreeShow — aplikasi presentasi ibadah gratis berbasis open-source, dilengkapi fitur tambahan untuk gereja Indonesia.
 </p>
 
 <p align='center'>
-  <a href="https://github.com/ChurchApps/freeshow/releases"><img alt="Download" src="https://img.shields.io/github/downloads/ChurchApps/FreeShow/total?style=for-the-badge" /></a>
+  <a href="https://github.com/canayadita/FreeShow/releases"><img alt="Download" src="https://img.shields.io/github/downloads/canayadita/FreeShow/total?style=for-the-badge" /></a>
   &nbsp;
-  <a href="https://github.com/ChurchApps/freeshow/blob/main/LICENSE"><img alt="Licence" src="https://img.shields.io/badge/licence-GPL-blue.svg?style=for-the-badge" /></a>
+  <a href="https://github.com/canayadita/FreeShow/blob/main/LICENSE"><img alt="Licence" src="https://img.shields.io/badge/licence-GPL-blue.svg?style=for-the-badge" /></a>
   &nbsp;
-  <a href="https://github.com/ChurchApps/FreeShow/"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/ChurchApps/FreeShow?style=for-the-badge" /></a>
+  <a href="https://github.com/canayadita/FreeShow/"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/canayadita/FreeShow?style=for-the-badge" /></a>
 </p>
 <br />
+
+## Fitur Tambahan FreeShow+
+
+- **230+ Ayat Alkitab Bilingual** (TB + NIV) tampil di splash screen & footer bar
+- **Running text ayat** di footer — berjalan pelan, otomatis ganti setiap ayat selesai
+- **Rotasi ayat otomatis** setiap 1 jam di splash screen
+- **Tombol Start/Stop YouTube Stream** langsung di toolbar atas — tanpa masuk Settings
+- **PiP (Picture-in-Picture)** — background slide tampil benar di mode multi-pane
+- **Animasi teks & preset tipografi custom**
+
+## Download
+
+Unduh installer terbaru di halaman [Releases](https://github.com/canayadita/FreeShow/releases):
+
+| Platform | File |
+|----------|------|
+| Windows | `ProShow-x.x.x-x64.exe` |
+| macOS Intel | `ProShow-x.x.x-x64.dmg` |
+| macOS Apple Silicon | `ProShow-x.x.x-arm64.dmg` |
+| Linux | `ProShow-x.x.x-x86_64.AppImage` |
+
+> **Windows**: Saat install mungkin muncul peringatan SmartScreen. Klik **More info → Run anyway**.
 
 ## Get Started Using FreeShow
 
@@ -34,44 +56,22 @@
     <img style="width: 49%;" src="https://github.com/ChurchApps/FreeShow/assets/1447203/b1275bfc-e966-4813-962e-a7350ba6a84a">
 </div>
 
-## Short description
+## Tentang FreeShow (Base App)
 
-FreeShow is a free and open-source presentation program that makes it easy to show text on a big screen. It supports stage display, remote control, media, and many other advanced features. It is open-sourced meaning anyone can contribute.
+FreeShow adalah program presentasi gratis dan open-source yang memudahkan menampilkan teks di layar besar. Mendukung stage display, remote control, media, dan banyak fitur canggih lainnya.
 
-FreeShow exists because the creator found that other similar programs were either expensive or complex to use. He wanted to create a program that is easy to use and affordable for everyone, from small churches to large venues. FreeShow is now used by people all over the world.
+FreeShow+ adalah fork yang dikembangkan dengan tambahan fitur khusus untuk kebutuhan ibadah dan pelayanan gereja di Indonesia.
 
-## Support Us
+## Bantuan & Kontribusi
 
-The only reason this program is free is because of the generous support from users. If you want to support us to keep this free, please head over to [ChurchApps](https://churchapps.org/partner) or [sponsor us on GitHub](https://github.com/sponsors/ChurchApps/). Thank you so much!
-
-## Join the Community
-
-We have a great community for end-users on [Facebook](https://www.facebook.com/groups/freeshowapp). It's a good way to ask questions, get tips and follow new updates. Come join us!
-
-## Report an issue or request a feature
-
-If you notice a bug, or need a feature. Please create an [issue on GitHub](https://github.com/ChurchApps/freeshow/issues).
-
-## Give feedback
-
-Feedback is welcome! Please [open a discussion here](https://github.com/orgs/ChurchApps/discussions/categories/freeshow) or send a mail to [dev@freeshow.app](mailto:dev@freeshow.app).
-
-## Help translate
-
-Head over to [FreeShow on Transifex](https://app.transifex.com/nettbiter/freeshow/) to request a language.
-
-## Help the development
-
-You are welcome to contribute to the code!
-
-1. Clone the code in this repo
+1. Clone repo ini
 2. Install [Node.js](https://nodejs.org/en/download/)
-3. Install [Python 3.12](https://www.python.org/downloads/), and the [`setuptools`](https://pypi.org/project/setuptools/) package
-4. On Windows, download [Visual Studio](https://visualstudio.microsoft.com/downloads/) and install "Desktop development with C++", also select the "Windows 10 SDK"
-5. On Linux, install the following library: `sudo apt-get install libfontconfig1-dev`
-6. In the terminal, run: `npm install`
-7. To start the app, run: `npm start`
+3. Install [Python 3.12](https://www.python.org/downloads/) dan package [`setuptools`](https://pypi.org/project/setuptools/)
+4. Di Windows: install [Visual Studio](https://visualstudio.microsoft.com/downloads/) dengan "Desktop development with C++" + Windows 10 SDK
+5. Di Linux: `sudo apt-get install libfontconfig1-dev`
+6. Jalankan: `npm install`
+7. Start app: `npm start`
 
-## Join us on Slack
+## Lisensi
 
-If you would like to get involved contributing in any way, head over to our [Slack Channel](https://join.slack.com/t/livechurchsolutions/shared_invite/zt-i88etpo5-ZZhYsQwQLVclW12DKtVflg) and introduce yourself. We'd love to hear from you.
+GPL-3.0 — Fork dari [FreeShow](https://github.com/ChurchApps/FreeShow) oleh ChurchApps.
