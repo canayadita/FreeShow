@@ -95,3 +95,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run release
+
+  publish_release:
+    name: "Publish Release (draft → public)"
+    needs: [publish_windows, publish_mac, publish_linux]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Publish draft release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          gh release edit "v${VERSION}" \
+            --draft=false \
+            --title "FreeShow+ v${VERSION}" \
+            --repo canayadita/FreeShow
