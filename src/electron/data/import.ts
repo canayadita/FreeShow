@@ -1,6 +1,9 @@
 import Database from "better-sqlite3"
+import { execFile } from "child_process"
+import fs from "fs"
 import path, { join } from "path"
 import protobufjs from "protobufjs"
+import { promisify } from "util"
 import upath from "upath"
 // @ts-ignore (strange Rollup TS build problem, suddenly not realizing that the decleration exists)
 import MDBReader from "mdb-reader"
@@ -8,18 +11,62 @@ import MDBReader from "mdb-reader"
 import WordExtractor from "word-extractor"
 import { ToMain } from "../../types/IPC/ToMain"
 import { sendToMain } from "../IPC/main"
+import { isWindows } from ".."
 import { pptToShow } from "../output/ppt/pptToShow"
-import { doesPathExist, getDataFolderPath, getExtension, readFileAsync, readFileBufferAsync } from "../utils/files"
+import { createFolder, doesPathExist, getDataFolderPath, getExtension, readFileAsync, readFileBufferAsync, sanitizeFileName } from "../utils/files"
 import { detectFileType } from "./bibleDetecter"
 import { filePathHashCode } from "./thumbnails"
 import { decompressZip, decompressZipStream, isZip } from "./zip"
 
+const execFileAsync = promisify(execFile)
+
 type FileData = { content: Buffer | string | object; path?: string; name?: string; extension?: string }
+
+function getSofficePath(): string | null {
+    const paths: string[] = isWindows
+        ? [
+              path.join(process.env.PROGRAMFILES || "C:\\Program Files", "LibreOffice", "program", "soffice.exe"),
+              path.join(process.env["PROGRAMFILES(X86)"] || "C:\\Program Files (x86)", "LibreOffice", "program", "soffice.exe"),
+          ]
+        : ["/Applications/LibreOffice.app/Contents/MacOS/soffice", "/usr/bin/soffice", "/usr/local/bin/soffice"]
+
+    for (const p of paths) {
+        try {
+            if (fs.existsSync(p) && fs.lstatSync(p).isFile()) return p
+        } catch {
+            // ignore
+        }
+    }
+    return null
+}
 
 const specialImports = {
     powerpoint: async (files: string[]) => {
         sendToMain(ToMain.ALERT, "popup.importing")
 
+        const sofficePath = getSofficePath()
+
+        // LibreOffice available: convert each PPT → PDF → import as PDF (preserves all visuals)
+        if (sofficePath) {
+            const outputFolder = getDataFolderPath("imports", "PowerPoint")
+            createFolder(outputFolder)
+
+            for (const filePath of files) {
+                try {
+                    await execFileAsync(sofficePath, ["--headless", "--convert-to", "pdf", "--outdir", outputFolder, filePath])
+                    const safeName = sanitizeFileName(path.basename(filePath, path.extname(filePath)))
+                    const pdfPath = path.join(outputFolder, safeName + ".pdf")
+                    if (fs.existsSync(pdfPath)) {
+                        sendToMain(ToMain.IMPORT2, { channel: "pdf", data: [pdfPath] })
+                    }
+                } catch (err: any) {
+                    console.error("LibreOffice PPT→PDF failed:", err)
+                }
+            }
+            return []
+        }
+
+        // Fallback: XML-based import (may lose backgrounds)
         const data: FileData[] = []
         for await (const filePath of files) {
             const json = await pptToShow(filePath)
