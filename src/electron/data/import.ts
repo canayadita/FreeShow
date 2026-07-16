@@ -22,6 +22,24 @@ const execFileAsync = promisify(execFile)
 
 type FileData = { content: Buffer | string | object; path?: string; name?: string; extension?: string }
 
+function getMsPowerPointPath(): string | null {
+    if (isWindows) {
+        // Common PowerPoint executable locations on Windows
+        const versions = ["Office16", "Office15", "Office14", "root\\Office16", "root\\Office15"]
+        for (const ver of versions) {
+            const p = path.join(process.env.PROGRAMFILES || "C:\\Program Files", "Microsoft Office", ver, "POWERPNT.EXE")
+            const p86 = path.join(process.env["PROGRAMFILES(X86)"] || "C:\\Program Files (x86)", "Microsoft Office", ver, "POWERPNT.EXE")
+            if (fs.existsSync(p)) return p
+            if (fs.existsSync(p86)) return p86
+        }
+    } else {
+        // macOS
+        const p = "/Applications/Microsoft PowerPoint.app/Contents/MacOS/Microsoft PowerPoint"
+        if (fs.existsSync(p)) return p
+    }
+    return null
+}
+
 function getSofficePath(): string | null {
     const paths: string[] = isWindows
         ? [
@@ -40,25 +58,80 @@ function getSofficePath(): string | null {
     return null
 }
 
+async function convertPptToPdfViaMsPowerPoint(pptPath: string, pdfPath: string): Promise<boolean> {
+    try {
+        if (isWindows) {
+            // Windows: use VBScript to automate PowerPoint COM
+            const vbs = `
+Set pptApp = CreateObject("PowerPoint.Application")
+pptApp.Visible = False
+Set pres = pptApp.Presentations.Open("${pptPath.replace(/\//g, "\\")}", True, False, False)
+pres.ExportAsFixedFormat "${pdfPath.replace(/\//g, "\\")}", 2
+pres.Close
+pptApp.Quit
+`.trim()
+            const vbsPath = path.join(path.dirname(pdfPath), "_ppt2pdf.vbs")
+            fs.writeFileSync(vbsPath, vbs)
+            await execFileAsync("cscript", ["//NoLogo", vbsPath])
+            fs.unlinkSync(vbsPath)
+        } else {
+            // macOS: use AppleScript to export via Microsoft PowerPoint
+            const posixPpt = pptPath.replace(/\\/g, "/")
+            const posixPdf = pdfPath.replace(/\\/g, "/")
+            const script = `
+tell application "Microsoft PowerPoint"
+    set pptDoc to open POSIX file "${posixPpt}"
+    save pptDoc in POSIX file "${posixPdf}" as save as PDF
+    close pptDoc saving no
+end tell`.trim()
+            await execFileAsync("osascript", ["-e", script])
+        }
+        return fs.existsSync(pdfPath)
+    } catch (err: any) {
+        console.error("MS PowerPoint export failed:", err)
+        return false
+    }
+}
+
 const specialImports = {
     powerpoint: async (files: string[]) => {
         sendToMain(ToMain.ALERT, "popup.importing")
 
+        const msPptPath = getMsPowerPointPath()
         const sofficePath = getSofficePath()
+        const outputFolder = getDataFolderPath("imports", "PowerPoint")
+        createFolder(outputFolder)
 
-        // LibreOffice available: convert each PPT → PDF → import as PDF (preserves all visuals)
+        // Priority 1: Microsoft PowerPoint
+        if (msPptPath) {
+            for (const filePath of files) {
+                const safeName = sanitizeFileName(path.basename(filePath, path.extname(filePath)))
+                const pdfPath = path.join(outputFolder, safeName + ".pdf")
+                const ok = await convertPptToPdfViaMsPowerPoint(filePath, pdfPath)
+                if (ok) sendToMain(ToMain.IMPORT2, { channel: "pdf", data: [pdfPath] })
+                else {
+                    // MS PowerPoint failed — fallback to LibreOffice if available
+                    if (sofficePath) {
+                        try {
+                            await execFileAsync(sofficePath, ["--headless", "--convert-to", "pdf", "--outdir", outputFolder, filePath])
+                            if (fs.existsSync(pdfPath)) sendToMain(ToMain.IMPORT2, { channel: "pdf", data: [pdfPath] })
+                        } catch (err: any) {
+                            console.error("LibreOffice fallback failed:", err)
+                        }
+                    }
+                }
+            }
+            return []
+        }
+
+        // Priority 2: LibreOffice
         if (sofficePath) {
-            const outputFolder = getDataFolderPath("imports", "PowerPoint")
-            createFolder(outputFolder)
-
             for (const filePath of files) {
                 try {
                     await execFileAsync(sofficePath, ["--headless", "--convert-to", "pdf", "--outdir", outputFolder, filePath])
                     const safeName = sanitizeFileName(path.basename(filePath, path.extname(filePath)))
                     const pdfPath = path.join(outputFolder, safeName + ".pdf")
-                    if (fs.existsSync(pdfPath)) {
-                        sendToMain(ToMain.IMPORT2, { channel: "pdf", data: [pdfPath] })
-                    }
+                    if (fs.existsSync(pdfPath)) sendToMain(ToMain.IMPORT2, { channel: "pdf", data: [pdfPath] })
                 } catch (err: any) {
                     console.error("LibreOffice PPT→PDF failed:", err)
                 }
@@ -66,14 +139,14 @@ const specialImports = {
             return []
         }
 
-        // Fallback: XML-based import (may lose backgrounds)
-        const data: FileData[] = []
-        for await (const filePath of files) {
-            const json = await pptToShow(filePath)
-            if (json) data.push({ name: getFileName(filePath), content: json })
-        }
-
-        return data
+        // Neither available — notify user
+        sendToMain(
+            ToMain.ALERT,
+            "Untuk import PowerPoint dengan visual lengkap, install salah satu:<br><br>" +
+            "• <b>Microsoft PowerPoint</b> (Microsoft 365)<br>" +
+            "• <b>LibreOffice</b> (gratis) — <u>libreoffice.org</u>"
+        )
+        return []
     },
     word: async (files: string[]) => {
         const data: FileData[] = []
