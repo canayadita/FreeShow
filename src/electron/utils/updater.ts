@@ -8,6 +8,11 @@ export default async function checkForUpdates() {
     if (!isProd) return
 
     try {
+        autoUpdater.setFeedURL({
+            provider: "github",
+            owner: "canayadita",
+            repo: "FreeShow",
+        })
         await autoUpdater.checkForUpdatesAndNotify()
     } catch (err) {
         console.error("Auto-update error:", err)
