@@ -422,10 +422,7 @@
                 {#if styleBackground && actualSlide?.type !== "pdf"}
                     <Background data={styleBackgroundData} {outputId} transition={transitions.media} {currentStyle} {slideFilter} {ratio} mirror={false} styleBackground />
                 {/if}
-                <!-- output background media (image / video) -->
-                {#if (backgroundData?.ignoreLayer ? layers.includes("slide") : layers.includes("background")) && backgroundData}
-                    <Background data={backgroundData} {outputId} transition={transitions.media} {currentStyle} {slideFilter} {ratio} {mirror} />
-                {/if}
+                <!-- out.background renders full-screen behind PiP (see line ~375); slide bg comes from slide items below -->
                 <!-- slide items -->
                 {#if actualSlide && actualSlide?.type !== "pdf" && actualSlide?.type !== "ppt" && actualCurrentSlide?.items?.length}
                     {#each actualCurrentSlide.items as item}
