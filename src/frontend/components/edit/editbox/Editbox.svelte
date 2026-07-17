@@ -251,7 +251,7 @@
 
         // Only allow drop on text items
         if (!item || (item.type || "text") !== "text") {
-            newToast("Preset hanya untuk text item")
+            newToast("Presets only work on text items")
             return
         }
 

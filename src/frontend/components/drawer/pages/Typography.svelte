@@ -6,7 +6,6 @@
     import { newToast } from "../../../utils/common"
     import { PRESET_CATEGORIES, TEXT_PRESETS, type TextPreset } from "../../../../types/textPresets"
     import type { Item } from "../../../../types/Show"
-    import T from "../../helpers/T.svelte"
 
     let selectedCategory: TextPreset["category"] | "all" = "all"
     let hoverId: string | null = null
@@ -66,12 +65,12 @@
     function applyPresetToSelected(preset: TextPreset) {
         const slideId = getCurrentSlideId()
         if (!slideId || !$activeShow) {
-            newToast("Buka show & slide dulu")
+            newToast("Open a show & slide first")
             return
         }
         const items = $activeEdit.items?.length ? [...$activeEdit.items] : []
         if (!items.length) {
-            newToast("Pilih text item di Edit dulu")
+            newToast("Select a text item in Edit first")
             return
         }
 
@@ -160,22 +159,22 @@
 <div class="typography-panel">
     {#if !selectedItem}
         <div class="hint-banner">
-            <T id="typography.select_item_hint" />
+            No text item selected.
             <p style="font-size: 11px; opacity: 0.7; margin: 4px 0 0;">
-                <strong>Klik</strong> preset untuk apply ke item yang dipilih, atau
-                <strong>drag &amp; drop</strong> preset ke text item di slide.
+                <strong>Click</strong> a preset to apply it to the selected item, or
+                <strong>drag &amp; drop</strong> a preset onto a text item in the slide.
             </p>
         </div>
     {:else}
         <div class="selected-banner">
             <span class="check">✓</span>
-            Text item dipilih — klik preset, atau drag ke text item lain
+            Text item selected — click a preset, or drag it onto another text item
         </div>
     {/if}
 
     <div class="category-tabs">
         <button class="cat-tab" class:active={selectedCategory === "all"} on:click={() => (selectedCategory = "all")}>
-            Semua ({TEXT_PRESETS.length})
+            All ({TEXT_PRESETS.length})
         </button>
         {#each PRESET_CATEGORIES as cat}
             <button
@@ -199,7 +198,7 @@
                 on:dragstart={(e) => onDragStart(e, preset)}
                 on:mouseenter={() => (hoverId = preset.id)}
                 on:mouseleave={() => (hoverId = null)}
-                title={`${preset.description} (drag ke text item untuk apply)`}
+                title={`${preset.description} (drag onto a text item to apply)`}
             >
                 <div class="preview" style={previewStyle(preset)}>
                     {preset.icon}

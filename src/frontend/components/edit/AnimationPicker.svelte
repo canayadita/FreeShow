@@ -15,31 +15,31 @@
     const dispatch = createEventDispatcher<{ change: AnimationConfig; openPresets: void }>()
 
     const ANIMATION_OPTIONS: { value: AnimationType; label: string; icon: string }[] = [
-        { value: "none",        label: "Tidak Ada",     icon: "—" },
+        { value: "none",        label: "None",     icon: "—" },
         { value: "fadeIn",      label: "Fade In",       icon: "✦" },
-        { value: "fadeInWords", label: "Fade Per Baris", icon: "✧" },
-        { value: "slideUp",     label: "Slide Atas",    icon: "↑" },
-        { value: "slideDown",   label: "Slide Bawah",   icon: "↓" },
-        { value: "slideLeft",   label: "Slide Kiri",    icon: "←" },
-        { value: "slideRight",  label: "Slide Kanan",   icon: "→" },
+        { value: "fadeInWords", label: "Fade Per Line", icon: "✧" },
+        { value: "slideUp",     label: "Slide Up",    icon: "↑" },
+        { value: "slideDown",   label: "Slide Down",   icon: "↓" },
+        { value: "slideLeft",   label: "Slide Left",    icon: "←" },
+        { value: "slideRight",  label: "Slide Right",   icon: "→" },
         { value: "typewriter",  label: "Typewriter",    icon: "✍" },
         { value: "zoomIn",      label: "Zoom In",       icon: "⊕" },
         { value: "zoomOut",     label: "Zoom Out",      icon: "⊖" },
         { value: "bounceIn",    label: "Bounce",        icon: "◎" },
         { value: "glowPulse",   label: "Glow Pulse",    icon: "✺" },
-        { value: "wipeLeft",    label: "Wipe Kiri",     icon: "▶" },
-        { value: "wipeRight",   label: "Wipe Kanan",    icon: "◀" },
+        { value: "wipeLeft",    label: "Wipe Left",     icon: "▶" },
+        { value: "wipeRight",   label: "Wipe Right",    icon: "◀" },
         { value: "popIn",       label: "Pop Spring",    icon: "✹" },
         { value: "flipIn",      label: "Flip 3D",       icon: "▱" },
         { value: "blurIn",      label: "Blur In",       icon: "◌" },
         { value: "trackingIn",  label: "Tracking",      icon: "⟷" },
         { value: "glitchIn",    label: "Glitch In",     icon: "▓" },
-        { value: "shakeIn",     label: "Shake Masuk",   icon: "↯" },
+        { value: "shakeIn",     label: "Shake In",   icon: "↯" },
         { value: "dropBounce",  label: "Drop Bounce",   icon: "⬇" },
         { value: "elastic",     label: "Elastic",       icon: "⟳" },
-        { value: "rollIn",      label: "Roll Masuk",    icon: "↺" },
+        { value: "rollIn",      label: "Roll In",    icon: "↺" },
         { value: "tada",        label: "Tada!",         icon: "🎉" },
-        { value: "comicPop",    label: "Komik Pop",     icon: "💥" },
+        { value: "comicPop",    label: "Comic Pop",     icon: "💥" },
         { value: "kapow",       label: "KAPOW!",        icon: "⚡" },
         { value: "rubberBand",  label: "Rubber Band",   icon: "⌀" },
         { value: "slingshot",   label: "Slingshot",     icon: "↠" },
@@ -49,7 +49,7 @@
     ]
 
     const BACKGROUND_OPTIONS: { value: BackgroundAnimationType; label: string; icon: string }[] = [
-        { value: "none",         label: "Tidak Ada",    icon: "—" },
+        { value: "none",         label: "None",    icon: "—" },
         { value: "breathe",      label: "Breathe",      icon: "❍" },
         { value: "shimmer",      label: "Shimmer",      icon: "✧" },
         { value: "float",        label: "Float",        icon: "↕" },
@@ -74,11 +74,11 @@
         { value: "spin",         label: "Spin",         icon: "⟳" },
         { value: "electric",     label: "Electric",     icon: "⚡" },
         { value: "disco",        label: "Disco",        icon: "🎵" },
-        { value: "earthquake",   label: "Gempa",        icon: "≋" },
+        { value: "earthquake",   label: "Earthquake",        icon: "≋" },
         { value: "pendulum",     label: "Pendulum",     icon: "⊛" },
         { value: "rubbery",      label: "Rubbery",      icon: "⌀" },
         { value: "sparkle",      label: "Sparkle",      icon: "✨" },
-        { value: "comicVibrate", label: "Komik Getar",  icon: "💢" },
+        { value: "comicVibrate", label: "Comic Vibrate",  icon: "💢" },
     ]
 
     const BLEND_MODE_OPTIONS: { value: BlendMode; label: string }[] = [
@@ -101,15 +101,15 @@
     ]
 
     const DECORATION_OPTIONS: { value: DecorationType; label: string; icon: string }[] = [
-        { value: "none",          label: "Tidak Ada",     icon: "—" },
-        { value: "underline",     label: "Coret Bawah",   icon: "▁" },
-        { value: "underlineWavy", label: "Coret Wavy",    icon: "﹏" },
-        { value: "highlight",     label: "Stabilo",       icon: "▮" },
-        { value: "box",           label: "Kotak",         icon: "▭" },
-        { value: "circle",        label: "Lingkaran",     icon: "◯" },
-        { value: "rays",          label: "Burst / Sinar", icon: "✳" },
+        { value: "none",          label: "None",     icon: "—" },
+        { value: "underline",     label: "Underline",   icon: "▁" },
+        { value: "underlineWavy", label: "Wavy Underline",    icon: "﹏" },
+        { value: "highlight",     label: "Highlight",       icon: "▮" },
+        { value: "box",           label: "Box",         icon: "▭" },
+        { value: "circle",        label: "Circle",     icon: "◯" },
+        { value: "rays",          label: "Burst / Rays", icon: "✳" },
         { value: "splash",        label: "Splash Dots",   icon: "⁘" },
-        { value: "speedLines",    label: "Garis Speed",   icon: "≡" },
+        { value: "speedLines",    label: "Speed Lines",   icon: "≡" },
     ]
 
     // Derive a complete background config with defaults so the UI never
@@ -153,18 +153,18 @@
 
 <div class="animation-picker">
     <div class="section-title section-flex">
-        <span>Animasi Teks</span>
+        <span>Text Animation</span>
         <button
             class="preset-btn"
             on:click={() => dispatch("openPresets")}
-            title="Pilih preset typography + animasi"
+            title="Pick typography preset + animation"
         >
             <span class="preset-icon">✦</span>
-            <span>Preset Template</span>
+            <span>Template Preset</span>
         </button>
     </div>
 
-    <div class="section-title" style="margin-top: 6px;">Animasi Utama (Entrance)</div>
+    <div class="section-title" style="margin-top: 6px;">Main Animation (Entrance)</div>
 
     <div class="anim-grid">
         {#each ANIMATION_OPTIONS as opt}
@@ -183,20 +183,20 @@
     {#if config.type !== "none"}
         <div class="anim-params">
             <label>
-                <span>Durasi</span>
+                <span>Duration</span>
                 <input type="range" min="100" max="2000" step="50" bind:value={config.duration} on:input={update} />
                 <span class="val">{config.duration}ms</span>
             </label>
 
             <label>
-                <span>Delay antar baris</span>
+                <span>Delay between lines</span>
                 <input type="range" min="0" max="800" step="25" bind:value={config.delay} on:input={update} />
                 <span class="val">{config.delay}ms</span>
             </label>
 
             <label class="checkbox-label">
                 <input type="checkbox" bind:checked={config.repeat} on:change={update} />
-                <span>Loop (ulangi terus)</span>
+                <span>Loop (repeat)</span>
             </label>
         </div>
     {/if}
@@ -205,8 +205,8 @@
     <div class="divider"></div>
 
     <div class="section-title section-flex">
-        <span>Animasi Background (Blend)</span>
-        <label class="mini-toggle" title="Aktifkan / nonaktifkan animasi background">
+        <span>Background Animation (Blend)</span>
+        <label class="mini-toggle" title="Enable / disable background animation">
             <input type="checkbox" checked={background.enabled} on:change={toggleBg} />
             <span class="switch"></span>
         </label>
@@ -230,19 +230,19 @@
         {#if background.type !== "none"}
             <div class="anim-params">
                 <label>
-                    <span>Durasi Loop</span>
+                    <span>Loop Duration</span>
                     <input type="range" min="200" max="6000" step="100" bind:value={background.duration} on:input={update} />
                     <span class="val">{background.duration}ms</span>
                 </label>
 
                 <label>
-                    <span>Delay antar baris</span>
+                    <span>Delay between lines</span>
                     <input type="range" min="0" max="800" step="25" bind:value={background.delay} on:input={update} />
                     <span class="val">{background.delay}ms</span>
                 </label>
 
                 <label>
-                    <span>Mulai setelah</span>
+                    <span>Start after</span>
                     <input type="range" min="0" max="3000" step="50" bind:value={background.startDelay} on:input={update} />
                     <span class="val">{background.startDelay}ms</span>
                 </label>
@@ -254,7 +254,7 @@
                 </label>
 
                 <label>
-                    <span>Transparansi</span>
+                    <span>Transparency</span>
                     <input type="range" min="0" max="100" step="1" bind:value={background.transparency} on:input={update} />
                     <span class="val">{background.transparency}%</span>
                 </label>
@@ -270,18 +270,18 @@
 
                 <label class="checkbox-label">
                     <input type="checkbox" bind:checked={background.loop} on:change={update} />
-                    <span>Loop (ulangi terus)</span>
+                    <span>Loop (repeat)</span>
                 </label>
             </div>
         {/if}
     {:else}
-        <p class="hint">Aktifkan untuk menggabungkan 2 animasi: animasi entrance + animasi background/loop yang berjalan terus.</p>
+        <p class="hint">Enable to combine two animations: the entrance animation + a continuously running background/loop animation.</p>
     {/if}
 
     <!-- ====== Hand-drawn Decoration ====== -->
     <div class="divider"></div>
 
-    <div class="section-title">Dekorasi Pemanis (setelah teks tayang)</div>
+    <div class="section-title">Decoration (after text appears)</div>
 
     <div class="anim-grid">
         {#each DECORATION_OPTIONS as opt}
@@ -300,7 +300,7 @@
     {#if decoration.type !== "none"}
         <div class="anim-params">
             <label>
-                <span>Warna dekorasi</span>
+                <span>Decoration color</span>
                 <input type="color" value={decoration.color || "#FFD54F"} on:input={setDecoColor} />
                 <span class="val">{decoration.color || "#FFD54F"}</span>
             </label>

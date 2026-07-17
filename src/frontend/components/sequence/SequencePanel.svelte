@@ -110,15 +110,15 @@
 <div class="sequence">
     <h3>Song Sequence</h3>
 
-    <MaterialFilePicker label="MP3 (untuk rekam)" value={audioPath} filter={{ name: "Audio", extensions: audioExtensions }} allowEmpty on:change={(e) => (audioPath = e.detail)} />
+    <MaterialFilePicker label="MP3 (for recording)" value={audioPath} filter={{ name: "Audio", extensions: audioExtensions }} allowEmpty on:change={(e) => (audioPath = e.detail)} />
 
     <!-- RECORD -->
     <div class="row">
         {#if !recording}
-            <MaterialButton icon="record" variant="outlined" disabled={!audioPath} on:click={startRecording}>Rekam</MaterialButton>
+            <MaterialButton icon="record" variant="outlined" disabled={!audioPath} on:click={startRecording}>Record</MaterialButton>
         {:else}
-            <MaterialButton icon="stop" variant="contained" on:click={stopRecording}>Stop Rekam</MaterialButton>
-            <span class="hint">Rekaman jalan — majukan slide (spasi/next) ngikutin lirik</span>
+            <MaterialButton icon="stop" variant="contained" on:click={stopRecording}>Stop Recording</MaterialButton>
+            <span class="hint">Recording — advance the slides (space/next) following the lyrics</span>
         {/if}
     </div>
 
@@ -133,15 +133,15 @@
     <!-- NUDGE -->
     <div class="row">
         <MaterialButton variant="outlined" on:click={() => nudge(-1)}>− {nudgeSeconds}s</MaterialButton>
-        <MaterialNumberInput label="Nudge (detik)" value={nudgeSeconds} min={1} max={60} step={1} scrub on:change={(e) => (nudgeSeconds = e.detail)} />
+        <MaterialNumberInput label="Nudge (seconds)" value={nudgeSeconds} min={1} max={60} step={1} scrub on:change={(e) => (nudgeSeconds = e.detail)} />
         <MaterialButton variant="outlined" on:click={() => nudge(1)}>+ {nudgeSeconds}s</MaterialButton>
     </div>
 
     <!-- CUES -->
     <div class="cues">
         <div class="cues-head">
-            <span>{cues.length} cue</span>
-            <MaterialButton icon="save" variant="outlined" on:click={save}>Simpan</MaterialButton>
+            <span>{cues.length} cues</span>
+            <MaterialButton icon="save" variant="outlined" on:click={save}>Save</MaterialButton>
         </div>
         {#each cues as cue, i}
             <div class="cue">

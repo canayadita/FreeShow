@@ -20,11 +20,11 @@
 </script>
 
 <div class="text-preset-picker">
-    <p class="hint">Pilih preset typography + animasi. Style diterapkan ke text lyric, animasi jalan saat slide muncul.</p>
+    <p class="hint">Pick a typography preset + animation. The style is applied to the lyric text, and the animation plays when the slide appears.</p>
 
     <div class="category-tabs">
         <button class="cat-tab" class:active={selectedCategory === "all"} on:click={() => (selectedCategory = "all")}>
-            Semua
+            All
         </button>
         {#each PRESET_CATEGORIES as cat}
             <button

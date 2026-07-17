@@ -1092,7 +1092,7 @@ function getDefaultTemplates() {
     // PICTURE IN PICTURE (text in a smaller box, leaving room for camera/video feed)
     a.pipBottomRight = {
         isDefault: true,
-        name: "PiP Kanan Bawah",
+        name: "PiP Bottom Right",
         color: "#0ea5e9",
         category: "presentation",
         items: [
@@ -1106,7 +1106,7 @@ function getDefaultTemplates() {
     }
     a.pipBottomLeft = {
         isDefault: true,
-        name: "PiP Kiri Bawah",
+        name: "PiP Bottom Left",
         color: "#0ea5e9",
         category: "presentation",
         items: [
@@ -1120,7 +1120,7 @@ function getDefaultTemplates() {
     }
     a.pipTopRight = {
         isDefault: true,
-        name: "PiP Kanan Atas",
+        name: "PiP Top Right",
         color: "#0ea5e9",
         category: "presentation",
         items: [
@@ -1134,7 +1134,7 @@ function getDefaultTemplates() {
     }
     a.pipSideRight = {
         isDefault: true,
-        name: "PiP Panel Samping",
+        name: "PiP Side Panel",
         color: "#0ea5e9",
         category: "presentation",
         items: [
@@ -1148,7 +1148,7 @@ function getDefaultTemplates() {
     }
     a.pipBottomBar = {
         isDefault: true,
-        name: "PiP Strip Bawah",
+        name: "PiP Bottom Strip",
         color: "#0ea5e9",
         category: "presentation",
         items: [

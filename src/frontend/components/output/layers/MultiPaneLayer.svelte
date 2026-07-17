@@ -67,6 +67,15 @@
         return `position: absolute; left: ${offsetX}px; top: ${offsetY}px; width: ${CANVAS_WIDTH}px; height: ${CANVAS_HEIGHT}px; transform: scale(${scale}); transform-origin: top left;`
     }
 
+    // crop/zoom for non-slide (direct media) sources: scale the content up and let the
+    // pane's overflow:hidden clip the edges. Same crop fraction meaning as slide panes.
+    function getDirectCropStyle(pane: Pane): string {
+        const cropFrac = Math.min(0.45, Math.max(0, (pane.crop || 0) / 100))
+        if (!cropFrac) return ""
+        const scale = 1 / (1 - 2 * cropFrac)
+        return `transform: scale(${scale}); transform-origin: center center;`
+    }
+
     function getPaneResolution(pane: Pane) {
         return {
             width: Math.max(1, Math.round((pane.position.width / 100) * resolution.width)),
@@ -84,18 +93,23 @@
                         <div class="slideScaler" style={getSlideScaleStyle(pane)}>
                             <slot name="slide" paneResolution={getPaneResolution(pane)} />
                         </div>
-                    {:else if pane.sourceType === "camera"}
-                        <Camera id={pane.sourceId || ""} groupId="" style="width: 100%; height: 100%; object-fit: cover;" {mirror} />
-                    {:else if pane.sourceType === "screen"}
-                        <Window id={pane.sourceId || ""} class="media" style="width: 100%; height: 100%;" />
-                    {:else if pane.sourceType === "ndi"}
-                        <NdiStream screen={{ id: pane.sourceId || "", name: "" }} background={false} {mirror} />
-                    {:else if pane.sourceType === "blackmagic"}
-                        <BmdStream screen={{ id: pane.sourceId || "", name: "" }} background={false} {mirror} />
-                    {:else if pane.sourceType === "video" || pane.sourceType === "image"}
-                        <Media path={pane.sourcePath || ""} data={{ type: pane.sourceType === "video" ? "video" : "image", muted: pane.muted, loop: pane.loop, flipped: pane.flipped }} mediaStyle={{ fit: "cover" }} {mirror} />
-                    {:else if pane.sourceType === "player"}
-                        <Player {outputId} id={pane.sourceId || ""} videoData={playerVideoData[pane.id] || {}} videoTime={playerVideoTime[pane.id] || 0} />
+                    {:else}
+                        <!-- crop/zoom wrapper: scaling up + pane overflow:hidden crops the edges (works for any direct source) -->
+                        <div class="cropWrapper" style={getDirectCropStyle(pane)}>
+                            {#if pane.sourceType === "camera"}
+                                <Camera id={pane.sourceId || ""} groupId="" style="width: 100%; height: 100%; object-fit: cover;" {mirror} />
+                            {:else if pane.sourceType === "screen"}
+                                <Window id={pane.sourceId || ""} class="media" style="width: 100%; height: 100%;" />
+                            {:else if pane.sourceType === "ndi"}
+                                <NdiStream screen={{ id: pane.sourceId || "", name: "" }} background={false} {mirror} />
+                            {:else if pane.sourceType === "blackmagic"}
+                                <BmdStream screen={{ id: pane.sourceId || "", name: "" }} background={false} {mirror} />
+                            {:else if pane.sourceType === "video" || pane.sourceType === "image"}
+                                <Media path={pane.sourcePath || ""} data={{ type: pane.sourceType === "video" ? "video" : "image", muted: pane.muted, loop: pane.loop, flipped: pane.flipped }} mediaStyle={{ fit: "cover" }} {mirror} />
+                            {:else if pane.sourceType === "player"}
+                                <Player {outputId} id={pane.sourceId || ""} videoData={playerVideoData[pane.id] || {}} videoTime={playerVideoTime[pane.id] || 0} />
+                            {/if}
+                        </div>
                     {/if}
                 {:else}
                     <div class="placeholder">
@@ -111,6 +125,14 @@
     .pane {
         pointer-events: none;
         background: #000000;
+    }
+
+    /* crop/zoom wrapper for direct media sources — fills the pane, scaled by getDirectCropStyle */
+    .cropWrapper {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
     }
 
     /* only force-fit direct media sources (camera/screen/video...) — the slide pane

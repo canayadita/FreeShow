@@ -348,7 +348,7 @@
                         </div>
                     {/each}
                 </div>
-                <p class="preview-hint">Drag untuk geser · Sudut kanan-bawah untuk resize</p>
+                <p class="preview-hint">Drag to move · bottom-right corner to resize</p>
             </div>
 
             <div class="pane-configs">
@@ -358,7 +358,7 @@
                             <Icon id="pip" size={1.2} />
                             <span>Pane {i + 1}</span>
                             <span class="pane-size">{pane.position.width}% × {pane.position.height}%</span>
-                            <MaterialButton icon="delete" title="Hapus pane" on:click={() => removePane(pane.id)} />
+                            <MaterialButton icon="delete" title="Remove pane" on:click={() => removePane(pane.id)} />
                         </div>
                         <div class="pane-controls">
                             <MaterialDropdown
@@ -376,7 +376,7 @@
                                 />
                             {:else if pane.sourceType === "image"}
                                 <MaterialFilePicker
-                                    label="Import Gambar"
+                                    label="Import Image"
                                     value={pane.sourcePath}
                                     filter={{ name: "Image files", extensions: imageExtensions }}
                                     showThumbnail
@@ -397,42 +397,40 @@
                             <div class="pane-inputs">
                                 <MaterialNumberInput label="X (%)" value={pane.position.x} min={-200} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "x", e.detail)} />
                                 <MaterialNumberInput label="Y (%)" value={pane.position.y} min={-200} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "y", e.detail)} />
-                                <MaterialNumberInput label="Lebar (%)" value={pane.position.width} min={1} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "width", e.detail)} />
-                                <MaterialNumberInput label="Tinggi (%)" value={pane.position.height} min={1} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "height", e.detail)} />
+                                <MaterialNumberInput label="Width (%)" value={pane.position.width} min={1} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "width", e.detail)} />
+                                <MaterialNumberInput label="Height (%)" value={pane.position.height} min={1} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "height", e.detail)} />
                             </div>
 
                             <!-- shape -->
                             <div class="pane-inputs">
-                                <MaterialNumberInput label="Radius sudut" value={pane.borderRadius || 0} min={0} max={200} step={2} scrub on:change={(e) => updatePaneShape(pane.id, "borderRadius", e.detail)} />
+                                <MaterialNumberInput label="Corner radius" value={pane.borderRadius || 0} min={0} max={200} step={2} scrub on:change={(e) => updatePaneShape(pane.id, "borderRadius", e.detail)} />
                                 <MaterialNumberInput label="Layer (z)" value={pane.zIndex || 0} min={0} max={20} step={1} scrub on:change={(e) => updatePaneShape(pane.id, "zIndex", e.detail)} />
-                                <MaterialButton icon="theme" variant={pane.shadow ? "contained" : "outlined"} title="Bayangan" on:click={() => togglePaneShadow(pane.id)}>
+                                <MaterialButton icon="theme" variant={pane.shadow ? "contained" : "outlined"} title="Shadow" on:click={() => togglePaneShadow(pane.id)}>
                                     Shadow {pane.shadow ? "ON" : "OFF"}
                                 </MaterialButton>
                             </div>
 
-                            <!-- static 3D tilt (klik & seret angka ke atas/bawah untuk ubah cepat) -->
+                            <!-- static 3D tilt (click & drag the number up/down for a quick change) -->
                             <div class="pane-inputs">
-                                <MaterialNumberInput label="Putar ↔ (Y)" value={pane.rotate3d?.y || 0} min={-85} max={85} step={5} scrub on:change={(e) => updatePaneRotation(pane.id, "y", e.detail)} />
-                                <MaterialNumberInput label="Dongak ↕ (X)" value={pane.rotate3d?.x || 0} min={-85} max={85} step={5} scrub on:change={(e) => updatePaneRotation(pane.id, "x", e.detail)} />
+                                <MaterialNumberInput label="Rotate ↔ (Y)" value={pane.rotate3d?.y || 0} min={-85} max={85} step={5} scrub on:change={(e) => updatePaneRotation(pane.id, "y", e.detail)} />
+                                <MaterialNumberInput label="Tilt ↕ (X)" value={pane.rotate3d?.x || 0} min={-85} max={85} step={5} scrub on:change={(e) => updatePaneRotation(pane.id, "x", e.detail)} />
                             </div>
 
-                            {#if pane.sourceType === "slide"}
-                                <!-- Crop: 0 = tampil penuh (WYSIWYG, mungkin ada bar hitam). Naikkan untuk zoom & crop mengisi pane. Klik-seret untuk cepat. -->
-                                <div class="pane-inputs">
-                                    <MaterialNumberInput label="Crop / Zoom (%)" value={pane.crop || 0} min={0} max={45} step={1} scrub on:change={(e) => updatePaneCrop(pane.id, e.detail)} />
-                                </div>
-                            {/if}
+                            <!-- Crop / Zoom for any source: 0 = full content (slide may show letterbox bars). Increase to zoom in & crop the edges to fill the pane. Click-drag for quick change. -->
+                            <div class="pane-inputs">
+                                <MaterialNumberInput label="Crop / Zoom (%)" value={pane.crop || 0} min={0} max={45} step={1} scrub on:change={(e) => updatePaneCrop(pane.id, e.detail)} />
+                            </div>
                         </div>
                     </div>
                 {/each}
 
-                <MaterialButton icon="add" variant="outlined" style="width: 100%; justify-content: center;" on:click={addPane}>Tambah Pane</MaterialButton>
+                <MaterialButton icon="add" variant="outlined" style="width: 100%; justify-content: center;" on:click={addPane}>Add Pane</MaterialButton>
             </div>
 
             <!-- save current layout as a custom template -->
             <div class="save-template">
-                <MaterialTextInput label="Nama template" value={templateName} placeholder={currentMultiPane.name} on:change={(e) => (templateName = e.detail)} />
-                <MaterialButton icon="save" variant="outlined" on:click={saveAsTemplate}>Simpan Template</MaterialButton>
+                <MaterialTextInput label="Template name" value={templateName} placeholder={currentMultiPane.name} on:change={(e) => (templateName = e.detail)} />
+                <MaterialButton icon="save" variant="outlined" on:click={saveAsTemplate}>Save Template</MaterialButton>
             </div>
         </div>
     {/if}
@@ -445,8 +443,8 @@
                     <Icon id="add" size={2} />
                 </div>
                 <div class="layout-info">
-                    <span class="layout-name">Buat Manual</span>
-                    <span class="layout-description">Mulai dari 1 pane slide, tambah & atur sendiri</span>
+                    <span class="layout-name">Create Manually</span>
+                    <span class="layout-description">Start from one slide pane, add & arrange your own</span>
                 </div>
             </button>
 
@@ -483,7 +481,7 @@
                                 <span class="layout-description">{layout.panes.length} pane</span>
                             </div>
                         </button>
-                        <MaterialButton icon="delete" title="Hapus template" on:click={() => deleteCustomLayout(layout.id)} />
+                        <MaterialButton icon="delete" title="Delete template" on:click={() => deleteCustomLayout(layout.id)} />
                     </div>
                 {/each}
             </div>

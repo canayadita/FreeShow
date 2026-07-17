@@ -25,7 +25,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "minimal-clean",
         name: "Clean",
-        description: "Simpel, fade halus, cocok untuk ayat",
+        description: "Simple, smooth fade, great for verses",
         icon: "○",
         category: "minimal",
         style: {
@@ -42,7 +42,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "minimal-soft-wipe",
         name: "Soft Wipe",
-        description: "Muncul dari kiri, lembut",
+        description: "Slides in from the left, gentle",
         icon: "▰",
         category: "minimal",
         style: {
@@ -61,7 +61,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "bold-typewriter",
         name: "Typewriter",
-        description: "Huruf muncul satu per satu seperti mengetik",
+        description: "Letters appear one by one like typing",
         icon: "✍",
         category: "bold",
         style: {
@@ -78,7 +78,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "bold-bounce",
         name: "Bounce Pop",
-        description: "Mantul dinamis, energik",
+        description: "Dynamic bounce, energetic",
         icon: "◎",
         category: "bold",
         style: {
@@ -95,7 +95,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "bold-zoom",
         name: "Power Zoom",
-        description: "Zoom in tegas, untuk chorus",
+        description: "Bold zoom in, for the chorus",
         icon: "⊕",
         category: "bold",
         style: {
@@ -114,7 +114,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "elegant-fade-up",
         name: "Elegant Rise",
-        description: "Naik lembut, classy",
+        description: "Gentle rise, classy",
         icon: "↑",
         category: "elegant",
         style: {
@@ -131,7 +131,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "elegant-slide-up",
         name: "Smooth Slide",
-        description: "Slide up halus",
+        description: "Smooth slide up",
         icon: "⤴",
         category: "elegant",
         style: {
@@ -150,7 +150,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-bounce-glow",
         name: "Bounce + Glow",
-        description: "Mantul + glow pulse terus",
+        description: "Bounce + continuous glow pulse",
         icon: "✺",
         category: "energetic",
         style: {
@@ -178,7 +178,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-rainbow",
         name: "Rainbow Wave",
-        description: "Hue shift warna-warni + float",
+        description: "Colorful hue shift + float",
         icon: "🌈",
         category: "energetic",
         style: {
@@ -206,7 +206,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-neon",
         name: "Neon Sign",
-        description: "Neon flicker seperti lampu kota",
+        description: "Neon flicker like city lights",
         icon: "⚡",
         category: "energetic",
         style: {
@@ -236,7 +236,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "cinematic-fade-blur",
         name: "Cinematic Blur",
-        description: "Fade in dengan blur dreamy",
+        description: "Fade in with a dreamy blur",
         icon: "▒",
         category: "cinematic",
         style: {
@@ -264,7 +264,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "cinematic-shadow",
         name: "Dramatic Shadow",
-        description: "Slide + shadow grow dramatis",
+        description: "Slide + dramatic shadow grow",
         icon: "◉",
         category: "cinematic",
         style: {
@@ -294,7 +294,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "stage-wipe-glow",
         name: "Stage Reveal",
-        description: "Wipe masuk + glow loop konstan",
+        description: "Wipe in + constant glow loop",
         icon: "▶",
         category: "stage",
         style: {
@@ -322,7 +322,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "stage-float",
         name: "Floating",
-        description: "Slide up lalu melayang",
+        description: "Slide up then float",
         icon: "↕",
         category: "stage",
         style: {
@@ -351,7 +351,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "sketch-marker-underline",
         name: "Marker Underline",
-        description: "Font marker + coret bawah menyusul",
+        description: "Marker font + underline follows",
         icon: "▁",
         category: "sketch",
         style: {
@@ -369,7 +369,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "sketch-wavy",
         name: "Wavy Sketch",
-        description: "Tulisan kapur + garis bawah bergelombang",
+        description: "Chalk writing + wavy underline",
         icon: "﹏",
         category: "sketch",
         style: {
@@ -387,7 +387,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "sketch-highlighter",
         name: "Highlighter",
-        description: "Blok stabilo menyapu di belakang teks",
+        description: "Highlighter block sweeps behind the text",
         icon: "▮",
         category: "sketch",
         style: {
@@ -405,7 +405,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "sketch-ray-burst",
         name: "Ray Burst",
-        description: "Sinar burst meledak di sekeliling (WOW!)",
+        description: "Burst rays explode around it (WOW!)",
         icon: "✳",
         category: "sketch",
         style: {
@@ -423,7 +423,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "sketch-splash",
         name: "Splash Pop",
-        description: "Percikan titik-titik tinta muncrat",
+        description: "Splashing ink dots",
         icon: "⁘",
         category: "sketch",
         style: {
@@ -441,7 +441,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "sketch-circle-note",
         name: "Circle Note",
-        description: "Dilingkari seperti catatan tangan (RATE)",
+        description: "Circled like a handwritten note (RATE)",
         icon: "◯",
         category: "sketch",
         style: {
@@ -459,7 +459,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "sketch-boxed-tag",
         name: "Boxed Tag",
-        description: "Dikotakin seperti stempel (TAGGED)",
+        description: "Boxed like a stamp (TAGGED)",
         icon: "▭",
         category: "sketch",
         style: {
@@ -477,7 +477,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "sketch-speed",
         name: "Speed Lines",
-        description: "Garis kecepatan menyusul dari kiri (DRIVE)",
+        description: "Speed lines follow from the left (DRIVE)",
         icon: "≡",
         category: "sketch",
         style: {
@@ -495,7 +495,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "sketch-script",
         name: "Handwritten Script",
-        description: "Tulisan tangan elegan + coret bawah",
+        description: "Elegant handwriting + underline",
         icon: "✎",
         category: "sketch",
         style: {
@@ -515,7 +515,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "modern-kinetic-pop",
         name: "Kinetic Pop",
-        description: "Spring pop energik, gaya motion graphics",
+        description: "Energetic spring pop, motion-graphics style",
         icon: "✹",
         category: "modern",
         style: {
@@ -532,7 +532,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "modern-spring-cascade",
         name: "Spring Cascade",
-        description: "Pop berurutan per baris, ritme cepat",
+        description: "Sequential pop per line, fast rhythm",
         icon: "⋱",
         category: "modern",
         style: {
@@ -549,7 +549,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "modern-flip-3d",
         name: "Flip 3D",
-        description: "Baris berdiri dari bawah dengan efek 3D",
+        description: "Lines stand up from the bottom with a 3D effect",
         icon: "▱",
         category: "modern",
         style: {
@@ -566,7 +566,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "modern-aurora",
         name: "Aurora Flow",
-        description: "Gradient biru-ungu-hijau mengalir di teks",
+        description: "Blue-purple-green gradient flows across the text",
         icon: "◧",
         category: "modern",
         style: {
@@ -594,7 +594,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "modern-sunset",
         name: "Sunset Glow",
-        description: "Gradient oranye-pink hangat, naik lembut",
+        description: "Warm orange-pink gradient, gentle rise",
         icon: "◐",
         category: "modern",
         style: {
@@ -622,7 +622,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "cinematic-blur-reveal",
         name: "Blur Reveal",
-        description: "Muncul dari blur pekat, dreamy & sinematik",
+        description: "Emerges from a deep blur, dreamy & cinematic",
         icon: "◌",
         category: "cinematic",
         style: {
@@ -639,7 +639,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "elegant-tracking-luxe",
         name: "Luxe Tracking",
-        description: "Huruf merapat dari renggang, mewah & classy",
+        description: "Letters tighten from spaced out, luxe & classy",
         icon: "⟷",
         category: "elegant",
         style: {
@@ -656,7 +656,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-glitch-core",
         name: "Glitch Core",
-        description: "Masuk glitch digital + burst glitch berkala",
+        description: "Digital glitch in + periodic glitch bursts",
         icon: "▓",
         category: "energetic",
         style: {
@@ -684,7 +684,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-chromatic-vhs",
         name: "Chromatic VHS",
-        description: "Aberasi merah-cyan retro, vibe VHS",
+        description: "Retro red-cyan aberration, VHS vibe",
         icon: "◑",
         category: "energetic",
         style: {
@@ -712,7 +712,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "stage-neon-tracking",
         name: "Neon Trace",
-        description: "Tracking masuk + neon glow konstan",
+        description: "Tracking in + constant neon glow",
         icon: "⚡",
         category: "stage",
         style: {
@@ -740,7 +740,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "stage-color-cycle",
         name: "Color Cycle",
-        description: "Warna text cycle + bounce in",
+        description: "Text color cycle + bounce in",
         icon: "●",
         category: "stage",
         style: {
@@ -770,7 +770,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "bold-drop-slam",
         name: "Drop Slam",
-        description: "Jatuh dari atas dan mantul keras",
+        description: "Drops from the top and bounces hard",
         icon: "⬇",
         category: "bold",
         style: {
@@ -787,7 +787,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "bold-kapow",
         name: "KAPOW!",
-        description: "Meledak masuk, gaya aksi komik",
+        description: "Explodes in, comic-action style",
         icon: "💥",
         category: "bold",
         style: {
@@ -815,7 +815,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "bold-roll-in",
         name: "Roll Call",
-        description: "Berputar masuk dari kiri, dramatis",
+        description: "Rolls in from the left, dramatic",
         icon: "↺",
         category: "bold",
         style: {
@@ -834,7 +834,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-shake-shine",
         name: "Shake & Shine",
-        description: "Masuk gemetar + kilau sparkle terus",
+        description: "Shaky entrance + continuous sparkle",
         icon: "↯",
         category: "energetic",
         style: {
@@ -862,7 +862,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-disco-praise",
         name: "Disco Praise",
-        description: "Masuk tada + warna disko terus",
+        description: "Tada entrance + continuous disco colors",
         icon: "🎵",
         category: "energetic",
         style: {
@@ -890,7 +890,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-electric-rush",
         name: "Electric Rush",
-        description: "Masuk kilat + kejutan listrik berkala",
+        description: "Flash entrance + periodic electric jolts",
         icon: "⚡",
         category: "energetic",
         style: {
@@ -918,7 +918,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-comic-blast",
         name: "Comic Blast",
-        description: "Pop komik meledak + getar terus",
+        description: "Comic pop explosion + continuous shake",
         icon: "💢",
         category: "energetic",
         style: {
@@ -946,7 +946,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "energetic-earthquake",
         name: "Earthquake",
-        description: "Masuk shake + terus bergetar gempa",
+        description: "Shake entrance + continuous earthquake shake",
         icon: "≋",
         category: "energetic",
         style: {
@@ -976,7 +976,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "modern-rubber-band",
         name: "Rubber Band",
-        description: "Elastis melebar lalu snap ke posisi",
+        description: "Stretches elastically then snaps into place",
         icon: "⌀",
         category: "modern",
         style: {
@@ -993,7 +993,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "modern-slingshot",
         name: "Slingshot",
-        description: "Tembak masuk dari kiri dengan momentum",
+        description: "Shoots in from the left with momentum",
         icon: "↠",
         category: "modern",
         style: {
@@ -1010,7 +1010,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "modern-jello-bounce",
         name: "Jello Bounce",
-        description: "Spring elastis + efek jelly terus",
+        description: "Elastic spring + continuous jelly effect",
         icon: "◈",
         category: "modern",
         style: {
@@ -1038,7 +1038,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "modern-neon-flash",
         name: "Neon Flash",
-        description: "Kilatan neon dramatis + sparkle berkelip",
+        description: "Dramatic neon flash + twinkling sparkle",
         icon: "⬥",
         category: "modern",
         style: {
@@ -1068,7 +1068,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "stage-heartbeat",
         name: "Heartbeat",
-        description: "Spring masuk + denyut jantung terus",
+        description: "Spring in + continuous heartbeat",
         icon: "♥",
         category: "stage",
         style: {
@@ -1096,7 +1096,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "stage-pendulum",
         name: "Pendulum",
-        description: "Masuk bounce + berayun seperti jam",
+        description: "Bounce in + swings like a clock",
         icon: "⊛",
         category: "stage",
         style: {
@@ -1124,7 +1124,7 @@ export const TEXT_PRESETS: TextPreset[] = [
     {
         id: "stage-jack-in-box",
         name: "Jack in Box",
-        description: "Muncul dari bawah + bounce terus",
+        description: "Rises from below + continuous bounce",
         icon: "🎁",
         category: "stage",
         style: {
