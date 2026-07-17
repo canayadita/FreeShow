@@ -78,6 +78,7 @@ import SyncFolders from "../components/main/popups/SyncFolders.svelte"
 import TemplateInfo from "../components/main/popups/TemplateInfo.svelte"
 import TemplateStyleOverrides from "../components/main/popups/TemplateStyleOverrides.svelte"
 import TextPresetPicker from "../components/main/popups/TextPresetPicker.svelte"
+import SequencePanel from "../components/sequence/SequencePanel.svelte"
 import Timecode from "../components/main/popups/Timecode.svelte"
 import TimelineSettings from "../components/main/popups/TimelineSettings.svelte"
 import Timer from "../components/main/popups/Timer.svelte"
@@ -166,6 +167,7 @@ export const popups: { [key in Popups]: ComponentType } = {
     effect_items: EffectItems,
     timeline: TimelineSettings,
     timecode: Timecode,
+    song_sequence: SequencePanel,
     drawer_search_options: DrawerSearchOptions,
     template_info: TemplateInfo,
     cleaning_utility: CleaningUtility,

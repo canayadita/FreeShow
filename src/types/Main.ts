@@ -450,6 +450,7 @@ export type Popups =
     | "effect_items"
     | "timeline"
     | "timecode"
+    | "song_sequence"
     | "drawer_search_options"
     | "template_info"
     | "cleaning_utility"

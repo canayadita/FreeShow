@@ -145,6 +145,11 @@
                     <p><T id="timeline.toggle_timeline" /></p>
                 </MaterialButton>
 
+                <MaterialButton title="Song Sequence" on:click={() => activePopup.set("song_sequence")}>
+                    <Icon id="clock" white />
+                    <p>Song Sequence</p>
+                </MaterialButton>
+
                 <div class="DIVIDER"></div>
 
                 <MaterialButton title="context.lockForChanges" on:click={toggleShowLock}>
