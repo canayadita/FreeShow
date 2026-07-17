@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from "svelte"
     import type { SequenceCue } from "../../../types/Show"
     import { AudioPlayer } from "../../audio/audioPlayer"
-    import { activeShow, showsCache } from "../../stores"
+    import { activeShow, outputs, showsCache } from "../../stores"
     import { audioExtensions } from "../../values/extensions"
     import { history } from "../helpers/history"
     import MaterialButton from "../inputs/MaterialButton.svelte"
@@ -49,10 +49,24 @@
     $: player.setCues(cues)
     $: player.setDuration(duration)
 
+    // record a cue whenever the operator advances the output slide (for this show) while recording
+    $: outSlide = (() => {
+        const outs = Object.values($outputs || {})
+        const s: any = outs.find((o: any) => o?.out?.slide?.id === showId)?.out?.slide
+        return s || null
+    })()
+    let prevIndex = -1
+    $: if (recording && outSlide && typeof outSlide.index === "number" && outSlide.index !== prevIndex) {
+        prevIndex = outSlide.index
+        currentSlideIndex = outSlide.index
+        markCue()
+    }
+
     function startRecording() {
         if (!audioPath) return
         cues = []
         currentSlideIndex = 0
+        prevIndex = -1
         recording = true
         AudioPlayer.play(audioPath)
     }
@@ -104,7 +118,7 @@
             <MaterialButton icon="record" variant="outlined" disabled={!audioPath} on:click={startRecording}>Rekam</MaterialButton>
         {:else}
             <MaterialButton icon="stop" variant="contained" on:click={stopRecording}>Stop Rekam</MaterialButton>
-            <MaterialButton icon="add" variant="outlined" on:click={markCue}>Tandai slide sekarang</MaterialButton>
+            <span class="hint">Rekaman jalan — majukan slide (spasi/next) ngikutin lirik</span>
         {/if}
     </div>
 
@@ -174,5 +188,9 @@
     }
     .cue span:first-child {
         min-width: 52px;
+    }
+    .hint {
+        font-size: 0.85em;
+        opacity: 0.7;
     }
 </style>
