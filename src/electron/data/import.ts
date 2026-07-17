@@ -12,7 +12,6 @@ import WordExtractor from "word-extractor"
 import { ToMain } from "../../types/IPC/ToMain"
 import { sendToMain } from "../IPC/main"
 import { isWindows } from ".."
-import { pptToShow } from "../output/ppt/pptToShow"
 import { createFolder, doesPathExist, getDataFolderPath, getExtension, readFileAsync, readFileBufferAsync, sanitizeFileName } from "../utils/files"
 import { detectFileType } from "./bibleDetecter"
 import { filePathHashCode } from "./thumbnails"
@@ -75,16 +74,24 @@ pptApp.Quit
             await execFileAsync("cscript", ["//NoLogo", vbsPath])
             fs.unlinkSync(vbsPath)
         } else {
-            // macOS: use AppleScript to export via Microsoft PowerPoint
-            const posixPpt = pptPath.replace(/\\/g, "/")
-            const posixPdf = pdfPath.replace(/\\/g, "/")
-            const script = `
-tell application "Microsoft PowerPoint"
-    set pptDoc to open POSIX file "${posixPpt}"
-    save pptDoc in POSIX file "${posixPdf}" as save as PDF
-    close pptDoc saving no
-end tell`.trim()
-            await execFileAsync("osascript", ["-e", script])
+            // macOS: write AppleScript to temp file then execute
+            const posixPpt = pptPath.replace(/\\/g, "/").replace(/"/g, '\\"')
+            const posixPdf = pdfPath.replace(/\\/g, "/").replace(/"/g, '\\"')
+            const scriptPath = path.join(path.dirname(pdfPath), "_ppt2pdf.applescript")
+            const script = `tell application "Microsoft PowerPoint"
+    activate
+    open POSIX file "${posixPpt}"
+    delay 3
+    set thePresentation to active presentation
+    save thePresentation in POSIX file "${posixPdf}" as save as PDF
+    close thePresentation saving no
+end tell`
+            fs.writeFileSync(scriptPath, script, "utf8")
+            try {
+                await execFileAsync("osascript", [scriptPath])
+            } finally {
+                try { fs.unlinkSync(scriptPath) } catch {}
+            }
         }
         return fs.existsSync(pdfPath)
     } catch (err: any) {
@@ -104,22 +111,35 @@ const specialImports = {
 
         // Priority 1: Microsoft PowerPoint
         if (msPptPath) {
+            let anySuccess = false
             for (const filePath of files) {
                 const safeName = sanitizeFileName(path.basename(filePath, path.extname(filePath)))
                 const pdfPath = path.join(outputFolder, safeName + ".pdf")
                 const ok = await convertPptToPdfViaMsPowerPoint(filePath, pdfPath)
-                if (ok) sendToMain(ToMain.IMPORT2, { channel: "pdf", data: [pdfPath] })
-                else {
-                    // MS PowerPoint failed — fallback to LibreOffice if available
-                    if (sofficePath) {
-                        try {
-                            await execFileAsync(sofficePath, ["--headless", "--convert-to", "pdf", "--outdir", outputFolder, filePath])
-                            if (fs.existsSync(pdfPath)) sendToMain(ToMain.IMPORT2, { channel: "pdf", data: [pdfPath] })
-                        } catch (err: any) {
-                            console.error("LibreOffice fallback failed:", err)
+                if (ok) {
+                    anySuccess = true
+                    sendToMain(ToMain.IMPORT2, { channel: "pdf", data: [pdfPath] })
+                } else if (sofficePath) {
+                    // MS PowerPoint failed — fallback to LibreOffice
+                    try {
+                        await execFileAsync(sofficePath, ["--headless", "--convert-to", "pdf", "--outdir", outputFolder, filePath])
+                        if (fs.existsSync(pdfPath)) {
+                            anySuccess = true
+                            sendToMain(ToMain.IMPORT2, { channel: "pdf", data: [pdfPath] })
                         }
+                    } catch (err: any) {
+                        console.error("LibreOffice fallback failed:", err)
                     }
                 }
+            }
+            if (!anySuccess) {
+                sendToMain(
+                    ToMain.ALERT,
+                    "Import PowerPoint gagal.<br><br>" +
+                    "Pastikan:<br>" +
+                    "• Microsoft PowerPoint sudah terbuka & ada izin Automation (System Settings → Privacy & Security → Automation)<br>" +
+                    "• Atau install <b>LibreOffice</b> sebagai alternatif — <u>libreoffice.org</u>"
+                )
             }
             return []
         }
