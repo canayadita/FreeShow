@@ -47,14 +47,20 @@ Unduh installer terbaru di halaman [Releases](https://github.com/canayadita/Free
 
 ## Preview
 
-<div style="display: flex;gap: 10px;">
-    <img style="width: 49%;" src="https://github.com/ChurchApps/FreeShow/assets/1447203/0e5e832d-9bb8-4c64-98cc-04f0ce3f966e">
-    <img style="width: 49%;" src="https://github.com/ChurchApps/FreeShow/assets/1447203/c1d71b2f-d873-4125-9f04-339e234e55f9">
-</div>
-<div style="display: flex;gap: 10px;margin-top: 10px;">
-    <img style="width: 49%;" src="https://github.com/ChurchApps/FreeShow/assets/1447203/39c344fd-5c22-4019-9cae-c6307364d580">
-    <img style="width: 49%;" src="https://github.com/ChurchApps/FreeShow/assets/1447203/b1275bfc-e966-4813-962e-a7350ba6a84a">
-</div>
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/pip-live-output.png" alt="Live output with Picture-in-Picture" /><br /><sub><b>Picture-in-Picture</b> — lyrics + live camera in one output</sub></td>
+    <td width="50%"><img src="docs/screenshots/pip-editor.png" alt="Picture-in-Picture pane editor" /><br /><sub><b>PiP editor</b> — drag & resize panes, mix slide / camera / screen</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/stage-slide-preview.png" alt="Stage monitor with slide preview" /><br /><sub><b>Stage monitor</b> — current & next slide preview, clock & timer</sub></td>
+    <td width="50%"><img src="docs/screenshots/song-sequence-menu.png" alt="Song Sequence menu" /><br /><sub><b>Song Sequence</b> — MP3 lyric-timecode automation</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/timeline-sequence.png" alt="Slide timeline" /><br /><sub><b>Slide timeline</b> — record & play back slide timing</sub></td>
+    <td width="50%"><img src="docs/screenshots/youtube-rtmp-streaming.png" alt="YouTube / RTMP streaming settings" /><br /><sub><b>YouTube / RTMP live streaming</b> — built in</sub></td>
+  </tr>
+</table>
 
 ## Tentang FreeShow (Base App)
 
