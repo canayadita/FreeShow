@@ -34,7 +34,7 @@
 
         try {
             const currentVersion = $version
-            const includeBeta = currentVersion.includes("-beta") || $special.betaVersionAlert
+            const includeBeta = currentVersion.includes("-beta") || currentVersion.includes("-plus") || $special.betaVersionAlert
             const updateData = await getUpdateData(currentVersion, includeBeta)
 
             latestVersion = updateData.latestVersion
@@ -51,13 +51,12 @@
     function downloadLatest() {
         if (!hasUpdate || !latestVersion) return
 
-        const isBeta = latestVersion.includes("-beta")
-        sendMain(Main.URL, isBeta ? "https://github.com/ChurchApps/FreeShow/releases" : "https://freeshow.app/?download")
+        sendMain(Main.URL, "https://github.com/canayadita/FreeShow/releases")
     }
 
     onMount(checkUpdates)
 
-    $: isBeta = $version.includes("-beta")
+    $: isBeta = $version.includes("-beta") || $version.includes("-plus")
     $: versionsMatch = !!latestVersion && $version === latestVersion
 </script>
 
