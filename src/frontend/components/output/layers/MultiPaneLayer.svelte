@@ -49,23 +49,19 @@
         return true
     }
 
-    // Slide canvas is always the full output resolution (1920×1080). It is scaled
-    // to fit the pane using either:
-    //   - "contain" (default): slide is fully visible, may leave letterbox bars
-    //     inside the pane. Math.min ensures we don't overflow on either axis.
-    //   - "cover": slide fills the pane, edges may be clipped by overflow:hidden
-    //     when the pane's aspect ratio differs from 16:9. Math.max ensures full
-    //     coverage of the pane on both axes.
+    // Slide canvas is the full output resolution (1920×1080), rendered faithfully
+    // (WYSIWYG — same layout as the main output) and scaled to fit the pane with
+    // "contain" so nothing is ever clipped (may leave letterbox bars when the pane
+    // aspect differs from 16:9). The optional `crop` (0-45%) zooms in and crops
+    // equally from all sides, so the user can fill the pane / remove the bars.
     const CANVAS_WIDTH = 1920
     const CANVAS_HEIGHT = 1080
     function getSlideScaleStyle(pane: Pane): string {
         const paneWidth = Math.max(1, (pane.position.width / 100) * resolution.width)
         const paneHeight = Math.max(1, (pane.position.height / 100) * resolution.height)
-        const fitMode = pane.fit || "contain"
-        const scale =
-            fitMode === "cover"
-                ? Math.max(paneWidth / CANVAS_WIDTH, paneHeight / CANVAS_HEIGHT)
-                : Math.min(paneWidth / CANVAS_WIDTH, paneHeight / CANVAS_HEIGHT)
+        const cropFrac = Math.min(0.45, Math.max(0, (pane.crop || 0) / 100))
+        const containScale = Math.min(paneWidth / CANVAS_WIDTH, paneHeight / CANVAS_HEIGHT)
+        const scale = containScale / (1 - 2 * cropFrac)
         const offsetX = (paneWidth - CANVAS_WIDTH * scale) / 2
         const offsetY = (paneHeight - CANVAS_HEIGHT * scale) / 2
         return `position: absolute; left: ${offsetX}px; top: ${offsetY}px; width: ${CANVAS_WIDTH}px; height: ${CANVAS_HEIGHT}px; transform: scale(${scale}); transform-origin: top left;`

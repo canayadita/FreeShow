@@ -196,8 +196,8 @@
         updatePane(paneId, (p) => ({ ...p, rotate3d: { x: p.rotate3d?.x ?? 0, y: p.rotate3d?.y ?? 0, [axis]: Number(value) || 0 } }))
     }
 
-    function togglePaneFit(paneId: string) {
-        updatePane(paneId, (p) => ({ ...p, fit: (p.fit || "contain") === "contain" ? "cover" : "contain" }))
+    function updatePaneCrop(paneId: string, value: number) {
+        updatePane(paneId, (p) => ({ ...p, crop: Math.min(45, Math.max(0, Number(value) || 0)) }))
     }
 
     function addPane() {
@@ -417,14 +417,9 @@
                             </div>
 
                             {#if pane.sourceType === "slide"}
+                                <!-- Crop: 0 = tampil penuh (WYSIWYG, mungkin ada bar hitam). Naikkan untuk zoom & crop mengisi pane. Klik-seret untuk cepat. -->
                                 <div class="pane-inputs">
-                                    <MaterialButton
-                                        title="Contain: slide fit utuh di dalam pane (mungkin ada letterbox). Cover: slide isi penuh pane (mungkin kepotong)."
-                                        variant={(pane.fit || "contain") === "contain" ? "contained" : "outlined"}
-                                        on:click={() => togglePaneFit(pane.id)}
-                                    >
-                                        Slide {(pane.fit || "contain") === "contain" ? "Fit (contain)" : "Fill (cover)"}
-                                    </MaterialButton>
+                                    <MaterialNumberInput label="Crop / Zoom (%)" value={pane.crop || 0} min={0} max={45} step={1} scrub on:change={(e) => updatePaneCrop(pane.id, e.detail)} />
                                 </div>
                             {/if}
                         </div>

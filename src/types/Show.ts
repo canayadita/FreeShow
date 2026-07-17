@@ -671,6 +671,7 @@ export interface Pane {
     borderRadius?: number
     border?: { width: number; color: string }
     shadow?: boolean
-    fit?: "cover" | "contain" // slide scaling inside pane (default: contain)
+    fit?: "cover" | "contain" // slide scaling inside pane (default: contain) — legacy, superseded by crop
+    crop?: number // slide pane: percent zoomed/cropped equally from each side (0-45). 0 = full slide (WYSIWYG)
     rotate3d?: { x: number; y: number } // static 3D tilt in degrees: x = tilt up/down (rotateX), y = turn left/right (rotateY)
 }

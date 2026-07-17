@@ -419,7 +419,7 @@
     <!-- multi-pane / picture-in-picture -->
     {#if multiPanePanes.length > 0 && liveMultiPane?.visible && layers.includes("slide")}
         <MultiPaneLayer {outputId} multiPane={liveMultiPane} resolution={outputPixelResolution} {mirror} {preview}>
-            <svelte:fragment slot="slide" let:paneResolution>
+            <svelte:fragment slot="slide">
                 <!-- slide background color — omit when a media background is active -->
                 {#if !backgroundData && !styleBackground}
                     <div style="position: absolute; inset: 0; background: {backgroundColor};" />
@@ -442,7 +442,7 @@
                 {#if actualSlide && actualSlide?.type !== "pdf" && actualSlide?.type !== "ppt" && actualCurrentSlide?.items?.length}
                     {#each actualCurrentSlide.items as item}
                         {#if item}
-                            <Textbox {item} {ratio} {outputId} outputStyle={currentStyle} {mirror} {preview} {styleIdOverride} customResolution={paneResolution} ref={{ type: "show", showId: actualSlide?.id, slideId: actualCurrentSlide?.id, id: actualCurrentSlide?.id || "", layoutId: actualSlide?.layout }} animationConfig={item.animationConfig} />
+                            <Textbox {item} {ratio} {outputId} outputStyle={currentStyle} {mirror} {preview} {styleIdOverride} ref={{ type: "show", showId: actualSlide?.id, slideId: actualCurrentSlide?.id, id: actualCurrentSlide?.id || "", layoutId: actualSlide?.layout }} animationConfig={item.animationConfig} />
                         {/if}
                     {/each}
                 {/if}
