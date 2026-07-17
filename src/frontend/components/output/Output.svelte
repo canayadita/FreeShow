@@ -117,20 +117,21 @@
         }
     }
 
-    // Also update from store directly for preview
-    $: multiPanePanes = clone($outputs[outputId]?.out?.multiPane?.panes || [])
+    // Always read multiPane directly from store so pane position/size changes are instantly reactive
+    $: liveMultiPane = $outputs[outputId]?.out?.multiPane ?? out.multiPane ?? null
+    $: multiPanePanes = liveMultiPane?.panes || []
 
-    $: pipTransparentPane = out.multiPane?.visible 
-        ? (out.multiPane?.panes || [])
+    $: pipTransparentPane = liveMultiPane?.visible
+        ? (liveMultiPane?.panes || [])
             .filter((p: any) => p.sourceType === "transparent")
             .sort((a: any, b: any) => (b.position.width * b.position.height) - (a.position.width * a.position.height))[0]
         : null
 
-    $: hasSlidePane = (out.multiPane?.panes || []).some((p: any) => p.sourceType === "slide")
+    $: hasSlidePane = (liveMultiPane?.panes || []).some((p: any) => p.sourceType === "slide")
 
-    $: slideClipPath = pipTransparentPane 
+    $: slideClipPath = pipTransparentPane
         ? `inset(${pipTransparentPane.position.y}% ${100 - pipTransparentPane.position.x - pipTransparentPane.position.width}% ${100 - pipTransparentPane.position.y - pipTransparentPane.position.height}% ${pipTransparentPane.position.x}%)`
-        : hasSlidePane && out.multiPane?.visible
+        : hasSlidePane && liveMultiPane?.visible && actualSlide?.type !== "pdf"
         ? "inset(0% 100% 0% 0%)"
         : "none"
 
@@ -367,12 +368,12 @@
 
 <Zoomed id={outputId} background={backgroundColor} checkered={(preview || mirror) && backgroundColor === "transparent"} backgroundDuration={transitions.media?.type === "none" ? 0 : (transitions.media?.duration ?? 800)} align={alignPosition} center {style} {resolution} {mirror} {drawZoom} {cropping} bind:ratio>
     <!-- always show style background (behind other backgrounds) -->
-    {#if styleBackground && actualSlide?.type !== "pdf"}
+    {#if styleBackground}
         <Background data={styleBackgroundData} {outputId} transition={transitions.media} {currentStyle} {slideFilter} {ratio} animationStyle={animationData.style?.background || ""} mirror styleBackground />
     {/if}
 
-    <!-- background -->
-    {#if (backgroundData?.ignoreLayer ? layers.includes("slide") : layers.includes("background")) && backgroundData}
+    <!-- background — hide full-screen when PiP slide pane is active (will be drawn inside pane) -->
+    {#if (backgroundData?.ignoreLayer ? layers.includes("slide") : layers.includes("background")) && backgroundData && !(liveMultiPane?.visible && hasSlidePane)}
         <Background data={backgroundData} {outputId} transition={transitions.media} {currentStyle} {slideFilter} {ratio} animationStyle={animationData.style?.background || ""} {mirror} />
     {/if}
 
@@ -393,11 +394,7 @@
     {/if}
 
     <!-- slide -->
-    {#if actualSlide?.type === "pdf" && layers.includes("background")}
-        <span style="zoom: {1 / ratio};">
-            <PdfOutput slide={actualSlide} {currentStyle} transition={transitions.media} />
-        </span>
-    {:else if actualSlide?.type === "ppt" && layers.includes("slide")}
+    {#if actualSlide?.type === "ppt" && layers.includes("slide")}
         <span style="zoom: {1 / ratio};">
             {#if actualSlide?.screen?.id}
                 <Window id={actualSlide?.screen?.id} class="media" style="width: 100%;height: 100%;" />
@@ -412,18 +409,36 @@
         <Overlay overlay={{ items: currentMetadataItems }} isClearing={isMetadataClearing || isSlideClearing} {outputId} transition={transitions.text} />
     {/if}
 
+    <!-- PDF slide full-screen — only when PiP not active -->
+    {#if actualSlide?.type === "pdf" && layers.includes("slide") && !(liveMultiPane?.visible && multiPanePanes.length > 0)}
+        <span style="zoom: {1 / ratio};">
+            <PdfOutput slide={actualSlide} {currentStyle} transition={transitions.media} />
+        </span>
+    {/if}
+
     <!-- multi-pane / picture-in-picture -->
-    {#if multiPanePanes.length > 0 && layers.includes("slide")}
-        <MultiPaneLayer {outputId} multiPane={out.multiPane} resolution={outputPixelResolution} {mirror} {preview}>
+    {#if multiPanePanes.length > 0 && liveMultiPane?.visible && layers.includes("slide")}
+        <MultiPaneLayer {outputId} multiPane={liveMultiPane} resolution={outputPixelResolution} {mirror} {preview}>
             <svelte:fragment slot="slide" let:paneResolution>
-                <!-- slide background color (fills the virtual canvas, scales with slideScaler) -->
-                <div style="position: absolute; inset: 0; background: {backgroundColor};" />
+                <!-- slide background color — omit when a media background is active -->
+                {#if !backgroundData && !styleBackground}
+                    <div style="position: absolute; inset: 0; background: {backgroundColor};" />
+                {/if}
                 <!-- style template background image -->
-                {#if styleBackground && actualSlide?.type !== "pdf"}
+                {#if styleBackground}
                     <Background data={styleBackgroundData} {outputId} transition={transitions.media} {currentStyle} {slideFilter} {ratio} mirror={false} styleBackground />
                 {/if}
-                <!-- out.background renders full-screen behind PiP (see line ~375); slide bg comes from slide items below -->
-                <!-- slide items -->
+                <!-- background image dragged to slide — rendered inside pane so it follows pane size -->
+                {#if backgroundData && (backgroundData?.ignoreLayer ? layers.includes("slide") : layers.includes("background"))}
+                    <Background data={backgroundData} {outputId} transition={transitions.media} {currentStyle} {slideFilter} {ratio} mirror={false} animationStyle={animationData.style?.background || ""} />
+                {/if}
+                <!-- PDF slide (PPT imported) — rendered inside slideScaler so it scales with the pane -->
+                {#if actualSlide?.type === "pdf"}
+                    <div style="position: absolute; inset: 0;">
+                        <PdfOutput slide={actualSlide} {currentStyle} transition={transitions.media} />
+                    </div>
+                {/if}
+                <!-- slide items (non-pdf, non-ppt) -->
                 {#if actualSlide && actualSlide?.type !== "pdf" && actualSlide?.type !== "ppt" && actualCurrentSlide?.items?.length}
                     {#each actualCurrentSlide.items as item}
                         {#if item}

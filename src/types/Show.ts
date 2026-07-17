@@ -671,4 +671,5 @@ export interface Pane {
     borderRadius?: number
     border?: { width: number; color: string }
     shadow?: boolean
+    fit?: "cover" | "contain" // slide scaling inside pane (default: contain)
 }

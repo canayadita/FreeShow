@@ -337,7 +337,9 @@
     }
     // Trigger calculation if Content OR Template changes (resolvedTemplateId added to dependency list)
     // All contexts (OUTPUT, STAGE, PREVIEW) calculate and cache their own autosize independently
-    $: if (itemElem && loaded && (stageAutoSize || newItem !== previousItem || resolvedTemplateId || chordLines || stageItem)) calculateAutosize()
+    // Stable primitive key for the PiP pane resolution so entering/resizing a pane re-runs shrinkToFit
+    $: customResolutionKey = customResolution ? `${customResolution.width}x${customResolution.height}` : ""
+    $: if (itemElem && loaded && (stageAutoSize || newItem !== previousItem || resolvedTemplateId || chordLines || stageItem || customResolutionKey)) calculateAutosize()
     $: if ($variables) setTimeout(calculateAutosize)
 
     // recalculate auto size if output template is different than show template
@@ -605,7 +607,10 @@
             maxLinesInvert,
             centerPreview,
             // Include resolved template to invalidate cache when template changes
-            resolvedTemplateId
+            resolvedTemplateId,
+            // Include PiP pane resolution so a pane's re-laid-out box gets its own
+            // autosize entry instead of reusing the full-output fontSize (fixes clipped text)
+            customResolution
         })
     }
 

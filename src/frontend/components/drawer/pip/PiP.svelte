@@ -2,16 +2,18 @@
     import { onMount } from "svelte"
     import { uid } from "uid"
     import type { MultiPane, Pane, PaneSourceType } from "../../../../types/Show"
-    import { multiPaneLayouts, ndiData, outputs, media } from "../../../stores"
+    import { multiPaneLayouts, ndiData, outputs } from "../../../stores"
     import { cameraManager } from "../../../media/cameraManager"
     import { getActiveOutputs, setOutput } from "../../helpers/output"
     import { newToast } from "../../../utils/common"
     import Icon from "../../helpers/Icon.svelte"
     import MaterialButton from "../../inputs/MaterialButton.svelte"
     import MaterialDropdown from "../../inputs/MaterialDropdown.svelte"
+    import MaterialFilePicker from "../../inputs/MaterialFilePicker.svelte"
     import MaterialNumberInput from "../../inputs/MaterialNumberInput.svelte"
     import MaterialTextInput from "../../inputs/MaterialTextInput.svelte"
     import T from "../../helpers/T.svelte"
+    import { imageExtensions, videoExtensions } from "../../../values/extensions"
 
     export let active: string | null = null
 
@@ -102,6 +104,11 @@
         updatePane(paneId, (p) => ({ ...p, sourceType, sourceId: sourceId || p.sourceId }))
     }
 
+    // for file-based sources (image/video): the renderer reads pane.sourcePath
+    function updatePaneSourcePath(paneId: string, sourcePath: string) {
+        updatePane(paneId, (p) => ({ ...p, sourcePath }))
+    }
+
     // generic pane updater (position, size, shape...)
     function updatePane(paneId: string, updater: (pane: Pane) => Pane) {
         const currentOutputId = getActiveOutputs($outputs, true, true, true)[0] || ""
@@ -115,9 +122,66 @@
     }
 
     function updatePanePosition(paneId: string, key: "x" | "y" | "width" | "height", value: number) {
-        const clamped = Math.max(key === "width" || key === "height" ? 1 : 0, Math.min(100, Number(value) || 0))
+        const n = Number(value) || 0
+        const clamped = key === "width" || key === "height" ? Math.max(1, Math.min(300, n)) : Math.max(-200, Math.min(300, n))
         updatePane(paneId, (p) => ({ ...p, position: { ...p.position, [key]: clamped } }))
     }
+
+    // --- drag-to-move / drag-to-resize in preview ---
+    let previewElem: HTMLDivElement | null = null
+    let dragMode: "move" | "resize" | null = null
+    let draggingPaneId = ""
+    let dragStartCX = 0, dragStartCY = 0
+    let dragStartV1 = 0, dragStartV2 = 0
+
+    function startDrag(e: MouseEvent, pane: Pane, mode: "move" | "resize") {
+        if (e.button !== 0) return
+        e.preventDefault()
+        e.stopPropagation()
+        dragMode = mode
+        draggingPaneId = pane.id
+        dragStartCX = e.clientX
+        dragStartCY = e.clientY
+        dragStartV1 = mode === "move" ? pane.position.x : pane.position.width
+        dragStartV2 = mode === "move" ? pane.position.y : pane.position.height
+    }
+
+    function onWindowMousemove(e: MouseEvent) {
+        if (!dragMode || !draggingPaneId || !previewElem) return
+        const rect = previewElem.getBoundingClientRect()
+        const dx = ((e.clientX - dragStartCX) / rect.width) * 100
+        const dy = ((e.clientY - dragStartCY) / rect.height) * 100
+        if (dragMode === "move") {
+            const x = Math.round((dragStartV1 + dx) * 10) / 10
+            const y = Math.round((dragStartV2 + dy) * 10) / 10
+            updatePaneDirect(draggingPaneId, { x, y })
+        } else {
+            const width = Math.max(5, Math.round((dragStartV1 + dx) * 10) / 10)
+            const height = Math.max(5, Math.round((dragStartV2 + dy) * 10) / 10)
+            updatePaneDirect(draggingPaneId, { width, height })
+        }
+    }
+
+    function onWindowMouseup() {
+        dragMode = null
+        draggingPaneId = ""
+    }
+
+    function updatePaneDirect(paneId: string, changes: Partial<{ x: number; y: number; width: number; height: number }>) {
+        const oid = getActiveOutputs($outputs, true, true, true)[0] || ""
+        const mp = $outputs[oid]?.out?.multiPane
+        if (!mp) return
+        const updatedPanes = mp.panes.map((p) => (p.id === paneId ? { ...p, position: { ...p.position, ...changes } } : p))
+        setOutput("multiPane", { ...mp, panes: updatedPanes })
+    }
+
+    const PANE_COLORS = [
+        { bg: "rgba(59,130,246,0.35)", border: "rgba(59,130,246,0.9)" },
+        { bg: "rgba(34,197,94,0.35)", border: "rgba(34,197,94,0.9)" },
+        { bg: "rgba(249,115,22,0.35)", border: "rgba(249,115,22,0.9)" },
+        { bg: "rgba(168,85,247,0.35)", border: "rgba(168,85,247,0.9)" },
+        { bg: "rgba(236,72,153,0.35)", border: "rgba(236,72,153,0.9)" }
+    ]
 
     function updatePaneShape(paneId: string, key: "borderRadius" | "opacity" | "zIndex", value: number) {
         updatePane(paneId, (p) => ({ ...p, [key]: Number(value) || 0 }))
@@ -125,6 +189,10 @@
 
     function togglePaneShadow(paneId: string) {
         updatePane(paneId, (p) => ({ ...p, shadow: !p.shadow }))
+    }
+
+    function togglePaneFit(paneId: string) {
+        updatePane(paneId, (p) => ({ ...p, fit: (p.fit || "contain") === "contain" ? "cover" : "contain" }))
     }
 
     function addPane() {
@@ -196,10 +264,6 @@
     // Get available sources
     let cameraList: { value: string; label: string }[] = []
     $: ndiList = Object.keys($ndiData).map((id) => ({ value: id, label: id }))
-    $: videoList = Object.keys($media).filter((path) => {
-        const ext = path.split('.').pop()?.toLowerCase()
-        return ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext || '')
-    }).map((path) => ({ value: path, label: path.split('/').pop() || path }))
 
     // Load cameras on mount
     onMount(async () => {
@@ -210,8 +274,8 @@
     function getSourceOptions(pane: Pane) {
         if (pane.sourceType === "camera") return cameraList
         if (pane.sourceType === "ndi") return ndiList
-        if (pane.sourceType === "video" || pane.sourceType === "image") return videoList
         // "slide" always mirrors the LIVE clicked slide - no source selection needed
+        // "image"/"video" use a file picker (sets pane.sourcePath) instead of a dropdown
         return []
     }
 
@@ -227,6 +291,8 @@
         { value: "transparent", label: "Transparent" }
     ]
 </script>
+
+<svelte:window on:mousemove={onWindowMousemove} on:mouseup={onWindowMouseup} />
 
 <div class="pip-container">
     <div class="header">
@@ -252,6 +318,34 @@
                 </div>
             </div>
 
+            <!-- mini preview — drag to move, drag resize-handle to resize -->
+            <div class="pip-preview-wrap">
+                <div class="pip-preview" bind:this={previewElem}>
+                    {#each currentMultiPane.panes as pane, i}
+                        {@const col = PANE_COLORS[i % PANE_COLORS.length]}
+                        <div
+                            class="preview-pane"
+                            class:is-dragging={draggingPaneId === pane.id && dragMode === "move"}
+                            style="left:{pane.position.x}%;top:{pane.position.y}%;width:{pane.position.width}%;height:{pane.position.height}%;background:{col.bg};border:2px solid {col.border};"
+                            on:mousedown={(e) => startDrag(e, pane, "move")}
+                            role="button"
+                            tabindex="0"
+                            aria-label="Drag pane {i + 1}"
+                        >
+                            <span class="pp-label">{i + 1} {pane.sourceType}</span>
+                            <div
+                                class="resize-handle"
+                                on:mousedown={(e) => startDrag(e, pane, "resize")}
+                                role="button"
+                                tabindex="0"
+                                aria-label="Resize pane {i + 1}"
+                            />
+                        </div>
+                    {/each}
+                </div>
+                <p class="preview-hint">Drag untuk geser · Sudut kanan-bawah untuk resize</p>
+            </div>
+
             <div class="pane-configs">
                 {#each currentMultiPane.panes as pane, i}
                     <div class="pane-config">
@@ -275,14 +369,31 @@
                                     options={getSourceOptions(pane)}
                                     on:change={(e) => updatePaneSource(pane.id, pane.sourceType, e.detail)}
                                 />
+                            {:else if pane.sourceType === "image"}
+                                <MaterialFilePicker
+                                    label="Import Gambar"
+                                    value={pane.sourcePath}
+                                    filter={{ name: "Image files", extensions: imageExtensions }}
+                                    showThumbnail
+                                    allowEmpty
+                                    on:change={(e) => updatePaneSourcePath(pane.id, e.detail)}
+                                />
+                            {:else if pane.sourceType === "video"}
+                                <MaterialFilePicker
+                                    label="Import Video"
+                                    value={pane.sourcePath}
+                                    filter={{ name: "Video files", extensions: videoExtensions }}
+                                    allowEmpty
+                                    on:change={(e) => updatePaneSourcePath(pane.id, e.detail)}
+                                />
                             {/if}
 
-                            <!-- position & size (percentage of output) -->
+                            <!-- position & size (percentage of output, X/Y can be negative to push pane off-edge) -->
                             <div class="pane-inputs">
-                                <MaterialNumberInput label="X (%)" value={pane.position.x} min={0} max={100} step={1} on:change={(e) => updatePanePosition(pane.id, "x", e.detail)} />
-                                <MaterialNumberInput label="Y (%)" value={pane.position.y} min={0} max={100} step={1} on:change={(e) => updatePanePosition(pane.id, "y", e.detail)} />
-                                <MaterialNumberInput label="Lebar (%)" value={pane.position.width} min={1} max={100} step={1} on:change={(e) => updatePanePosition(pane.id, "width", e.detail)} />
-                                <MaterialNumberInput label="Tinggi (%)" value={pane.position.height} min={1} max={100} step={1} on:change={(e) => updatePanePosition(pane.id, "height", e.detail)} />
+                                <MaterialNumberInput label="X (%)" value={pane.position.x} min={-200} max={300} step={1} on:change={(e) => updatePanePosition(pane.id, "x", e.detail)} />
+                                <MaterialNumberInput label="Y (%)" value={pane.position.y} min={-200} max={300} step={1} on:change={(e) => updatePanePosition(pane.id, "y", e.detail)} />
+                                <MaterialNumberInput label="Lebar (%)" value={pane.position.width} min={1} max={300} step={1} on:change={(e) => updatePanePosition(pane.id, "width", e.detail)} />
+                                <MaterialNumberInput label="Tinggi (%)" value={pane.position.height} min={1} max={300} step={1} on:change={(e) => updatePanePosition(pane.id, "height", e.detail)} />
                             </div>
 
                             <!-- shape -->
@@ -293,6 +404,18 @@
                                     Shadow {pane.shadow ? "ON" : "OFF"}
                                 </MaterialButton>
                             </div>
+
+                            {#if pane.sourceType === "slide"}
+                                <div class="pane-inputs">
+                                    <MaterialButton
+                                        title="Contain: slide fit utuh di dalam pane (mungkin ada letterbox). Cover: slide isi penuh pane (mungkin kepotong)."
+                                        variant={(pane.fit || "contain") === "contain" ? "contained" : "outlined"}
+                                        on:click={() => togglePaneFit(pane.id)}
+                                    >
+                                        Slide {(pane.fit || "contain") === "contain" ? "Fit (contain)" : "Fill (cover)"}
+                                    </MaterialButton>
+                                </div>
+                            {/if}
                         </div>
                     </div>
                 {/each}
@@ -545,5 +668,80 @@
         opacity: 0.6;
         font-size: 0.7em;
         margin-top: 2px;
+    }
+
+    /* --- PiP mini preview --- */
+    .pip-preview-wrap {
+        margin-bottom: 12px;
+    }
+
+    .pip-preview {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        background: #111;
+        border-radius: 4px;
+        overflow: hidden;
+        cursor: default;
+    }
+
+    .preview-pane {
+        position: absolute;
+        cursor: move;
+        border-radius: 2px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-start;
+        box-sizing: border-box;
+        user-select: none;
+        touch-action: none;
+        transition: box-shadow 0.1s;
+    }
+
+    .preview-pane:hover {
+        box-shadow: 0 0 0 2px white;
+    }
+
+    .preview-pane.is-dragging {
+        box-shadow: 0 0 0 2px white;
+        opacity: 0.85;
+    }
+
+    .pp-label {
+        font-size: 9px;
+        color: white;
+        padding: 2px 4px;
+        background: rgba(0, 0, 0, 0.55);
+        border-radius: 2px;
+        pointer-events: none;
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 100%;
+        text-overflow: ellipsis;
+        line-height: 1.4;
+    }
+
+    .resize-handle {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 14px;
+        height: 14px;
+        background: white;
+        opacity: 0.75;
+        cursor: se-resize;
+        border-radius: 3px 0 0 0;
+    }
+
+    .resize-handle:hover {
+        opacity: 1;
+    }
+
+    .preview-hint {
+        font-size: 0.7em;
+        color: var(--text);
+        opacity: 0.45;
+        margin: 4px 0 0 0;
+        text-align: center;
     }
 </style>
