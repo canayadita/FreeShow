@@ -395,16 +395,16 @@
 
                             <!-- position & size (percentage of output, X/Y can be negative to push pane off-edge) -->
                             <div class="pane-inputs">
-                                <MaterialNumberInput label="X (%)" value={pane.position.x} min={-200} max={300} step={1} on:change={(e) => updatePanePosition(pane.id, "x", e.detail)} />
-                                <MaterialNumberInput label="Y (%)" value={pane.position.y} min={-200} max={300} step={1} on:change={(e) => updatePanePosition(pane.id, "y", e.detail)} />
-                                <MaterialNumberInput label="Lebar (%)" value={pane.position.width} min={1} max={300} step={1} on:change={(e) => updatePanePosition(pane.id, "width", e.detail)} />
-                                <MaterialNumberInput label="Tinggi (%)" value={pane.position.height} min={1} max={300} step={1} on:change={(e) => updatePanePosition(pane.id, "height", e.detail)} />
+                                <MaterialNumberInput label="X (%)" value={pane.position.x} min={-200} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "x", e.detail)} />
+                                <MaterialNumberInput label="Y (%)" value={pane.position.y} min={-200} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "y", e.detail)} />
+                                <MaterialNumberInput label="Lebar (%)" value={pane.position.width} min={1} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "width", e.detail)} />
+                                <MaterialNumberInput label="Tinggi (%)" value={pane.position.height} min={1} max={300} step={1} scrub on:change={(e) => updatePanePosition(pane.id, "height", e.detail)} />
                             </div>
 
                             <!-- shape -->
                             <div class="pane-inputs">
-                                <MaterialNumberInput label="Radius sudut" value={pane.borderRadius || 0} min={0} max={200} step={2} on:change={(e) => updatePaneShape(pane.id, "borderRadius", e.detail)} />
-                                <MaterialNumberInput label="Layer (z)" value={pane.zIndex || 0} min={0} max={20} step={1} on:change={(e) => updatePaneShape(pane.id, "zIndex", e.detail)} />
+                                <MaterialNumberInput label="Radius sudut" value={pane.borderRadius || 0} min={0} max={200} step={2} scrub on:change={(e) => updatePaneShape(pane.id, "borderRadius", e.detail)} />
+                                <MaterialNumberInput label="Layer (z)" value={pane.zIndex || 0} min={0} max={20} step={1} scrub on:change={(e) => updatePaneShape(pane.id, "zIndex", e.detail)} />
                                 <MaterialButton icon="theme" variant={pane.shadow ? "contained" : "outlined"} title="Bayangan" on:click={() => togglePaneShadow(pane.id)}>
                                     Shadow {pane.shadow ? "ON" : "OFF"}
                                 </MaterialButton>
