@@ -8,6 +8,16 @@ export interface Shows {
     [key: string]: Show
 }
 
+export interface SequenceCue {
+    time: number // ms into the recording
+    slideIndex: number // absolute show slide index to display at/after this time
+}
+export interface ShowSequence {
+    cues: SequenceCue[]
+    audioPath?: string // MP3 used for authoring only
+    duration?: number // ms
+}
+
 export interface Show {
     name: string
     id?: string // this id should not be stored (but often used in the program as a temporary value)
@@ -54,6 +64,7 @@ export interface Show {
     layouts: { [key: ID]: Layout }
     media: { [key: ID]: Media }
     midi?: { [key: ID]: Action }
+    sequence?: ShowSequence
 }
 
 export interface TrimmedShows {
