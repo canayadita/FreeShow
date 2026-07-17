@@ -20,7 +20,8 @@
 
     type ItemRef = { id: string; icon?: string; name?: string; maxAmount?: number }
     const dynamicItems: ItemRef[] = [
-        { id: "slide_text", icon: "text" }
+        { id: "slide_text", icon: "text" },
+        { id: "slide", icon: "screen" } // visual slide preview (current/next), works during PiP
         // { id: "slide_notes", icon: "notes" }, // added as dynamic value in textbox
     ]
 
@@ -47,6 +48,8 @@
 
     // check slide text state
     $: slideTextItems = Object.values(stageShow.items || {}).filter((a) => a.type === "slide_text")
+    // visual slide preview items (for auto-incrementing offset: 1st = current, 2nd = next)
+    $: slidePreviewItems = Object.values(stageShow.items || {}).filter((a) => a.type === "slide")
 
     const resolution = { width: 1920, height: 1080 }
     const halfWidth = resolution.width * 0.5
@@ -81,6 +84,8 @@
             else if (itemType === "slide_text") {
                 item.slideOffset = slideTextItems.length
                 item.style += "font-size: 800px;"
+            } else if (itemType === "slide") {
+                item.slideOffset = slidePreviewItems.length
             }
 
             a[stageId].items[itemId] = item

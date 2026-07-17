@@ -31,6 +31,7 @@
     export let ratio = 0
     export let mirror = false
     export let preview = false
+    export let slideOnly = false // render plain slide/background/PDF, ignore PiP (stage Slide Preview)
     export let styleIdOverride = ""
     export let outOverride: OutData | null = null
 
@@ -120,8 +121,10 @@
     // Always read multiPane directly from store so pane position/size changes are instantly reactive
     $: liveMultiPane = $outputs[outputId]?.out?.multiPane ?? out.multiPane ?? null
     $: multiPanePanes = liveMultiPane?.panes || []
+    // slideOnly (e.g. stage Slide Preview) renders the plain slide as if PiP were off
+    $: pipActive = !slideOnly && !!liveMultiPane?.visible && multiPanePanes.length > 0
 
-    $: pipTransparentPane = liveMultiPane?.visible
+    $: pipTransparentPane = pipActive
         ? (liveMultiPane?.panes || [])
             .filter((p: any) => p.sourceType === "transparent")
             .sort((a: any, b: any) => (b.position.width * b.position.height) - (a.position.width * a.position.height))[0]
@@ -131,7 +134,7 @@
 
     $: slideClipPath = pipTransparentPane
         ? `inset(${pipTransparentPane.position.y}% ${100 - pipTransparentPane.position.x - pipTransparentPane.position.width}% ${100 - pipTransparentPane.position.y - pipTransparentPane.position.height}% ${pipTransparentPane.position.x}%)`
-        : hasSlidePane && liveMultiPane?.visible && actualSlide?.type !== "pdf"
+        : hasSlidePane && pipActive && actualSlide?.type !== "pdf"
         ? "inset(0% 100% 0% 0%)"
         : "none"
 
@@ -373,7 +376,7 @@
     {/if}
 
     <!-- background — hide full-screen when PiP slide pane is active (will be drawn inside pane) -->
-    {#if (backgroundData?.ignoreLayer ? layers.includes("slide") : layers.includes("background")) && backgroundData && !(liveMultiPane?.visible && hasSlidePane)}
+    {#if (backgroundData?.ignoreLayer ? layers.includes("slide") : layers.includes("background")) && backgroundData && !(pipActive && hasSlidePane)}
         <Background data={backgroundData} {outputId} transition={transitions.media} {currentStyle} {slideFilter} {ratio} animationStyle={animationData.style?.background || ""} {mirror} />
     {/if}
 
@@ -410,14 +413,14 @@
     {/if}
 
     <!-- PDF slide full-screen — only when PiP not active -->
-    {#if actualSlide?.type === "pdf" && layers.includes("slide") && !(liveMultiPane?.visible && multiPanePanes.length > 0)}
+    {#if actualSlide?.type === "pdf" && layers.includes("slide") && !pipActive}
         <span style="zoom: {1 / ratio};">
             <PdfOutput slide={actualSlide} {currentStyle} transition={transitions.media} />
         </span>
     {/if}
 
     <!-- multi-pane / picture-in-picture -->
-    {#if multiPanePanes.length > 0 && liveMultiPane?.visible && layers.includes("slide")}
+    {#if pipActive && layers.includes("slide")}
         <MultiPaneLayer {outputId} multiPane={liveMultiPane} resolution={outputPixelResolution} {mirror} {preview}>
             <svelte:fragment slot="slide">
                 <!-- slide background color — omit when a media background is active -->

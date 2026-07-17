@@ -1119,7 +1119,8 @@
         "effect": "Efek",
         "slide_text": "Teks slide",
         "slide_notes": "Catatan slide",
-        "current_output": "Jendela output"
+        "current_output": "Jendela output",
+        "slide": "Preview slide"
     },
     "borders": {
         "solid": "Padat",

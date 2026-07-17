@@ -1174,7 +1174,8 @@
         "effect": "Effect",
         "slide_text": "Slide text",
         "slide_notes": "Slide notes",
-        "current_output": "Output window"
+        "current_output": "Output window",
+        "slide": "Slide preview"
     },
     "borders": {
         "solid": "Solid",

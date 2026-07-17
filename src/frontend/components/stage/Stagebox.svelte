@@ -181,6 +181,16 @@
 
     $: outputWindowId = item?.currentOutput?.source || stageOutputId
 
+    // "slide" stage item: build an OutData for a slide at a given offset (0 = current, 1 = next, ...)
+    // so the visual Slide Preview can show the upcoming slide. Returns null to use the live output.
+    function getOffsetOut(out: any, offset: number) {
+        if (!out?.slide || !offset) return null
+        const slide = { ...out.slide }
+        if (typeof slide.index === "number") slide.index = slide.index + offset
+        if (typeof slide.page === "number") slide.page = slide.page + offset
+        return { ...out, slide }
+    }
+
     let timeout: NodeJS.Timeout | null = null
     $: if (stageOutputId && ($allOutputs || $outputs)) startTimeout()
     function startTimeout() {
@@ -371,6 +381,9 @@
                             <p>{$outputs[outputWindowId]?.name || $allOutputs[outputWindowId]?.name || ""}</p>
                         </div>
                     {/if}
+                {:else if item.type === "slide"}
+                    <!-- visual Slide Preview: slide layer only (ignores PiP), current or next via slideOffset -->
+                    <Output outputId={outputWindowId} mirror slideOnly outOverride={slideOffset > 0 ? getOffsetOut(currentOutput.out, slideOffset) : null} style="width: 100%; height: 100%;" />
                 {:else if item.type === "slide_text" || id.includes("slide")}
                     {#if (item.type ? item.includeMedia : !id.includes("_text")) && currentBackground}
                         {@const slideBackground = slideOffset === 0 ? currentBackground : slideOffset === 1 ? currentBackground.next : slideOffset === 2 ? currentBackground.next2 : null}

@@ -641,6 +641,14 @@ export const itemBoxes: Box2 = {
             }
         }
     },
+    slide: {
+        icon: "screen",
+        sections: {
+            default: {
+                inputs: [[{ type: "number", id: "slideOffset", value: 0, values: { label: "edit.slide_offset", min: 0, max: 20, step: 1 } }]]
+            }
+        }
+    },
     icon: {
         icon: "star",
         sections: {
