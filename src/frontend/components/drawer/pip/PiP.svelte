@@ -191,6 +191,11 @@
         updatePane(paneId, (p) => ({ ...p, shadow: !p.shadow }))
     }
 
+    // static 3D tilt: axis "x" = tilt up/down (rotateX), "y" = turn left/right (rotateY)
+    function updatePaneRotation(paneId: string, axis: "x" | "y", value: number) {
+        updatePane(paneId, (p) => ({ ...p, rotate3d: { x: p.rotate3d?.x ?? 0, y: p.rotate3d?.y ?? 0, [axis]: Number(value) || 0 } }))
+    }
+
     function togglePaneFit(paneId: string) {
         updatePane(paneId, (p) => ({ ...p, fit: (p.fit || "contain") === "contain" ? "cover" : "contain" }))
     }
@@ -403,6 +408,12 @@
                                 <MaterialButton icon="theme" variant={pane.shadow ? "contained" : "outlined"} title="Bayangan" on:click={() => togglePaneShadow(pane.id)}>
                                     Shadow {pane.shadow ? "ON" : "OFF"}
                                 </MaterialButton>
+                            </div>
+
+                            <!-- static 3D tilt (klik & seret angka ke atas/bawah untuk ubah cepat) -->
+                            <div class="pane-inputs">
+                                <MaterialNumberInput label="Putar ↔ (Y)" value={pane.rotate3d?.y || 0} min={-85} max={85} step={5} scrub on:change={(e) => updatePaneRotation(pane.id, "y", e.detail)} />
+                                <MaterialNumberInput label="Dongak ↕ (X)" value={pane.rotate3d?.x || 0} min={-85} max={85} step={5} scrub on:change={(e) => updatePaneRotation(pane.id, "x", e.detail)} />
                             </div>
 
                             {#if pane.sourceType === "slide"}

@@ -30,6 +30,10 @@
         if (pane.border) style += ` border: ${pane.border.width}px solid ${pane.border.color};`
         if (pane.shadow) style += ` box-shadow: 0 4px 20px rgba(0,0,0,0.5);`
         style += ` overflow: hidden;`
+        // static 3D tilt (rotateX = up/down, rotateY = left/right); fixed perspective for a natural depth
+        if (pane.rotate3d && (pane.rotate3d.x || pane.rotate3d.y)) {
+            style += ` transform: perspective(1200px) rotateX(${pane.rotate3d.x}deg) rotateY(${pane.rotate3d.y}deg);`
+        }
         return style
     }
 

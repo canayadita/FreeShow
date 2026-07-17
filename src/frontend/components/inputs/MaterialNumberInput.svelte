@@ -23,6 +23,7 @@
     export let padLength = 0
     export let enableKeyframe = false
     export let hasTimelineAction = false
+    export let scrub = false // opt-in: click and drag vertically to change the value
 
     // a string might be passed in
     $: rawInput = padLength ? String(numberValue).padStart(padLength, "0") : String(Number(numberValue.toFixed(maxDecimals)))
@@ -126,6 +127,57 @@
         }
     })
 
+    // DRAG-SCRUB (opt-in): press and drag up = increase, down = decrease.
+    // A plain click (no drag past the threshold) still focuses the input for typing.
+    const SCRUB_PIXELS_PER_STEP = 4
+    const SCRUB_THRESHOLD = 3
+    let scrubbing = false
+    let scrubStartY = 0
+    let scrubStartValue = 0
+    let scrubPointerId: number | null = null
+
+    function scrubDown(e: PointerEvent) {
+        if (!scrub || disabled || e.button !== 0) return
+        scrubStartY = e.clientY
+        scrubStartValue = numberValue
+        scrubPointerId = e.pointerId
+        scrubbing = false
+        try {
+            ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+        } catch {
+            // ignore
+        }
+    }
+
+    function scrubMove(e: PointerEvent) {
+        if (scrubPointerId === null) return
+        const deltaY = scrubStartY - e.clientY
+        if (!scrubbing) {
+            if (Math.abs(deltaY) < SCRUB_THRESHOLD) return
+            scrubbing = true
+            inputElem?.blur()
+            document.body.style.cursor = "ns-resize"
+        }
+        e.preventDefault()
+        const steps = Math.round(deltaY / SCRUB_PIXELS_PER_STEP)
+        updateValue(Number((scrubStartValue + steps * step).toFixed(3)))
+    }
+
+    function scrubUp(e: PointerEvent) {
+        if (scrubPointerId === null) return
+        try {
+            ;(e.currentTarget as HTMLElement).releasePointerCapture(scrubPointerId)
+        } catch {
+            // ignore
+        }
+        scrubPointerId = null
+        if (scrubbing) {
+            scrubbing = false
+            document.body.style.cursor = ""
+            e.preventDefault() // don't focus the input after a drag
+        }
+    }
+
     // RESET
 
     let resetFromValue: number | null = null
@@ -155,7 +207,7 @@
     <div class="background" />
 
     <div class="input-wrapper">
-        <input bind:this={inputElem} value={rawInput} type="text" {id} {placeholder} {disabled} {autofocus} {step} {min} {max} class="input edit" class:noValue={hideWhenZero && !padLength && !numberValue} on:keydown={handleKeyDown} on:input={handleInput} on:change={handleChange} inputmode="decimal" autocomplete="off" />
+        <input bind:this={inputElem} value={rawInput} type="text" {id} {placeholder} {disabled} {autofocus} {step} {min} {max} class="input edit" class:noValue={hideWhenZero && !padLength && !numberValue} class:scrub on:keydown={handleKeyDown} on:input={handleInput} on:change={handleChange} on:pointerdown={scrubDown} on:pointermove={scrubMove} on:pointerup={scrubUp} on:pointercancel={scrubUp} inputmode="decimal" autocomplete="off" />
 
         <div class="buttons">
             <button type="button" class="inc" on:click={(e) => increment(e.shiftKey ? step * 10 : step)} tabindex="-1" disabled={disabled || (max !== null && numberValue >= max)}>
@@ -243,6 +295,11 @@
     } */
     input[type="text"].noValue:not(:focus) {
         color: transparent;
+    }
+
+    /* drag-scrub hint: vertical-resize cursor when not actively typing */
+    .input.scrub:not(:focus) {
+        cursor: ns-resize;
     }
 
     .input {

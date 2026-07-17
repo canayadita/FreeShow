@@ -672,4 +672,5 @@ export interface Pane {
     border?: { width: number; color: string }
     shadow?: boolean
     fit?: "cover" | "contain" // slide scaling inside pane (default: contain)
+    rotate3d?: { x: number; y: number } // static 3D tilt in degrees: x = tilt up/down (rotateX), y = turn left/right (rotateY)
 }
