@@ -9,6 +9,7 @@ import { getConnections, toServer } from "../../servers"
 import { BlackmagicSender } from "../../blackmagic/BlackmagicSender"
 import { WebRtcHost } from "../../webrtc/WebRtcHost"
 import { RtmpSender } from "../../rtmp/RtmpSender"
+import { SyphonSender } from "../../syphon/SyphonSender"
 import { CaptureHelper } from "../CaptureHelper"
 import { getStageDownscaleSize } from "./stageFrameSize"
 
@@ -47,7 +48,7 @@ export class CaptureTransmitter {
         const captureOptions = OutputHelper.getOutput(captureId)?.captureOptions
         if (!captureOptions) return
 
-        const channelKeys = ["ndi", "blackmagic", "server", "stage", "webrtc", "rtmp"]
+        const channelKeys = ["ndi", "blackmagic", "server", "stage", "webrtc", "rtmp", "syphon"]
         channelKeys.forEach((key) => {
             if (captureOptions.options[key]) this.startChannel(captureId, key)
         })
@@ -66,6 +67,7 @@ export class CaptureTransmitter {
 
         delete this.channels[combinedKey]
         if (key !== "blackmagic") delete this.lastFrameState[combinedKey]
+        if (key === "syphon") SyphonSender.stop(captureId)
     }
 
     private static getSignatureOffsets(width: number, height: number): number[] {
@@ -237,6 +239,9 @@ export class CaptureTransmitter {
             case "rtmp":
                 this.sendBufferToRtmp(captureId, image)
                 break
+            case "syphon":
+                this.sendBufferToSyphon(captureId, image)
+                break
         }
     }
 
@@ -246,6 +251,14 @@ export class CaptureTransmitter {
     static sendBufferToRtmp(outputId: string, image: NativeImage) {
         if (!image) return
         RtmpSender.sendFrame(outputId, image.toBitmap(), image.getSize())
+    }
+
+    // SYPHON (macOS → OBS). SyphonSender is a no-op on non-macOS.
+    static sendBufferToSyphon(outputId: string, image: NativeImage) {
+        if (!image) return
+        const output = OutputHelper.getOutput(outputId)
+        const name = output?.syphonName || output?.name || "FreeShow"
+        SyphonSender.sendFrame(outputId, name, image)
     }
 
     private static getServerScale(): number {

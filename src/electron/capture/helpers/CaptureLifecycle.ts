@@ -191,7 +191,7 @@ export class CaptureLifecycle {
             capture.frameSubscription = null
         }
 
-        const channels = ["ndi", "blackmagic", "server", "stage", "webrtc", "rtmp"]
+        const channels = ["ndi", "blackmagic", "server", "stage", "webrtc", "rtmp", "syphon"]
         channels.forEach((channel) => CaptureHelper.Transmitter.stopChannel(id, channel))
 
         console.info("Capture - stopping: " + id)
