@@ -10,6 +10,7 @@ import { BlackmagicSender } from "../../blackmagic/BlackmagicSender"
 import { WebRtcHost } from "../../webrtc/WebRtcHost"
 import { RtmpSender } from "../../rtmp/RtmpSender"
 import { CaptureHelper } from "../CaptureHelper"
+import { getStageDownscaleSize } from "./stageFrameSize"
 
 export type Channel = {
     key: string
@@ -327,9 +328,14 @@ export class CaptureTransmitter {
     }
 
     // MAIN (STAGE OUTPUT)
+    private static readonly STAGE_MIRROR_MAX_WIDTH = 1280
     static sendBufferToMain(captureId: string, image: NativeImage) {
         if (!image) return
-        // image = this.resizeImage(image, options.size, previewSize)
+
+        // downscale large frames — the stage "Output window" mirror + output preview
+        // don't need full resolution; sending raw 1080p bitmaps (~8MB/frame) caused lag
+        const target = getStageDownscaleSize(image.getSize(), this.STAGE_MIRROR_MAX_WIDTH)
+        if (target) image = image.resize({ width: target.width, height: target.height, quality: "good" })
 
         const buffer = image.toBitmap()
         const size = image.getSize()
