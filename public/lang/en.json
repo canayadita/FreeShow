@@ -1314,6 +1314,7 @@
         "create_stage_output": "Create stage output"
     },
     "settings": {
+        "enable_syphon": "Enable Syphon (OBS)",
         "general": "General",
         "files": "Files",
         "theme": "Theme",

@@ -52,7 +52,7 @@
             setTimeout(refreshOut)
         }
 
-        if (key === "ndi" || key === "webrtc" || key === "rtmp") {
+        if (key === "ndi" || key === "webrtc" || key === "rtmp" || key === "syphon") {
             if (value) {
                 newToast("toast.output_capture_enabled")
 
@@ -143,7 +143,7 @@
 
             if (["blackmagic"].includes(key)) {
                 send(OUTPUT, ["SET_VALUE"], { id: outputId, key, value: a[outputId] })
-            } else if (["alwaysOnTop", "kioskMode", "transparent", "invisible", "ndi", "webrtc", "rtmp"].includes(key)) {
+            } else if (["alwaysOnTop", "kioskMode", "transparent", "invisible", "ndi", "webrtc", "rtmp", "syphon"].includes(key)) {
                 send(OUTPUT, ["SET_VALUE"], { id: outputId, key, value })
             }
 
@@ -517,6 +517,12 @@
         {/if}
     </svelte:fragment>
 </InputRow>
+
+<!-- Syphon (macOS → OBS) -->
+{#if $os.platform === "darwin"}
+    <Title label="settings.enable_syphon" icon="ndi" />
+    <MaterialToggleSwitch label="settings.enable_syphon" style="width: 100%;" checked={currentOutput?.syphon} defaultValue={false} on:change={(e) => updateOutput("syphon", e.detail)} />
+{/if}
 
 <!-- Blackmagic -->
 <Title label="Blackmagic Design" icon="blackmagic" />

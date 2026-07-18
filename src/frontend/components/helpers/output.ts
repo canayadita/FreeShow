@@ -690,6 +690,7 @@ export function shouldBeCaptured(outputId: string, startup = false) {
     const output = get(outputs)[outputId]
     const captures = {
         ndi: !!output.ndi,
+        syphon: !!output.syphon, // macOS only; no-op on other platforms
         server: !!(get(disabledServers).output_stream === false && (get(serverData)?.output_stream?.outputId || getFirstOutput()?.id) === outputId),
         stage: !get(disabledServers).stage && Object.keys(get(connections).STAGE || {}).length > 0 && stageHasOutput(outputId),
         webrtc: !!output.webrtc

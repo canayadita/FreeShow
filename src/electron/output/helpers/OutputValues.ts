@@ -14,6 +14,10 @@ const setValues = {
 
         setValues.capture({ key: "ndi", value }, window, id)
     },
+    // macOS Syphon: SyphonSender lazily creates/destroys the server; just start/stop the capture channel
+    syphon: (value: boolean, window: BrowserWindow, id: string) => {
+        setValues.capture({ key: "syphon", value }, window, id)
+    },
     blackmagic: (data: Output, window: BrowserWindow, id: string) => {
         initializeSender(data, window, id)
     },

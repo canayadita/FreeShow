@@ -1256,6 +1256,7 @@
         "create_stage_output": "Buat output panggung"
     },
     "settings": {
+        "enable_syphon": "Aktifkan Syphon (OBS)",
         "general": "Umum",
         "files": "File",
         "theme": "Tema",
