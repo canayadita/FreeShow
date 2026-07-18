@@ -69,6 +69,7 @@ mac:
     asarUnpack:
         - "**/node_modules/macadam/**/*.node"
         - "**/node_modules/ffmpeg-static/**"
+        - "**/node_modules/node-syphon/**/*.node"
     target:
         - target: dmg
           arch:
