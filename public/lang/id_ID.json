@@ -619,6 +619,7 @@
         "custom_action_tip": "Tetapkan action kustom untuk show ini yang akan dipicu saat tombol ini diklik."
     },
     "actions": {
+        "quick_edit": "Edit Cepat",
         "rename": "Mengubah nama",
         "recolor": "Ubah warna",
         "remove": "Hapus",

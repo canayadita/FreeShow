@@ -659,6 +659,7 @@
         "custom_action_tip": "Assign a custom action for this show to trigger when this button is clicked."
     },
     "actions": {
+        "quick_edit": "Quick Edit",
         "rename": "Rename",
         "recolor": "Change color",
         "remove": "Remove",
