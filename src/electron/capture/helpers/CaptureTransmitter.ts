@@ -257,7 +257,8 @@ export class CaptureTransmitter {
     static sendBufferToSyphon(outputId: string, image: NativeImage) {
         if (!image) return
         const output = OutputHelper.getOutput(outputId)
-        const name = output?.syphonName || output?.name || "FreeShow"
+        // name the Syphon server after the output window title (same source NDI uses)
+        const name = output?.window && !output.window.isDestroyed() ? output.window.getTitle() || "FreeShow" : "FreeShow"
         SyphonSender.sendFrame(outputId, name, image)
     }
 
