@@ -11,6 +11,7 @@
     import ProgressPanel from "./components/main/ProgressPanel.svelte"
     import MenuBar from "./components/main/MenuBar.svelte"
     import Popup from "./components/main/Popup.svelte"
+    import QuickEditSlide from "./components/edit/QuickEditSlide.svelte"
     import ProfileSelector from "./components/main/ProfileSelector.svelte"
     import Recorder from "./components/main/Recorder.svelte"
     import StatusIndicator from "./components/main/StatusIndicator.svelte"
@@ -82,6 +83,7 @@
             <MainOutput />
         {:else if $loaded}
             <Popup />
+            <QuickEditSlide />
             <QuickSearch />
             <Toast />
             <StatusIndicator />
