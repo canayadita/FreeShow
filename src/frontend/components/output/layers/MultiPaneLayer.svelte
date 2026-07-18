@@ -6,6 +6,7 @@
     import Camera from "../Camera.svelte"
     import Window from "../Window.svelte"
     import Media from "./Media.svelte"
+    import { getWarpMatrix } from "./warpMatrix"
 
     export let outputId = ""
     export let multiPane: MultiPane | null = null
@@ -30,10 +31,32 @@
         if (pane.border) style += ` border: ${pane.border.width}px solid ${pane.border.color};`
         if (pane.shadow) style += ` box-shadow: 0 4px 20px rgba(0,0,0,0.5);`
         style += ` overflow: hidden;`
-        // static 3D tilt (rotateX = up/down, rotateY = left/right); fixed perspective for a natural depth
+        // static 3D tilt (rotateX = up/down, rotateY = left/right)
+        let transform = ""
         if (pane.rotate3d && (pane.rotate3d.x || pane.rotate3d.y)) {
-            style += ` transform: perspective(1200px) rotateX(${pane.rotate3d.x}deg) rotateY(${pane.rotate3d.y}deg);`
+            transform += ` perspective(1200px) rotateX(${pane.rotate3d.x}deg) rotateY(${pane.rotate3d.y}deg)`
         }
+        // corner-pin warp (matrix3d from 4 corner offsets); needs pixel size of the pane
+        const paneW = (pane.position.width / 100) * resolution.width
+        const paneH = (pane.position.height / 100) * resolution.height
+        const warpMatrix = getWarpMatrix(paneW, paneH, pane.warp)
+        if (warpMatrix) transform += " " + warpMatrix
+        if (transform) style += ` transform-origin: 0 0; transform:${transform};`
+
+        // edge feather via mask gradients (per side, % of pane w/h)
+        const f = pane.feather
+        if (f && (f.left || f.right || f.top || f.bottom)) {
+            const grads: string[] = []
+            if (f.left > 0) grads.push(`linear-gradient(to right, transparent 0%, #000 ${f.left}%)`)
+            if (f.right > 0) grads.push(`linear-gradient(to left, transparent 0%, #000 ${f.right}%)`)
+            if (f.top > 0) grads.push(`linear-gradient(to bottom, transparent 0%, #000 ${f.top}%)`)
+            if (f.bottom > 0) grads.push(`linear-gradient(to top, transparent 0%, #000 ${f.bottom}%)`)
+            const list = grads.join(", ")
+            const composite = grads.map(() => "source-in").slice(1).join(", ") // n-1 composites
+            style += ` -webkit-mask-image: ${list}; mask-image: ${list};`
+            if (composite) style += ` -webkit-mask-composite: ${composite}; mask-composite: intersect;`
+        }
+
         return style
     }
 
