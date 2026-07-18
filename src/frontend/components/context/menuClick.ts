@@ -73,6 +73,7 @@ import {
     special,
     stageShows,
     styles,
+    quickEditSlide,
     templateCategories,
     templates,
     textEditActive,
@@ -1145,6 +1146,12 @@ const clickActions = {
             activePage.set("edit")
             setTimeout(() => selected.set({ id: null, data: [] }))
         }
+    },
+    quick_edit_slide: (obj) => {
+        if (obj.sel.id !== "slide") return
+        const slide = obj.sel.data[0]
+        if (!slide || slide.showId === undefined || slide.index === undefined) return
+        quickEditSlide.set({ showId: slide.showId, index: slide.index })
     },
 
     edit: (obj: ObjData) => {
