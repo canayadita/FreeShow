@@ -129,7 +129,10 @@
 
     // --- drag-to-move / drag-to-resize in preview ---
     let previewElem: HTMLDivElement | null = null
-    let dragMode: "move" | "resize" | null = null
+    let dragMode: "move" | "resize" | "warp" | null = null
+    let warpCorner: "tl" | "tr" | "br" | "bl" | null = null
+    let warpStartX = 0
+    let warpStartY = 0
     let draggingPaneId = ""
     let dragStartCX = 0, dragStartCY = 0
     let dragStartV1 = 0, dragStartV2 = 0
@@ -146,11 +149,36 @@
         dragStartV2 = mode === "move" ? pane.position.y : pane.position.height
     }
 
+    function startWarpDrag(e: MouseEvent, pane: Pane, corner: "tl" | "tr" | "br" | "bl") {
+        if (e.button !== 0) return
+        e.preventDefault()
+        e.stopPropagation()
+        dragMode = "warp"
+        draggingPaneId = pane.id
+        warpCorner = corner
+        dragStartCX = e.clientX
+        dragStartCY = e.clientY
+        warpStartX = pane.warp?.[corner]?.x ?? 0
+        warpStartY = pane.warp?.[corner]?.y ?? 0
+    }
+
     function onWindowMousemove(e: MouseEvent) {
         if (!dragMode || !draggingPaneId || !previewElem) return
         const rect = previewElem.getBoundingClientRect()
         const dx = ((e.clientX - dragStartCX) / rect.width) * 100
         const dy = ((e.clientY - dragStartCY) / rect.height) * 100
+        if (dragMode === "warp" && warpCorner) {
+            // convert preview-% delta into pane-% delta (offset is % of pane size)
+            const pane = ($outputs[getActiveOutputs($outputs, true, true, true)[0] || ""]?.out?.multiPane?.panes || []).find((p: any) => p.id === draggingPaneId)
+            if (!pane) return
+            const paneWpct = pane.position.width || 1
+            const paneHpct = pane.position.height || 1
+            const x = Math.round((warpStartX + (dx / paneWpct) * 100) * 10) / 10
+            const y = Math.round((warpStartY + (dy / paneHpct) * 100) * 10) / 10
+            updatePaneWarp(draggingPaneId, warpCorner, "x", x)
+            updatePaneWarp(draggingPaneId, warpCorner, "y", y)
+            return
+        }
         if (dragMode === "move") {
             const x = Math.round((dragStartV1 + dx) * 10) / 10
             const y = Math.round((dragStartV2 + dy) * 10) / 10
@@ -165,6 +193,7 @@
     function onWindowMouseup() {
         dragMode = null
         draggingPaneId = ""
+        warpCorner = null
     }
 
     function updatePaneDirect(paneId: string, changes: Partial<{ x: number; y: number; width: number; height: number }>) {
@@ -362,6 +391,12 @@
                                 tabindex="0"
                                 aria-label="Resize pane {i + 1}"
                             />
+                            {#if warpMode}
+                                <div class="warp-handle tl" on:mousedown|stopPropagation={(e) => startWarpDrag(e, pane, "tl")} role="button" tabindex="-1" aria-label="Warp TL"></div>
+                                <div class="warp-handle tr" on:mousedown|stopPropagation={(e) => startWarpDrag(e, pane, "tr")} role="button" tabindex="-1" aria-label="Warp TR"></div>
+                                <div class="warp-handle br" on:mousedown|stopPropagation={(e) => startWarpDrag(e, pane, "br")} role="button" tabindex="-1" aria-label="Warp BR"></div>
+                                <div class="warp-handle bl" on:mousedown|stopPropagation={(e) => startWarpDrag(e, pane, "bl")} role="button" tabindex="-1" aria-label="Warp BL"></div>
+                            {/if}
                         </div>
                     {/each}
                 </div>
@@ -782,6 +817,33 @@
         opacity: 0.75;
         cursor: se-resize;
         border-radius: 3px 0 0 0;
+    }
+
+    .warp-handle {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--secondary);
+        border: 2px solid #fff;
+        cursor: crosshair;
+        z-index: 5;
+    }
+    .warp-handle.tl {
+        top: -6px;
+        left: -6px;
+    }
+    .warp-handle.tr {
+        top: -6px;
+        right: -6px;
+    }
+    .warp-handle.br {
+        bottom: -6px;
+        right: -6px;
+    }
+    .warp-handle.bl {
+        bottom: -6px;
+        left: -6px;
     }
 
     .resize-handle:hover {
