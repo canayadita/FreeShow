@@ -68,6 +68,12 @@ FreeShow adalah program presentasi gratis dan open-source yang memudahkan menamp
 
 FreeShow+ adalah fork yang dikembangkan dengan tambahan fitur khusus untuk kebutuhan ibadah dan pelayanan gereja di Indonesia.
 
+## Terbuka untuk FreeShow (Upstream) / Open to Upstream
+
+🇮🇩 Repo ini **publik dan berlisensi GPL-3.0**. Kami sangat menghormati karya [FreeShow](https://github.com/ChurchApps/FreeShow) — fork ini ada karena itu. Fitur apa pun di sini (mis. animasi teks, timecode lirik dari MP3, PiP) **silakan diambil langsung ke FreeShow** bila berguna. Riwayat commit terbuka, dan sebagian besar dikembangkan **dengan bantuan AI** (commit mencantumkan `Co-Authored-By: Claude`) — kami terbuka penuh soal ini. Dengan senang hati kami tunjukkan commit tertentu bila membantu.
+
+🇬🇧 This repo is **public and GPL-3.0 licensed**. We deeply respect [FreeShow](https://github.com/ChurchApps/FreeShow) — this fork only exists because of it. Feel free to take **any feature here straight into FreeShow** if it's useful (e.g. text animations, the MP3 lyric-timecode, PiP). The commit history is open, and much of it was **AI-assisted** (commits credit `Co-Authored-By: Claude`) — we're fully transparent about that. Happy to point to specific commits if helpful.
+
 ## Bantuan & Kontribusi
 
 1. Clone repo ini
