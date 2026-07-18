@@ -204,6 +204,19 @@
         updatePane(paneId, (p) => ({ ...p, feather: { left: p.feather?.left ?? 0, right: p.feather?.right ?? 0, top: p.feather?.top ?? 0, bottom: p.feather?.bottom ?? 0, [side]: Math.min(50, Math.max(0, Number(value) || 0)) } }))
     }
 
+    const ZERO_WARP = { tl: { x: 0, y: 0 }, tr: { x: 0, y: 0 }, br: { x: 0, y: 0 }, bl: { x: 0, y: 0 } }
+    function updatePaneWarp(paneId: string, corner: "tl" | "tr" | "br" | "bl", axis: "x" | "y", value: number) {
+        updatePane(paneId, (p) => {
+            const warp = p.warp ? { tl: { ...p.warp.tl }, tr: { ...p.warp.tr }, br: { ...p.warp.br }, bl: { ...p.warp.bl } } : { tl: { x: 0, y: 0 }, tr: { x: 0, y: 0 }, br: { x: 0, y: 0 }, bl: { x: 0, y: 0 } }
+            warp[corner][axis] = Math.min(100, Math.max(-100, Number(value) || 0))
+            return { ...p, warp }
+        })
+    }
+    function resetPaneWarp(paneId: string) {
+        updatePane(paneId, (p) => ({ ...p, warp: JSON.parse(JSON.stringify(ZERO_WARP)) }))
+    }
+    let warpMode = false
+
     function addPane() {
         if (!currentMultiPane) return
         const newPane: Pane = { id: uid(5), sourceType: "camera", position: { x: 60, y: 60, width: 35, height: 35 }, zIndex: (currentMultiPane.panes.length || 0) + 1, shadow: true, borderRadius: 10 }
@@ -432,6 +445,28 @@
                                 <MaterialNumberInput label="Feather T" value={pane.feather?.top || 0} min={0} max={50} step={1} scrub on:change={(e) => updatePaneFeather(pane.id, "top", e.detail)} />
                                 <MaterialNumberInput label="Feather B" value={pane.feather?.bottom || 0} min={0} max={50} step={1} scrub on:change={(e) => updatePaneFeather(pane.id, "bottom", e.detail)} />
                             </div>
+
+                            <!-- Warp (corner-pin): drag handles in preview when Warp mode on, or type per-corner offsets -->
+                            <div class="pane-inputs">
+                                <MaterialButton icon="edit" variant={warpMode ? "contained" : "outlined"} title="Warp mode (drag corners in preview)" on:click={() => (warpMode = !warpMode)}>
+                                    Warp {warpMode ? "ON" : "OFF"}
+                                </MaterialButton>
+                                <MaterialButton icon="reset" variant="outlined" title="Reset warp" on:click={() => resetPaneWarp(pane.id)}>Reset Warp</MaterialButton>
+                            </div>
+                            {#if warpMode}
+                                <div class="pane-inputs">
+                                    <MaterialNumberInput label="TL X" value={pane.warp?.tl.x || 0} min={-100} max={100} step={1} scrub on:change={(e) => updatePaneWarp(pane.id, "tl", "x", e.detail)} />
+                                    <MaterialNumberInput label="TL Y" value={pane.warp?.tl.y || 0} min={-100} max={100} step={1} scrub on:change={(e) => updatePaneWarp(pane.id, "tl", "y", e.detail)} />
+                                    <MaterialNumberInput label="TR X" value={pane.warp?.tr.x || 0} min={-100} max={100} step={1} scrub on:change={(e) => updatePaneWarp(pane.id, "tr", "x", e.detail)} />
+                                    <MaterialNumberInput label="TR Y" value={pane.warp?.tr.y || 0} min={-100} max={100} step={1} scrub on:change={(e) => updatePaneWarp(pane.id, "tr", "y", e.detail)} />
+                                </div>
+                                <div class="pane-inputs">
+                                    <MaterialNumberInput label="BR X" value={pane.warp?.br.x || 0} min={-100} max={100} step={1} scrub on:change={(e) => updatePaneWarp(pane.id, "br", "x", e.detail)} />
+                                    <MaterialNumberInput label="BR Y" value={pane.warp?.br.y || 0} min={-100} max={100} step={1} scrub on:change={(e) => updatePaneWarp(pane.id, "br", "y", e.detail)} />
+                                    <MaterialNumberInput label="BL X" value={pane.warp?.bl.x || 0} min={-100} max={100} step={1} scrub on:change={(e) => updatePaneWarp(pane.id, "bl", "x", e.detail)} />
+                                    <MaterialNumberInput label="BL Y" value={pane.warp?.bl.y || 0} min={-100} max={100} step={1} scrub on:change={(e) => updatePaneWarp(pane.id, "bl", "y", e.detail)} />
+                                </div>
+                            {/if}
                         </div>
                     </div>
                 {/each}
