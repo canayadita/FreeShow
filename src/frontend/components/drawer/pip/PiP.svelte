@@ -200,6 +200,10 @@
         updatePane(paneId, (p) => ({ ...p, crop: Math.min(45, Math.max(0, Number(value) || 0)) }))
     }
 
+    function updatePaneFeather(paneId: string, side: "left" | "right" | "top" | "bottom", value: number) {
+        updatePane(paneId, (p) => ({ ...p, feather: { left: p.feather?.left ?? 0, right: p.feather?.right ?? 0, top: p.feather?.top ?? 0, bottom: p.feather?.bottom ?? 0, [side]: Math.min(50, Math.max(0, Number(value) || 0)) } }))
+    }
+
     function addPane() {
         if (!currentMultiPane) return
         const newPane: Pane = { id: uid(5), sourceType: "camera", position: { x: 60, y: 60, width: 35, height: 35 }, zIndex: (currentMultiPane.panes.length || 0) + 1, shadow: true, borderRadius: 10 }
@@ -419,6 +423,14 @@
                             <!-- Crop / Zoom for any source: 0 = full content (slide may show letterbox bars). Increase to zoom in & crop the edges to fill the pane. Click-drag for quick change. -->
                             <div class="pane-inputs">
                                 <MaterialNumberInput label="Crop / Zoom (%)" value={pane.crop || 0} min={0} max={45} step={1} scrub on:change={(e) => updatePaneCrop(pane.id, e.detail)} />
+                            </div>
+
+                            <!-- Feather: transparent gradient fade per edge (0 = sharp) -->
+                            <div class="pane-inputs">
+                                <MaterialNumberInput label="Feather L" value={pane.feather?.left || 0} min={0} max={50} step={1} scrub on:change={(e) => updatePaneFeather(pane.id, "left", e.detail)} />
+                                <MaterialNumberInput label="Feather R" value={pane.feather?.right || 0} min={0} max={50} step={1} scrub on:change={(e) => updatePaneFeather(pane.id, "right", e.detail)} />
+                                <MaterialNumberInput label="Feather T" value={pane.feather?.top || 0} min={0} max={50} step={1} scrub on:change={(e) => updatePaneFeather(pane.id, "top", e.detail)} />
+                                <MaterialNumberInput label="Feather B" value={pane.feather?.bottom || 0} min={0} max={50} step={1} scrub on:change={(e) => updatePaneFeather(pane.id, "bottom", e.detail)} />
                             </div>
                         </div>
                     </div>
