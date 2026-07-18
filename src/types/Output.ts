@@ -24,6 +24,8 @@ export interface Output {
     allowMainScreen?: boolean // allow custom output bounds
     ndi?: boolean
     ndiData?: any
+    syphon?: boolean // macOS: publish this output as a Syphon server
+    syphonName?: string // optional publish name (default: output name)
     blackmagic?: boolean
     blackmagicData?: any
     webrtc?: boolean
