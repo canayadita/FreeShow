@@ -685,4 +685,6 @@ export interface Pane {
     fit?: "cover" | "contain" // slide scaling inside pane (default: contain) — legacy, superseded by crop
     crop?: number // slide pane: percent zoomed/cropped equally from each side (0-45). 0 = full slide (WYSIWYG)
     rotate3d?: { x: number; y: number } // static 3D tilt in degrees: x = tilt up/down (rotateX), y = turn left/right (rotateY)
+    warp?: { tl: { x: number; y: number }; tr: { x: number; y: number }; br: { x: number; y: number }; bl: { x: number; y: number } } // per-corner offset in % of pane size; absent/all-zero = no warp
+    feather?: { left: number; right: number; top: number; bottom: number } // 0-50 (% of pane w/h faded to transparent per edge)
 }
