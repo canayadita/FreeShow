@@ -656,6 +656,7 @@ export function setDefaultScriptureTemplates() {
 function createDefaultTemplates() {
     templateCategories.update((a) => {
         if (!a.elegant) a.elegant = { default: true, name: "Elegant", icon: "text" }
+        if (!a.bright_playful) a.bright_playful = { default: true, name: "Bright Playful", icon: "text" }
         return a
     })
 
@@ -1218,6 +1219,61 @@ function getDefaultTemplates() {
     a.elegantLowerThirdQuote = {
         isDefault: true, name: "Elegant – Lower Third Quote", color: "#1c2a44", category: "elegant",
         items: [{ style: "top:820px;left:50px;width:1820px;height:220px;background: rgba(14,21,38,0.82);padding:25px 40px;border-left:8px solid #d8b46a;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: "font-size:60px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;font-style:italic;" }] }] }]
+    }
+
+    // ---- BRIGHT PLAYFUL PACK ----
+    const bpBg = "top:0;left:0;width:1920px;height:1080px;background: linear-gradient(135deg, #ff3db4 0%, #6a5cff 100%);padding:120px;"
+    const bpFont = "font-family:'Arial', 'Helvetica Neue', sans-serif;"
+    a.bpTitle = {
+        isDefault: true, name: "Bright – Title", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: bpBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:156px;${bpFont}color:#ffffff;font-weight:900;text-transform:uppercase;letter-spacing:3px;` }] }] }]
+    }
+    a.bpExtraTitle = {
+        isDefault: true, name: "Bright – Extra Title", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: bpBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:88px;${bpFont}color:#35e8ff;font-weight:800;text-transform:uppercase;` }] }] }]
+    }
+    a.bpMainPoint = {
+        isDefault: true, name: "Bright – Main Point", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: bpBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:132px;${bpFont}color:#ffffff;font-weight:900;` }] }] }]
+    }
+    a.bpMainPointAlt = {
+        isDefault: true, name: "Bright – Main Point ALT", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: bpBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:112px;${bpFont}color:#35e8ff;font-weight:900;` }] }] }]
+    }
+    a.bpList = {
+        isDefault: true, name: "Bright – List", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: "top:0;left:0;width:1920px;height:1080px;background: linear-gradient(135deg, #ff3db4 0%, #6a5cff 100%);padding:120px 160px;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:76px;${bpFont}color:#ffffff;font-weight:700;line-height:1.4;` }] }] }]
+    }
+    a.bpGeneralText = {
+        isDefault: true, name: "Bright – General Text", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: "top:0;left:0;width:1920px;height:1080px;background: linear-gradient(135deg, #ff3db4 0%, #6a5cff 100%);padding:120px 160px;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:68px;${bpFont}color:#ffffff;font-weight:600;line-height:1.4;` }] }] }]
+    }
+    a.bpQuote = {
+        isDefault: true, name: "Bright – Quote", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: bpBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:96px;${bpFont}color:#ffffff;font-weight:800;` }] }] }]
+    }
+    a.bpScripture = {
+        isDefault: true, name: "Bright – Scripture", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: bpBg, align: "", textFit: "shrinkToFit", lines: [
+            { align: "text-align:center;", text: [{ value: "", style: `font-size:74px;${bpFont}color:#ffffff;font-weight:700;` }] },
+            { align: "text-align:center;", text: [{ value: "", style: `font-size:44px;${bpFont}color:#35e8ff;font-weight:800;text-transform:uppercase;`, customType: "disableTemplate" }] }
+        ] }]
+    }
+    a.bpLyrics = {
+        isDefault: true, name: "Bright – Lyrics & Text", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: bpBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:100px;${bpFont}color:#ffffff;font-weight:900;line-height:1.3;` }] }] }]
+    }
+    a.bpGeneralLyrics = {
+        isDefault: true, name: "Bright – General Lyrics", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: bpBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:86px;${bpFont}color:#ffffff;font-weight:700;line-height:1.3;` }] }] }]
+    }
+    a.bpLowerThird = {
+        isDefault: true, name: "Bright – Lower Third", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: "top:820px;left:50px;width:1820px;height:220px;background: #ff3db4;padding:25px 40px;border-radius:18px;border-bottom:8px solid #35e8ff;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:76px;${bpFont}color:#ffffff;font-weight:900;text-transform:uppercase;` }] }] }]
+    }
+    a.bpLowerThirdQuote = {
+        isDefault: true, name: "Bright – Lower Third Quote", color: "#ff3db4", category: "bright_playful",
+        items: [{ style: "top:820px;left:50px;width:1820px;height:220px;background: #ff3db4;padding:25px 40px;border-radius:18px;border-bottom:8px solid #35e8ff;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:62px;${bpFont}color:#ffffff;font-weight:700;` }] }] }]
     }
 
     return { ...a, ...getDefaultScriptureTemplates() }
