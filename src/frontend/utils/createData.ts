@@ -1184,6 +1184,25 @@ function getDefaultTemplates() {
         isDefault: true, name: "Elegant – Main Point ALT", color: "#1c2a44", category: "elegant",
         items: [{ style: elegantBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: "font-size:110px;font-family:Georgia, 'Times New Roman', serif;color:#d8b46a;font-weight:bold;font-style:italic;" }] }] }]
     }
+    a.elegantList = {
+        isDefault: true, name: "Elegant – List", color: "#1c2a44", category: "elegant",
+        items: [{ style: "top:0;left:0;width:1920px;height:1080px;background: linear-gradient(160deg, #0e1526 0%, #1c2a44 100%);padding:120px 160px;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: "font-size:74px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;line-height:1.4;" }] }] }]
+    }
+    a.elegantGeneralText = {
+        isDefault: true, name: "Elegant – General Text", color: "#1c2a44", category: "elegant",
+        items: [{ style: "top:0;left:0;width:1920px;height:1080px;background: linear-gradient(160deg, #0e1526 0%, #1c2a44 100%);padding:120px 160px;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: "font-size:66px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;line-height:1.4;" }] }] }]
+    }
+    a.elegantQuote = {
+        isDefault: true, name: "Elegant – Quote", color: "#1c2a44", category: "elegant",
+        items: [{ style: elegantBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: "font-size:92px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;font-style:italic;" }] }] }]
+    }
+    a.elegantScripture = {
+        isDefault: true, name: "Elegant – Scripture", color: "#1c2a44", category: "elegant",
+        items: [{ style: elegantBg, align: "", textFit: "shrinkToFit", lines: [
+            { align: "text-align:center;", text: [{ value: "", style: "font-size:72px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;" }] },
+            { align: "text-align:center;", text: [{ value: "", style: "font-size:42px;font-family:Georgia, 'Times New Roman', serif;color:#d8b46a;font-style:italic;", customType: "disableTemplate" }] }
+        ] }]
+    }
 
     return { ...a, ...getDefaultScriptureTemplates() }
 }
