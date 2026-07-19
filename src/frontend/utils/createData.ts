@@ -1203,6 +1203,22 @@ function getDefaultTemplates() {
             { align: "text-align:center;", text: [{ value: "", style: "font-size:42px;font-family:Georgia, 'Times New Roman', serif;color:#d8b46a;font-style:italic;", customType: "disableTemplate" }] }
         ] }]
     }
+    a.elegantLyrics = {
+        isDefault: true, name: "Elegant – Lyrics & Text", color: "#1c2a44", category: "elegant",
+        items: [{ style: elegantBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: "font-size:96px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;font-weight:bold;line-height:1.3;" }] }] }]
+    }
+    a.elegantGeneralLyrics = {
+        isDefault: true, name: "Elegant – General Lyrics", color: "#1c2a44", category: "elegant",
+        items: [{ style: elegantBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: "font-size:82px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;line-height:1.3;" }] }] }]
+    }
+    a.elegantLowerThird = {
+        isDefault: true, name: "Elegant – Lower Third", color: "#1c2a44", category: "elegant",
+        items: [{ style: "top:820px;left:50px;width:1820px;height:220px;background: rgba(14,21,38,0.82);padding:25px 40px;border-left:8px solid #d8b46a;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: "font-size:74px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;font-weight:bold;" }] }] }]
+    }
+    a.elegantLowerThirdQuote = {
+        isDefault: true, name: "Elegant – Lower Third Quote", color: "#1c2a44", category: "elegant",
+        items: [{ style: "top:820px;left:50px;width:1820px;height:220px;background: rgba(14,21,38,0.82);padding:25px 40px;border-left:8px solid #d8b46a;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: "font-size:60px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;font-style:italic;" }] }] }]
+    }
 
     return { ...a, ...getDefaultScriptureTemplates() }
 }
