@@ -654,6 +654,11 @@ export function setDefaultScriptureTemplates() {
 }
 
 function createDefaultTemplates() {
+    templateCategories.update((a) => {
+        if (!a.elegant) a.elegant = { default: true, name: "Elegant", icon: "text" }
+        return a
+    })
+
     const deletedIds = get(deletedDefaults).templates || []
     const defaultTemplates = getDefaultTemplates()
 
@@ -1159,6 +1164,25 @@ function getDefaultTemplates() {
                 lines: [{ align: "", text: [{ value: "1", style: "font-size: 64px;font-weight: bold;" }] }]
             }
         ]
+    }
+
+    // ---- ELEGANT PACK ----
+    const elegantBg = "top:0;left:0;width:1920px;height:1080px;background: linear-gradient(160deg, #0e1526 0%, #1c2a44 100%);padding:120px;"
+    a.elegantTitle = {
+        isDefault: true, name: "Elegant – Title", color: "#1c2a44", category: "elegant",
+        items: [{ style: elegantBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: "font-size:150px;font-family:Georgia, 'Times New Roman', serif;color:#d8b46a;font-weight:bold;letter-spacing:2px;" }] }] }]
+    }
+    a.elegantExtraTitle = {
+        isDefault: true, name: "Elegant – Extra Title", color: "#1c2a44", category: "elegant",
+        items: [{ style: elegantBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: "font-size:84px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;font-style:italic;" }] }] }]
+    }
+    a.elegantMainPoint = {
+        isDefault: true, name: "Elegant – Main Point", color: "#1c2a44", category: "elegant",
+        items: [{ style: elegantBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: "font-size:130px;font-family:Georgia, 'Times New Roman', serif;color:#f5f2ea;font-weight:bold;" }] }] }]
+    }
+    a.elegantMainPointAlt = {
+        isDefault: true, name: "Elegant – Main Point ALT", color: "#1c2a44", category: "elegant",
+        items: [{ style: elegantBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: "font-size:110px;font-family:Georgia, 'Times New Roman', serif;color:#d8b46a;font-weight:bold;font-style:italic;" }] }] }]
     }
 
     return { ...a, ...getDefaultScriptureTemplates() }
