@@ -1257,6 +1257,7 @@
     },
     "settings": {
         "enable_syphon": "Aktifkan Syphon (OBS)",
+        "syphon_resolution": "Resolusi Syphon",
         "general": "Umum",
         "files": "File",
         "theme": "Tema",

@@ -26,6 +26,7 @@ export interface Output {
     ndiData?: any
     syphon?: boolean // macOS: publish this output as a Syphon server
     syphonName?: string // optional publish name (default: output name)
+    syphonData?: { maxWidth?: number } // Syphon published resolution cap (0 = native/full)
     blackmagic?: boolean
     blackmagicData?: any
     webrtc?: boolean

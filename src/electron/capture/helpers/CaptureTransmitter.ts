@@ -259,7 +259,8 @@ export class CaptureTransmitter {
         const output = OutputHelper.getOutput(outputId)
         // name the Syphon server after the output window title (same source NDI uses)
         const name = output?.window && !output.window.isDestroyed() ? output.window.getTitle() || "FreeShow" : "FreeShow"
-        SyphonSender.sendFrame(outputId, name, image)
+        const maxWidth = output?.syphonData?.maxWidth ?? 1280
+        SyphonSender.sendFrame(outputId, name, image, maxWidth)
     }
 
     private static getServerScale(): number {

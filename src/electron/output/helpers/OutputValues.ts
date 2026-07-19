@@ -18,6 +18,9 @@ const setValues = {
     syphon: (value: boolean, window: BrowserWindow, id: string) => {
         setValues.capture({ key: "syphon", value }, window, id)
     },
+    syphonData: (value: any, _window: BrowserWindow, _id: string, output: OutputWindow) => {
+        output.syphonData = value
+    },
     blackmagic: (data: Output, window: BrowserWindow, id: string) => {
         initializeSender(data, window, id)
     },

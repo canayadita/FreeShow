@@ -143,7 +143,7 @@
 
             if (["blackmagic"].includes(key)) {
                 send(OUTPUT, ["SET_VALUE"], { id: outputId, key, value: a[outputId] })
-            } else if (["alwaysOnTop", "kioskMode", "transparent", "invisible", "ndi", "webrtc", "rtmp", "syphon"].includes(key)) {
+            } else if (["alwaysOnTop", "kioskMode", "transparent", "invisible", "ndi", "webrtc", "rtmp", "syphon", "syphonData"].includes(key)) {
                 send(OUTPUT, ["SET_VALUE"], { id: outputId, key, value })
             }
 
@@ -172,6 +172,20 @@
     }
 
     // ndi
+    const syphonResolutions = [
+        { id: "0", name: "Native (Full)" },
+        { id: "1920", name: "1080p (1920)" },
+        { id: "1600", name: "900p (1600)" },
+        { id: "1280", name: "720p (1280)" },
+        { id: "960", name: "540p (960)" }
+    ]
+    function updateSyphonData(e: any) {
+        let id = currentOutput?.id
+        if (!id) return
+        const width = Number(e?.detail?.id ?? e ?? 1280)
+        updateOutput("syphonData", { ...($outputs[id]?.syphonData || {}), maxWidth: width })
+    }
+
     function updateNdiData(e: any, key: string) {
         let id = currentOutput?.id
         if (!id) return
@@ -522,6 +536,9 @@
 {#if $os.platform === "darwin"}
     <Title label="settings.enable_syphon" icon="ndi" />
     <MaterialToggleSwitch label="settings.enable_syphon" style="width: 100%;" checked={currentOutput?.syphon} defaultValue={false} on:change={(e) => updateOutput("syphon", e.detail)} />
+    {#if currentOutput?.syphon}
+        <MaterialDropdown label="settings.syphon_resolution" value={String(currentOutput?.syphonData?.maxWidth ?? 1280)} defaultValue="1280" options={syphonResolutions} on:change={(e) => updateSyphonData(e.detail)} />
+    {/if}
 {/if}
 
 <!-- Blackmagic -->

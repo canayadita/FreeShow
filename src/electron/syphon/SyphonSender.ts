@@ -29,18 +29,19 @@ export class SyphonSender {
         return this.syphon
     }
 
-    // Cap the published resolution — publishImageData uploads the whole frame to a
-    // Metal texture synchronously on the main thread; a full 1080p frame per capture
-    // frame blocks the event loop enough to stutter the whole app (running text etc.).
-    private static readonly MAX_WIDTH = 1280
-
-    static sendFrame(id: string, name: string, image: NativeImage) {
+    // maxWidth caps the published resolution. publishImageData uploads the whole frame
+    // to a Metal texture synchronously on the main thread, so a full 1080p frame per
+    // capture frame can stutter the app on weaker machines. maxWidth <= 0 = native (no
+    // downscale) for strong computers; smaller values trade sharpness for smoothness.
+    static sendFrame(id: string, name: string, image: NativeImage, maxWidth = 1280) {
         const syphon = this.load()
         if (!syphon || !image) return
 
-        // downscale large frames to keep the per-frame Metal upload light
-        const target = getStageDownscaleSize(image.getSize(), this.MAX_WIDTH)
-        if (target) image = image.resize({ width: target.width, height: target.height, quality: "good" })
+        // downscale large frames to keep the per-frame Metal upload light (skip when native)
+        if (maxWidth > 0) {
+            const target = getStageDownscaleSize(image.getSize(), maxWidth)
+            if (target) image = image.resize({ width: target.width, height: target.height, quality: "good" })
+        }
 
         const size = image.getSize()
         if (!size.width || !size.height) return

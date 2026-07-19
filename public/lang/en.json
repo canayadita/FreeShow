@@ -1315,6 +1315,7 @@
     },
     "settings": {
         "enable_syphon": "Enable Syphon (OBS)",
+        "syphon_resolution": "Syphon resolution",
         "general": "General",
         "files": "Files",
         "theme": "Theme",

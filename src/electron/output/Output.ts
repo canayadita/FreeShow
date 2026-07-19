@@ -8,6 +8,7 @@ export class Output {
     transparent?: boolean
     webrtcData?: any
     rtmpData?: any
+    syphonData?: any
     // previewWindow: BrowserWindow
     captureOptions?: CaptureOptions
     /*
