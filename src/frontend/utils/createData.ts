@@ -1334,6 +1334,63 @@ function getDefaultTemplates() {
         items: [{ style: "top:840px;left:0px;width:1920px;height:200px;background: #0c0c10;padding:25px 80px;border-left:16px solid #ff5a1f;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:60px;font-family:'Helvetica Neue', Arial, sans-serif;color:#ffffff;font-weight:600;` }] }] }]
     }
 
+    // ---- WARM MINIMAL PACK ---- (light cream background, warm brown text, gold accent, airy)
+    const wmBg = "top:0;left:0;width:1920px;height:1080px;background: #f4ece0;padding:150px;"
+    const wmFont = "font-family:Georgia, 'Times New Roman', serif;"
+    const wmText = "#3b2f28"
+    const wmGold = "#b98b3e"
+    a.wmTitle = {
+        isDefault: true, name: "Warm – Title", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: wmBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:140px;${wmFont}color:${wmText};font-weight:normal;letter-spacing:1px;` }] }] }]
+    }
+    a.wmExtraTitle = {
+        isDefault: true, name: "Warm – Extra Title", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: wmBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:78px;${wmFont}color:${wmGold};font-style:italic;` }] }] }]
+    }
+    a.wmMainPoint = {
+        isDefault: true, name: "Warm – Main Point", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: wmBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:120px;${wmFont}color:${wmText};font-weight:normal;` }] }] }]
+    }
+    a.wmMainPointAlt = {
+        isDefault: true, name: "Warm – Main Point ALT", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: wmBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:104px;${wmFont}color:${wmGold};font-style:italic;` }] }] }]
+    }
+    a.wmList = {
+        isDefault: true, name: "Warm – List", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: "top:0;left:0;width:1920px;height:1080px;background: #f4ece0;padding:140px 200px;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:70px;${wmFont}color:${wmText};line-height:1.5;` }] }] }]
+    }
+    a.wmGeneralText = {
+        isDefault: true, name: "Warm – General Text", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: "top:0;left:0;width:1920px;height:1080px;background: #f4ece0;padding:140px 200px;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:64px;${wmFont}color:${wmText};line-height:1.5;` }] }] }]
+    }
+    a.wmQuote = {
+        isDefault: true, name: "Warm – Quote", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: wmBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:88px;${wmFont}color:${wmText};font-style:italic;` }] }] }]
+    }
+    a.wmScripture = {
+        isDefault: true, name: "Warm – Scripture", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: wmBg, align: "", textFit: "shrinkToFit", lines: [
+            { align: "text-align:center;", text: [{ value: "", style: `font-size:70px;${wmFont}color:${wmText};` }] },
+            { align: "text-align:center;", text: [{ value: "", style: `font-size:40px;${wmFont}color:${wmGold};letter-spacing:2px;text-transform:uppercase;`, customType: "disableTemplate" }] }
+        ] }]
+    }
+    a.wmLyrics = {
+        isDefault: true, name: "Warm – Lyrics & Text", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: wmBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:92px;${wmFont}color:${wmText};line-height:1.35;` }] }] }]
+    }
+    a.wmGeneralLyrics = {
+        isDefault: true, name: "Warm – General Lyrics", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: wmBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:80px;${wmFont}color:${wmText};line-height:1.35;` }] }] }]
+    }
+    a.wmLowerThird = {
+        isDefault: true, name: "Warm – Lower Third", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: "top:820px;left:50px;width:1820px;height:220px;background: rgba(244,236,224,0.94);padding:25px 40px;border-left:8px solid #b98b3e;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:72px;${wmFont}color:${wmText};font-weight:bold;` }] }] }]
+    }
+    a.wmLowerThirdQuote = {
+        isDefault: true, name: "Warm – Lower Third Quote", color: "#b98b3e", category: "warm_minimal",
+        items: [{ style: "top:820px;left:50px;width:1820px;height:220px;background: rgba(244,236,224,0.94);padding:25px 40px;border-left:8px solid #b98b3e;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:58px;${wmFont}color:${wmText};font-style:italic;` }] }] }]
+    }
+
     return { ...a, ...getDefaultScriptureTemplates() }
 }
 
