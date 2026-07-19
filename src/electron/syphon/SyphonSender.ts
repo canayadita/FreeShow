@@ -49,7 +49,11 @@ export class SyphonSender {
             // toBitmap() is BGRA (Electron/Chromium capture); Syphon publishes raw pixels.
             // flipped=true because Syphon/Metal textures are bottom-left origin while the
             // Electron bitmap is top-left origin (otherwise the output is upside-down).
-            const data = new Uint8ClampedArray(image.toBitmap())
+            // Wrap the bitmap as a VIEW (no extra 8MB copy per frame) — publishImageData
+            // reads it synchronously, so the view stays valid; avoids per-frame GC jank
+            // that made captured text animations lag in the Syphon client.
+            const bitmap = image.toBitmap()
+            const data = new Uint8ClampedArray(bitmap.buffer, bitmap.byteOffset, bitmap.byteLength)
             server.publishImageData(data, { x: 0, y: 0, width: size.width, height: size.height }, { width: size.width, height: size.height }, true)
         } catch (err) {
             console.error("Syphon: publish failed", err)
