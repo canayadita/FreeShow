@@ -657,6 +657,8 @@ function createDefaultTemplates() {
     templateCategories.update((a) => {
         if (!a.elegant) a.elegant = { default: true, name: "Elegant", icon: "text" }
         if (!a.bright_playful) a.bright_playful = { default: true, name: "Bright Playful", icon: "text" }
+        if (!a.modern_bold) a.modern_bold = { default: true, name: "Modern Bold", icon: "text" }
+        if (!a.warm_minimal) a.warm_minimal = { default: true, name: "Warm Minimal", icon: "text" }
         return a
     })
 
@@ -1274,6 +1276,62 @@ function getDefaultTemplates() {
     a.bpLowerThirdQuote = {
         isDefault: true, name: "Bright – Lower Third Quote", color: "#ff3db4", category: "bright_playful",
         items: [{ style: "top:820px;left:50px;width:1820px;height:220px;background: #ff3db4;padding:25px 40px;border-radius:18px;border-bottom:8px solid #35e8ff;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:62px;${bpFont}color:#ffffff;font-weight:700;` }] }] }]
+    }
+
+    // ---- MODERN BOLD PACK ----
+    const mbBg = "top:0;left:0;width:1920px;height:1080px;background: #0c0c10;padding:120px;"
+    const mbFont = "font-family:'Arial Black', 'Helvetica Neue', sans-serif;"
+    const mbAccent = "#ff5a1f"
+    a.mbTitle = {
+        isDefault: true, name: "Modern – Title", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: mbBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:168px;${mbFont}color:#ffffff;font-weight:900;text-transform:uppercase;letter-spacing:-2px;` }] }] }]
+    }
+    a.mbExtraTitle = {
+        isDefault: true, name: "Modern – Extra Title", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: mbBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:88px;${mbFont}color:${mbAccent};font-weight:900;text-transform:uppercase;` }] }] }]
+    }
+    a.mbMainPoint = {
+        isDefault: true, name: "Modern – Main Point", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: mbBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:140px;${mbFont}color:#ffffff;font-weight:900;text-transform:uppercase;` }] }] }]
+    }
+    a.mbMainPointAlt = {
+        isDefault: true, name: "Modern – Main Point ALT", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: mbBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:116px;${mbFont}color:${mbAccent};font-weight:900;text-transform:uppercase;` }] }] }]
+    }
+    a.mbList = {
+        isDefault: true, name: "Modern – List", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: "top:0;left:0;width:1920px;height:1080px;background: #0c0c10;padding:120px 160px;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:78px;${mbFont}color:#ffffff;font-weight:700;line-height:1.4;` }] }] }]
+    }
+    a.mbGeneralText = {
+        isDefault: true, name: "Modern – General Text", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: "top:0;left:0;width:1920px;height:1080px;background: #0c0c10;padding:120px 160px;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:68px;font-family:'Helvetica Neue', Arial, sans-serif;color:#ffffff;font-weight:500;line-height:1.4;` }] }] }]
+    }
+    a.mbQuote = {
+        isDefault: true, name: "Modern – Quote", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: mbBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:100px;${mbFont}color:#ffffff;font-weight:900;text-transform:uppercase;` }] }] }]
+    }
+    a.mbScripture = {
+        isDefault: true, name: "Modern – Scripture", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: mbBg, align: "", textFit: "shrinkToFit", lines: [
+            { align: "text-align:center;", text: [{ value: "", style: `font-size:76px;font-family:'Helvetica Neue', Arial, sans-serif;color:#ffffff;font-weight:600;` }] },
+            { align: "text-align:center;", text: [{ value: "", style: `font-size:46px;${mbFont}color:${mbAccent};font-weight:900;text-transform:uppercase;`, customType: "disableTemplate" }] }
+        ] }]
+    }
+    a.mbLyrics = {
+        isDefault: true, name: "Modern – Lyrics & Text", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: mbBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:104px;${mbFont}color:#ffffff;font-weight:900;text-transform:uppercase;line-height:1.3;` }] }] }]
+    }
+    a.mbGeneralLyrics = {
+        isDefault: true, name: "Modern – General Lyrics", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: mbBg, align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:center;", text: [{ value: "", style: `font-size:88px;font-family:'Helvetica Neue', Arial, sans-serif;color:#ffffff;font-weight:700;line-height:1.3;` }] }] }]
+    }
+    a.mbLowerThird = {
+        isDefault: true, name: "Modern – Lower Third", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: "top:840px;left:0px;width:1920px;height:200px;background: #0c0c10;padding:25px 80px;border-left:16px solid #ff5a1f;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:78px;${mbFont}color:#ffffff;font-weight:900;text-transform:uppercase;` }] }] }]
+    }
+    a.mbLowerThirdQuote = {
+        isDefault: true, name: "Modern – Lower Third Quote", color: "#ff5a1f", category: "modern_bold",
+        items: [{ style: "top:840px;left:0px;width:1920px;height:200px;background: #0c0c10;padding:25px 80px;border-left:16px solid #ff5a1f;", align: "", textFit: "shrinkToFit", lines: [{ align: "text-align:left;", text: [{ value: "", style: `font-size:60px;font-family:'Helvetica Neue', Arial, sans-serif;color:#ffffff;font-weight:600;` }] }] }]
     }
 
     return { ...a, ...getDefaultScriptureTemplates() }
