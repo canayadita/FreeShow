@@ -1,12 +1,12 @@
 <script lang="ts">
     import { uid } from "uid"
     import type { AspectRatio, Resolution, Styles } from "../../../../types/Settings"
-    import { activeDrawerTab, activeEdit, activePage, activeStyle, outputs, styles, templates } from "../../../stores"
+    import { activeDrawerTab, activeEdit, activePage, activeStyle, blends, outputs, styles, templates } from "../../../stores"
     import { translateText } from "../../../utils/language"
     import { transitionTypes } from "../../../utils/transitions"
     import { mediaExtensions } from "../../../values/extensions"
     import { mediaFitOptions } from "../../edit/values/boxes"
-    import { clone } from "../../helpers/array"
+    import { clone, keysToID, sortByName } from "../../helpers/array"
     import { history } from "../../helpers/history"
     import { defaultLayers } from "../../helpers/output"
     import { metadataDisplayValues } from "../../helpers/show"
@@ -15,6 +15,7 @@
     import Title from "../../input/Title.svelte"
     import MaterialButton from "../../inputs/MaterialButton.svelte"
     import MaterialColorInput from "../../inputs/MaterialColorInput.svelte"
+    import MaterialDropdown from "../../inputs/MaterialDropdown.svelte"
     import MaterialFilePicker from "../../inputs/MaterialFilePicker.svelte"
     import MaterialNumberInput from "../../inputs/MaterialNumberInput.svelte"
     import MaterialPopupButton from "../../inputs/MaterialPopupButton.svelte"
@@ -162,6 +163,17 @@
             return a
         })
     }
+
+    $: blendOptions = [{ value: "", label: "example.none" }, ...sortByName(keysToID($blends)).map((b) => ({ value: b.id, label: b.name }))]
+
+    function updateBackgroundImage(e: any) {
+        if ((e?.detail ?? e?.target?.value ?? e) && currentStyle.backgroundBlend) updateStyle("", "backgroundBlend")
+        updateStyle(e, "backgroundImage")
+    }
+    function updateBackgroundBlend(blendId: string) {
+        if (blendId && currentStyle.backgroundImage) updateStyle("", "backgroundImage")
+        updateStyle(blendId, "backgroundBlend")
+    }
 </script>
 
 {#if styleId && normalOutputs.length === 1 && normalOutputs[0].style !== styleId}
@@ -173,7 +185,7 @@
 <MaterialColorInput label="edit.background_color{templateBackground ? ' <span style="color: var(--text);opacity: 0.5;font-weight: normal;font-size: 0.6em;">settings.overrided_value<span>' : ''}" value={currentStyle.background || "#000000"} defaultValue="#000000" on:input={(e) => updateStyle(e, "background")} />
 
 <InputRow arrow={!!(currentStyle.backgroundImage && (currentStyle.clearStyleBackgroundOnText || activeLayers.includes("slide")))}>
-    <MaterialFilePicker label="edit.background_media{templateBackgroundImage && bgImage ? ' <span style="color: var(--text);opacity: 0.5;font-weight: normal;">settings.overrided_value<span>' : ''}" value={bgImage} filter={{ name: "Media files", extensions: mediaExtensions }} on:change={(e) => updateStyle(e, "backgroundImage")} allowEmpty />
+    <MaterialFilePicker label="edit.background_media{templateBackgroundImage && bgImage ? ' <span style="color: var(--text);opacity: 0.5;font-weight: normal;">settings.overrided_value<span>' : ''}" value={bgImage} filter={{ name: "Media files", extensions: mediaExtensions }} on:change={(e) => updateBackgroundImage(e)} allowEmpty />
     {#if bgImage}
         <MaterialButton title="titlebar.edit" icon="edit" on:click={editBackgroundImage} />
     {/if}
@@ -182,6 +194,8 @@
         <MaterialToggleSwitch label="settings.clear_style_background_on_text" checked={currentStyle.clearStyleBackgroundOnText} defaultValue={false} on:change={(e) => updateStyle(e.detail, "clearStyleBackgroundOnText")} />
     </div>
 </InputRow>
+
+<MaterialDropdown label="Blend" value={currentStyle.backgroundBlend || ""} options={blendOptions} on:change={(e) => updateBackgroundBlend(e.detail?.value ?? e.detail)} />
 
 <MaterialPopupButton label="popup.transition" id="style" value={currentStyle.transition} name={transitionLabel} popupId="transition" icon="transition" on:change={(e) => updateStyle(e.detail || "", "transition")} allowEmpty />
 <MaterialPopupButton label="edit.media_fit" value={mediaFit} defaultValue="contain" name={mediaFitLabel} popupId="media_fit" icon="media_fit" data={{ updateCustom, styleId }} on:change={(e) => updateStyle(e.detail, "fit")} />

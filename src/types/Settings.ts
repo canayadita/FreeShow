@@ -15,6 +15,7 @@ export interface Styles {
     layers?: StyleLayers[]
     background?: string
     backgroundImage?: string
+    backgroundBlend?: string // Blend id — takes precedence over backgroundImage when set
     clearStyleBackgroundOnText?: boolean
     transition?: { [key: string]: Transition }
     fit?: MediaFit | null

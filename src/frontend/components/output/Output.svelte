@@ -337,8 +337,13 @@
     // values
     $: backgroundColor = currentOutput.transparent ? "transparent" : styleTemplate?.settings?.backgroundColor || currentSlide?.settings?.color || currentStyle.background || slide?.settings?.backgroundColor || "black"
     // background image
-    $: styleBackground = currentStyle?.clearStyleBackgroundOnText && (slide || background) ? "" : currentStyle?.backgroundImage || ""
-    $: styleBackgroundData = { path: styleBackground, ...($media[styleBackground] || {}), loop: true }
+    $: styleBackgroundCleared = !!(currentStyle?.clearStyleBackgroundOnText && (slide || background))
+    $: styleBackground = styleBackgroundCleared ? "" : currentStyle?.backgroundBlend ? "blend" : currentStyle?.backgroundImage || ""
+    $: styleBackgroundData = styleBackgroundCleared
+        ? {}
+        : currentStyle?.backgroundBlend
+          ? { type: "blend" as const, id: currentStyle.backgroundBlend, loop: true }
+          : { path: styleBackground, ...($media[styleBackground] || {}), loop: true }
     $: templateBackgroundData = { path: templateBackground, loop: true, ...($media[templateBackground] || {}) }
     $: backgroundData = templateBackground ? templateBackgroundData : background
 
