@@ -77,6 +77,7 @@ import {
     special,
     styles,
     looks,
+    blends,
     templateCategories,
     theme,
     themes,
@@ -393,6 +394,7 @@ const updateList: { [key in SaveListSettings | SaveListSyncedSettings]: any } = 
         styles.set(v)
     },
     looks: (v: any) => looks.set(v),
+    blends: (v: any) => blends.set(v),
     profiles: (v: any) => profiles.set(v),
     remotePassword: (v: any) => remotePassword.set(v),
     audioFolders: (v: any) => audioFolders.set(v),

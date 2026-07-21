@@ -109,6 +109,7 @@ export const defaultSyncedSettings: { [key in SaveListSyncedSettings]: any } = {
     },
     styles: {},
     looks: {},
+    blends: {},
     profiles: {},
     timers: {
         default: { name: "05:00", type: "counter", start: 300, end: 0 }

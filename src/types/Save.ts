@@ -16,6 +16,7 @@ export type SaveListSyncedSettings =
     | "templateCategories"
     | "styles"
     | "looks"
+    | "blends"
     | "profiles"
     | "timers"
     | "variables"
