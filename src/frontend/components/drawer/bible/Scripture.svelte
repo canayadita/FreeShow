@@ -6,7 +6,7 @@
     import { onMount } from "svelte"
     import { sanitizeVerseText } from "../../../../common/scripture/sanitizeVerseText"
     import { defaultBibleBookNames } from "../../../converters/bebliaBible"
-    import { activeEdit, activeScripture, activeTriggerFunction, customScriptureBooks, notFound, openScripture, outLocked, outputs, resized, scriptureHistory, scriptureHistoryUsed, scriptureMode, scriptures, scriptureSettings, selected } from "../../../stores"
+    import { activeEdit, activeScripture, activeTriggerFunction, customScriptureBooks, notFound, openScripture, outLocked, outputs, resized, scriptureHistory, scriptureHistoryUsed, scriptureMode, scripturePendingChunks, scriptures, scriptureSettings, selected } from "../../../stores"
     import { wait } from "../../../utils/common"
     import { translateText } from "../../../utils/language"
     import { clone } from "../../helpers/array"
@@ -20,7 +20,7 @@
     import TextInput from "../../inputs/TextInput.svelte"
     import Loader from "../../main/Loader.svelte"
     import Center from "../../system/Center.svelte"
-    import { createScriptureShow, formatBibleText, getVerseIdParts, getVersePartLetter, joinRange, loadJsonBible, moveSelection, outputIsScripture, playScripture, scriptureRangeSelect, sortScriptureSelection, splitText, swapPreviewBible } from "./scripture"
+    import { createScriptureShow, formatBibleText, getVerseIdParts, getVersePartLetter, joinRange, loadJsonBible, moveSelection, outputIsScripture, playScripture, advanceScriptureChunk, scriptureRangeSelect, sortScriptureSelection, splitText, swapPreviewBible } from "./scripture"
     import { brightenDarkColor, fadeColor } from "../../helpers/color"
 
     export let active: string | null
@@ -961,6 +961,11 @@
     async function _moveSelection(moveLeft: boolean) {
         if (!activeReference.book) return
 
+        // Unified "Next": if the current verse was split into chunks, advance to the next chunk
+        // first. advanceScriptureChunk() returns false once all chunks are shown, so we then fall
+        // through to move on to the next verse. One Next button handles chunks → next verse.
+        if (!moveLeft && isActiveInOutput && advanceScriptureChunk()) return
+
         // WIP this seems like duplicated code
         // most of the time the code underneath is never run I think, but it's the main code
 
@@ -1289,7 +1294,11 @@
             <MaterialButton disabled={activeReference.book?.toString() === "1" && !!activeReference.chapters?.find((a) => a.toString() === "1") && !!activeReference.verses[0]?.find((a) => a.toString() === "1")} title="{translateText('preview._previous_slide')} [Ctrl+Arrow Left]" on:click={() => _moveSelection(true)}>
                 <Icon size={1.3} id="previous" white={!isActiveInOutput} />
             </MaterialButton>
-            <MaterialButton disabled={activeReference.book?.toString() === books?.length.toString() && activeReference.chapters?.includes(chapters ? chapters.length : 1) && activeReference.verses[0]?.includes(verses ? verses.length : 1)} title="{translateText('preview._next_slide')} [Ctrl+Arrow Right]" on:click={() => _moveSelection(false)}>
+            <MaterialButton
+                disabled={$scripturePendingChunks.count === 0 && activeReference.book?.toString() === books?.length.toString() && activeReference.chapters?.includes(chapters ? chapters.length : 1) && activeReference.verses[0]?.includes(verses ? verses.length : 1)}
+                title={$scripturePendingChunks.count > 0 ? `${translateText("preview._next_slide")} (${$scripturePendingChunks.total - $scripturePendingChunks.count + 1}/${$scripturePendingChunks.total + 1})` : `${translateText("preview._next_slide")} [Ctrl+Arrow Right]`}
+                on:click={() => _moveSelection(false)}
+            >
                 <Icon size={1.3} id="next" white={!isActiveInOutput} />
             </MaterialButton>
         {/if}

@@ -1,6 +1,6 @@
 import { get } from "svelte/store"
 import type { Media } from "../../../types/Show"
-import { actions, actionTags, activeActionTagFilter, activeEdit, activeMediaTagFilter, activePlayerTagFilter, activeTagFilter, activeVariableTagFilter, activeTimerTagFilter, contextData, drawerTabsData, globalTags, groups, media, mediaTags, outputs, overlays, playerTags, playerVideos, selected, shows, sorted, variables, variableTags, timers, timerTags } from "../../stores"
+import { actions, actionTags, activeActionTagFilter, activeEdit, activeMediaTagFilter, activePlayerTagFilter, activeTagFilter, activeVariableTagFilter, activeTimerTagFilter, contextData, drawerTabsData, globalTags, groups, media, mediaTags, outputs, overlays, playerTags, playerVideos, selected, shows, sorted, templates, variables, variableTags, timers, timerTags } from "../../stores"
 import { translateText } from "../../utils/language"
 import { isGroupHidden } from "../../utils/profile"
 import { drawerTabs } from "../../values/tabs"
@@ -314,6 +314,31 @@ const loadActions = {
     },
     keys: () => {
         return keys.map((key) => ({ id: key, label: key, translate: false }))
+    },
+    apply_template: () => {
+        const all = sortByName(keysToID(get(templates)), "name")
+        if (!all.length) return [{ id: "none", label: "empty.templates", disabled: true }]
+        return all.map((a) => ({ id: a.id, label: a.name, translate: false, icon: "templates", iconColor: a.color || "#d497ff" }))
+    },
+    add_action: () => {
+        // List common slide actions grouped by SECTION (similar to ProPresenter's Add Action submenu)
+        const items: any[] = []
+        let lastSection = ""
+        for (const [id, data] of Object.entries(actionData)) {
+            if (!data?.common && !data?.slideId) continue
+            if (data.SECTION && data.SECTION !== lastSection) {
+                if (items.length) items.push("SEPARATOR")
+                items.push({ id: `section_${id}`, label: data.SECTION, disabled: true })
+                lastSection = data.SECTION
+            }
+            items.push({
+                id,
+                label: data.name,
+                icon: data.icon || "actions",
+                iconColor: data.red ? "#ff5454" : "#d497ff"
+            })
+        }
+        return items
     },
     chord_list: (items: ContextMenuItem[]) => {
         keys.forEach((key) => {

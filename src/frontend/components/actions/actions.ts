@@ -191,6 +191,20 @@ export function addSlideAction(slideIndex: number, actionId: string, actionValue
     history({ id: "SHOW_LAYOUT", newData: { key: "actions", data: slideActions, indexes: [slideIndex] } })
 }
 
+// remove all custom actions previously added to a slide (keeps other bindings like MIDI)
+export function clearSlideActions(slideIndex: number) {
+    if (slideIndex < 0) return
+
+    const ref = getLayoutRef()
+    if (!ref[slideIndex]) return
+
+    const slideActions = clone(ref[slideIndex].data?.actions) || {}
+    if (!slideActions.slideActions?.length) return
+
+    slideActions.slideActions = []
+    history({ id: "SHOW_LAYOUT", newData: { key: "actions", data: slideActions, indexes: [slideIndex] } })
+}
+
 export function slideHasAction(slideActions: any, key: string) {
     return slideActions?.slideActions?.find((a) => a.triggers?.includes(key))
 }

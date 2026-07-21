@@ -163,6 +163,7 @@ export const quickTextCache: Writable<{ name: string; text: string; fromSearch?:
 export const loadedMediaThumbnails: Writable<{ [key: string]: string }> = writable({})
 export const cachePath: Writable<string> = writable("")
 export const scriptureHistory: Writable<any[]> = writable([])
+export const scripturePendingChunks: Writable<{ count: number; total: number }> = writable({ count: 0, total: 0 })
 export const actionHistory: Writable<{ action: string; data: any; time: number; count: number; source?: string }[]> = writable([])
 export const audioData: Writable<{ [key: string]: { metadata: ICommonTagsResult } }> = writable({})
 export const customScriptureBooks: Writable<{ [key: string]: string[] }> = writable({})
@@ -466,6 +467,7 @@ export const $ = {
     scriptures,
     scripturesCache,
     scriptureSettings,
+    scripturePendingChunks,
     drawerTabsData,
     drawer,
     mediaOptions,

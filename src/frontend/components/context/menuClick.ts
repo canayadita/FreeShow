@@ -34,6 +34,7 @@ import {
     categories,
     cloudSyncData,
     colorbars,
+    copyPasteEdit,
     currentOutputSettings,
     drawer,
     drawerTabsData,
@@ -89,13 +90,14 @@ import { confirmCustom } from "../../utils/popup"
 import { send } from "../../utils/request"
 import { initializeClosing, save } from "../../utils/save"
 import { updateThemeValues } from "../../utils/updateSettings"
-import { getActionTriggerId } from "../actions/actions"
+import { addSlideAction, clearSlideActions, getActionTriggerId } from "../actions/actions"
 import { moveStageConnection } from "../actions/apiHelper"
 import { createScriptureShow, openActiveInRouteBible } from "../drawer/bible/scripture"
 import { stopMediaRecorder } from "../drawer/live/recorder"
 import { playPauseGlobal } from "../drawer/timers/timers"
 import { addChords } from "../edit/scripts/chords"
 import { rearrangeItems, rearrangeStageItems } from "../edit/scripts/itemHelpers"
+import { getBoxStyle, setBoxStyle } from "../edit/scripts/itemClipboard"
 import { getItemText, getSelectionRange } from "../edit/scripts/textStyle"
 import { clone, removeDuplicates, sortObjectNumbers } from "../helpers/array"
 import { copy, cut, deleteAction, duplicate, paste, selectAll } from "../helpers/clipboard"
@@ -1070,6 +1072,71 @@ const clickActions = {
 
         popupData.set({})
         activePopup.set("transition")
+    },
+    apply_template: (obj: ObjData) => {
+        // Apply a template (design) to the selected slide(s)
+        const templateId = obj.menu.id || ""
+        if (!templateId || templateId === "none") return
+        const ref = getLayoutRef()
+        const indexes: number[] = obj.sel?.data.map(({ index }) => index) || []
+        indexes.forEach((slideIndex) => {
+            const slideId = ref?.[slideIndex]?.id
+            if (!slideId) return
+            const slideSettings = _show().slides([slideId]).get("settings")
+            const oldData = { style: clone(slideSettings) }
+            const newData = { style: { ...clone(slideSettings), template: templateId } }
+            history({ id: "slideStyle", oldData, newData, location: { page: "edit", show: get(activeShow)!, slide: slideId } })
+        })
+    },
+    hot_key: (obj: ObjData) => {
+        // Set shortcut key for selected slide (opens popup to confirm)
+        const layoutSlide: number = obj.sel?.data[0]?.index || 0
+        const data = { index: layoutSlide, mode: "slide_shortcut" }
+        popupData.set(data)
+        activePopup.set("assign_shortcut")
+    },
+    add_action: (obj: ObjData) => {
+        // Add a custom action to selected slide(s). obj.menu.id is the trigger id from actionData.
+        const triggerId = obj.menu.id || ""
+        if (!triggerId) return
+        const indexes: number[] = obj.sel?.data.map(({ index }) => index) || []
+        indexes.forEach((slideIndex) => {
+            addSlideAction(slideIndex, triggerId)
+        })
+    },
+    clear_actions: (obj: ObjData) => {
+        // Remove all custom actions previously added to the selected slide(s).
+        const indexes: number[] = obj.sel?.data.map(({ index }) => index) || []
+        indexes.forEach((slideIndex) => {
+            clearSlideActions(slideIndex)
+        })
+    },
+    copy_text_style: (obj: ObjData) => {
+        // Copy text style from the first item of the first selected slide
+        if (obj.sel?.id !== "slide") return
+        const layoutSlide = obj.sel.data[0]?.index
+        if (layoutSlide === undefined) return
+        const ref = getLayoutRef()
+        const slideId = ref?.[layoutSlide]?.id
+        if (!slideId) return
+        const slide = _show().slides([slideId]).get()[0]
+        if (!slide?.items?.length) return
+        const styles = slide.items.map((item) => getBoxStyle(item))
+        copyPasteEdit.update((a) => {
+            a["text"] = styles
+            return a
+        })
+    },
+    paste_text_style: (obj: ObjData) => {
+        // Paste text style into the first item of each selected slide
+        if (obj.sel?.id !== "slide") return
+        const stored = get(copyPasteEdit)["text"]
+        if (!Array.isArray(stored)) return
+        const ref = getLayoutRef()
+        const slideIds: string[] = obj.sel.data.map((d) => ref?.[d.index]?.id).filter((id): id is string => !!id)
+        if (!slideIds.length) return
+        const slides = _show().slides(slideIds).get()
+        setBoxStyle(stored, slides, "text")
     },
     disable: (obj: ObjData) => {
         if (obj.sel?.id === "slide") {

@@ -137,8 +137,6 @@
 
     // stage output
 
-    $: hasStageOutput = edit && Object.values($outputs).some((a) => a.stageOutput && (a.enabled || a.stageOutput === stageLayoutId))
-
     function createStageOutput() {
         toggleOutputEnabled.set(true)
         setTimeout(() => {
@@ -181,13 +179,11 @@
     </div> -->
 
     {#if edit && stageLayoutId}
-        {#if !hasStageOutput}
-            <FloatingInputs side="left" onlyOne>
-                <MaterialButton icon="autofill" title="stage.create_stage_output" on:click={createStageOutput}>
-                    <T id="stage.create_stage_output" />
-                </MaterialButton>
-            </FloatingInputs>
-        {/if}
+        <FloatingInputs side="left" onlyOne>
+            <MaterialButton icon="autofill" title="stage.create_stage_output" on:click={createStageOutput}>
+                <T id="stage.create_stage_output" />
+            </MaterialButton>
+        </FloatingInputs>
 
         <FloatingInputs>
             <MaterialZoom columns={zoom} min={0.2} max={4} defaultValue={1} addValue={0.1} on:change={updateZoom} on:origin={(e) => (zoomOrigin = e.detail)} />

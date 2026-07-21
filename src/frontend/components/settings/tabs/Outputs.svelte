@@ -640,12 +640,7 @@
             {#each currentOutput.out.multiPane.panes as pane, i}
                 <div style="background: var(--background-lighter); padding: 10px; border-radius: 8px; margin-bottom: 8px;">
                     <p style="font-size: 11px; opacity: 0.6; margin-bottom: 5px;">Pane {i + 1} ({pane.position.width}% x {pane.position.height}%)</p>
-                    <MaterialDropdown
-                        label="Source Type"
-                        value={pane.sourceType}
-                        options={paneSourceTypes}
-                        on:change={(e) => updatePaneSource(pane.id, e.detail)}
-                    />
+                    <MaterialDropdown label="Source Type" value={pane.sourceType} options={paneSourceTypes} on:change={(e) => updatePaneSource(pane.id, e.detail)} />
                 </div>
             {/each}
         {/if}

@@ -12,7 +12,7 @@ import { ShowObj } from "../../../classes/Show"
 import { createCategory } from "../../../converters/importHelpers"
 import { requestMain, sendMain } from "../../../IPC/main"
 import { splitTextContentInHalf } from "../../../show/slides"
-import { activeProject, activeScripture, activeShow, drawerTabsData, media, notFound, outLocked, overlays, scriptureHistory, scriptures, scripturesCache, scriptureSettings, styles, templates } from "../../../stores"
+import { activeProject, activeScripture, activeShow, drawerTabsData, media, notFound, outLocked, overlays, scriptureHistory, scripturePendingChunks, scriptures, scripturesCache, scriptureSettings, styles, templates } from "../../../stores"
 import { trackScriptureUsage } from "../../../utils/analytics"
 import { TemplateHelper } from "../../../utils/templates"
 import { getKey } from "../../../values/keys"
@@ -23,6 +23,7 @@ import { history } from "../../helpers/history"
 import { getMediaStyle } from "../../helpers/media"
 import { getAllNormalOutputs, getFirstActiveOutput, setOutput } from "../../helpers/output"
 import { checkName } from "../../helpers/show"
+import { computeSplitDimensions } from "./scriptureSplitMath"
 
 const SCRIPTURE_API_URL = "https://api.churchapps.org/content/bibles"
 
@@ -263,8 +264,50 @@ export function sortScriptureSelection(selection: (string | number)[]) {
 
 // OUTPUT
 
+let scriptureChunkQueue: { slides: Item[][]; dynamicValues: any[]; context: { categoryId: string; previousSlides: any[]; nextSlides: any[]; attributionString: string; translations: number; settings: any } } | null = null
+let scriptureChunkIndex = 0
+let scriptureChunkTotal = 0
+
+function clearScriptureChunks() {
+    scriptureChunkQueue = null
+    scriptureChunkIndex = 0
+    scriptureChunkTotal = 0
+    scripturePendingChunks.set({ count: 0, total: 0 })
+}
+
+export function getScriptureChunkProgress() {
+    return { current: scriptureChunkIndex, total: scriptureChunkTotal }
+}
+
+// Push the next chunk of an oversized verse to the live output.
+// Returns true if a chunk was pushed, false if no pending chunks.
+export function advanceScriptureChunk(): boolean {
+    if (!scriptureChunkQueue) return false
+    const next = scriptureChunkIndex + 1
+    if (next >= scriptureChunkTotal) return false
+
+    scriptureChunkIndex = next
+    const nextItems: Item[] = scriptureChunkQueue.slides[next] || []
+    const ctx = scriptureChunkQueue.context
+    setOutput("slide", {
+        id: "temp",
+        categoryId: ctx.categoryId,
+        tempItems: nextItems,
+        previousSlides: ctx.previousSlides,
+        nextSlides: ctx.nextSlides,
+        attributionString: ctx.attributionString,
+        translations: ctx.translations,
+        settings: ctx.settings,
+        customDynamicValues: scriptureChunkQueue.dynamicValues[next]
+    })
+
+    scripturePendingChunks.set({ count: scriptureChunkTotal - next - 1, total: scriptureChunkTotal - 1 })
+    return true
+}
+
 export async function playScripture() {
     if (get(outLocked)) return
+    clearScriptureChunks()
 
     const biblesContent = await getActiveScripturesContent()
     if (!biblesContent?.length || !biblesContent[0]) return
@@ -272,7 +315,9 @@ export async function playScripture() {
     const selectedChapters = biblesContent[0].chapters || []
     const selectedVerses = biblesContent[0].activeVerses || []
 
-    const { slides, attributions, slideDynamicValues } = await getScriptureSlidesNew({ biblesContent, selectedChapters, selectedVerses }, true)
+    // liveSplit=true: even for live (temp) output, still template-aware split oversized verses
+    // so long verses don't overflow the small lower-third box.
+    const { slides, attributions, slideDynamicValues } = await getScriptureSlidesNew({ biblesContent, selectedChapters, selectedVerses }, true, false, true)
 
     const fullReferenceRange = buildFullReferenceRange(selectedChapters, selectedVerses)
     // include every selected chapter/verse in the displayed reference label
@@ -321,6 +366,19 @@ export async function playScripture() {
     const [previousSlides, nextSlides] = await Promise.all([getPreviousSlides(), getNextSlides()])
 
     setOutput("slide", { id: "temp", categoryId, tempItems, previousSlides, nextSlides, attributionString, translations: biblesContent.length, settings, customDynamicValues: slideDynamicValues[0] })
+
+    // Queue remaining chunks (slide[1..n-1]) so user can advance them at their own pace.
+    // No auto-timer: user triggers advanceScriptureChunk() (e.g. via "Next chunk" button).
+    if (slides.length > 1) {
+        scriptureChunkQueue = {
+            slides,
+            dynamicValues: slideDynamicValues,
+            context: { categoryId, previousSlides, nextSlides, attributionString, translations: biblesContent.length, settings }
+        }
+        scriptureChunkIndex = 0
+        scriptureChunkTotal = slides.length
+        scripturePendingChunks.set({ count: slides.length - 1, total: slides.length - 1 })
+    }
 
     // track
     const reference = `${biblesContent[0].book} ${fullReferenceRange || biblesContent[0].chapters[0]}`.trim()
@@ -630,51 +688,14 @@ export function getSmartSplitDimensionsFromTemplate(templateId: string): { chars
     const textbox = _template.getItems().find((a) => a.lines)
     const itemStyle = textbox?.style || ""
     const textStyle = textbox?.lines?.flatMap((line) => line.text || []).find((t) => t.value?.includes("_text}"))?.style || textbox?.lines?.[0]?.text?.[0]?.style || ""
+    const hasAutoFit = textbox?.textFit === "shrinkToFit" || textbox?.textFit === "growToFit" || textbox?.auto === true
 
-    const screenWidth = 1920
-    const screenHeight = 1080
-
-    const width = parseStyleDimension(itemStyle, /width:\s*([\d.]+)(px|%)?/, 1820, screenWidth)
-    const height = parseStyleDimension(itemStyle, /height:\s*([\d.]+)(px|%)?/, 780, screenHeight)
-
-    const paddingMatch = itemStyle.match(/padding:\s*([\d.]+)px/)
-    const padding = paddingMatch ? parseFloat(paddingMatch[1]) * 2 : 0
-    const usableWidth = Math.max(100, width - padding)
-    const usableHeight = Math.max(50, height - padding)
-
-    let fontSize = 80
-    const fontSizeMatch = textStyle.match(/font-size:\s*([\d.]+)(px)?/) || itemStyle.match(/font-size:\s*([\d.]+)(px)?/)
-    if (fontSizeMatch) fontSize = parseFloat(fontSizeMatch[1])
-
-    const lineHeightMatch = textStyle.match(/line-height:\s*([\d.]+)/) || itemStyle.match(/line-height:\s*([\d.]+)/)
-    const lineHeightRatio = lineHeightMatch ? parseFloat(lineHeightMatch[1]) : 1.35
-
-    const charWidth = fontSize * 0.5
-    const lineHeight = fontSize * lineHeightRatio
-
-    const charsPerLine = Math.floor(usableWidth / charWidth)
-    const linesCount = Math.floor(usableHeight / lineHeight)
-
-    return {
-        charsPerLine: charsPerLine > 0 ? charsPerLine : 40,
-        linesCount: linesCount > 0 ? linesCount : 10
-    }
+    return computeSplitDimensions(itemStyle, textStyle, hasAutoFit)
 }
 
 export function getSmartSplitLimitFromTemplate(templateId: string): number {
     const { charsPerLine, linesCount } = getSmartSplitDimensionsFromTemplate(templateId)
     return charsPerLine * linesCount
-}
-
-function parseStyleDimension(style: string, regex: RegExp, defaultValue: number, viewportValue: number): number {
-    const match = style.match(regex)
-    if (!match) return defaultValue
-    const val = parseFloat(match[1])
-    const unit = match[2]
-    if (unit === "%") {
-        return (val / 100) * viewportValue
-    }
-    return val
 }
 
 function estimateLinesForVerses(verses: { text: string; verseId: string }[], charsPerLine: number, versesOnIndividualLines: boolean): number {
@@ -774,7 +795,7 @@ export function groupVersesSmartly(allVersesInOrder: { chapter: number | string;
             const prevId = getVerseIdParts(prevVerse.verse).id
             const currId = getVerseIdParts(verseContext.verse).id
             const isConsecutive = currId === prevId + 1
-            const spacerLines = versesOnIndividualLines ? 1 : (isConsecutive ? 0 : 2)
+            const spacerLines = versesOnIndividualLines ? 1 : isConsecutive ? 0 : 2
             const newTotalLines = currentGroupLines + spacerLines + verseLines
 
             if (newTotalLines > linesCount) {
@@ -791,7 +812,7 @@ export function groupVersesSmartly(allVersesInOrder: { chapter: number | string;
             const prevId = getVerseIdParts(prevVerse.verse).id
             const currId = getVerseIdParts(verseContext.verse).id
             const isConsecutive = currId === prevId + 1
-            const spacerLines = versesOnIndividualLines ? 1 : (isConsecutive ? 0 : 2)
+            const spacerLines = versesOnIndividualLines ? 1 : isConsecutive ? 0 : 2
             currentGroupLines += spacerLines + verseLines
         }
 
@@ -812,9 +833,9 @@ export function useOldScriptureSystem(templateId: string, _updater: any = null) 
     return !_template.getPlainText().includes("{scripture")
 }
 
-export async function getScriptureSlidesNew(data: any, onlyOne = false, disableReference = false) {
+export async function getScriptureSlidesNew(data: any, onlyOne = false, disableReference = false, liveSplit = false) {
     const templateId = getScriptureTemplateId()
-    if (useOldScriptureSystem(templateId)) return getScriptureSlides(data, onlyOne, disableReference)
+    if (useOldScriptureSystem(templateId)) return getScriptureSlides(data, onlyOne, disableReference, liveSplit)
 
     const _template = new TemplateHelper(templateId)
 
@@ -828,6 +849,8 @@ export async function getScriptureSlidesNew(data: any, onlyOne = false, disableR
     const smartSplit = get(scriptureSettings).smartSplit !== false
     let perSlide = get(scriptureSettings).versesPerSlide || 3
     let slidesCount = 1
+    // liveSplit: still template-aware split for live (temp) output, but caller controls how many slides are pushed to stage
+    const treatAsMulti = !onlyOne || (onlyOne && liveSplit && smartSplit)
 
     if (smartSplit) {
         const allVersesInOrder: { chapter: number | string; verse: number | string }[] = []
@@ -838,9 +861,9 @@ export async function getScriptureSlidesNew(data: any, onlyOne = false, disableR
             })
         })
         const smartGroups = groupVersesSmartly(allVersesInOrder, biblesContent)
-        slidesCount = onlyOne ? 1 : smartGroups.length
+        slidesCount = treatAsMulti ? smartGroups.length : 1
     } else {
-        slidesCount = onlyOne ? 1 : Math.ceil(totalVerses / perSlide)
+        slidesCount = treatAsMulti ? Math.ceil(totalVerses / perSlide) : 1
         if (slidesCount === 2) perSlide = Math.ceil(totalVerses / 2)
     }
 
@@ -884,7 +907,7 @@ export async function getScriptureSlidesNew(data: any, onlyOne = false, disableR
 
     let slidesString = JSON.stringify(slides)
 
-    const splittedSlidesContent = onlyOne ? [biblesContent] : splitContent(biblesContent, perSlide)
+    const splittedSlidesContent = treatAsMulti ? splitContent(biblesContent, perSlide) : [biblesContent]
 
     let verseNumbers = get(scriptureSettings).verseNumbers
     const versesOnIndividualLines = get(scriptureSettings).versesOnIndividualLines
@@ -1203,7 +1226,7 @@ export async function getScriptureSlidesNew(data: any, onlyOne = false, disableR
 }
 
 // DEPRECATED
-export function getScriptureSlides({ biblesContent, selectedChapters, selectedVerses }: { biblesContent: BibleContent[]; selectedChapters: number[]; selectedVerses: (number | string)[][] }, onlyOne = false, disableReference = false) {
+export function getScriptureSlides({ biblesContent, selectedChapters, selectedVerses }: { biblesContent: BibleContent[]; selectedChapters: number[]; selectedVerses: (number | string)[][] }, onlyOne = false, disableReference = false, liveSplit = false) {
     const slides: Item[][] = [[]]
 
     const template = get(templates)[getScriptureTemplateId()]
@@ -1216,10 +1239,13 @@ export function getScriptureSlides({ biblesContent, selectedChapters, selectedVe
 
     const divider = getReferenceDivider()
 
+    // liveSplit: still template-aware split for live (temp) output, but caller controls how many slides are pushed to stage
+    const treatAsMulti = !onlyOne || (onlyOne && liveSplit && get(scriptureSettings).smartSplit !== false)
+
     // template-aware smart split (same grouping as the new scripture system):
     // fits verses to the active template's textbox, and chunks oversized verses across slides
     let smartGroups: VerseContext[][] | null = null
-    if (!onlyOne && get(scriptureSettings).smartSplit !== false) {
+    if (treatAsMulti && get(scriptureSettings).smartSplit !== false) {
         const allVersesInOrder: { chapter: number | string; verse: number | string }[] = []
         selectedChapters.forEach((chapterNumber, chapterIndex) => {
             sortScriptureSelection(clone(selectedVerses[chapterIndex] || [])).forEach((verseNum) => {
@@ -1256,7 +1282,7 @@ export function getScriptureSlides({ biblesContent, selectedChapters, selectedVe
         // plan the verses for each slide (smart split, fixed count, or all on one)
         type PlannedVerse = { text: string; chapterNumber: number; verseId: string; hideNumber?: boolean }
         let plannedSlides: PlannedVerse[][]
-        if (onlyOne) {
+        if (onlyOne && !liveSplit) {
             plannedSlides = [allVerses]
         } else if (smartGroups) {
             plannedSlides = smartGroups
@@ -1388,7 +1414,7 @@ export function getScriptureSlides({ biblesContent, selectedChapters, selectedVe
             // slide reference + advance to the next slide
             if (!disableReference && bibleIndex + 1 >= biblesContent.length && slideVerses.length) {
                 const slideNumbers = slideVerses.map((a) => `${selectedChapters.length > 1 && a.chapterNumber !== selectedChapters[0] ? `${a.chapterNumber}${divider}` : ""}${a.verseId}`)
-                let range: any[] = onlyOne ? currentVerseNumbers : slideNumbers
+                let range: any[] = onlyOne && !liveSplit ? currentVerseNumbers : slideNumbers
                 if (get(scriptureSettings).splitReference === false || get(scriptureSettings).firstSlideReference) range = currentVerseNumbers
                 let indexes = [biblesContent.length]
                 if (combineWithText) indexes = [...Array(biblesContent.length)].map((_, i) => i)
@@ -1406,14 +1432,18 @@ export function getScriptureSlides({ biblesContent, selectedChapters, selectedVe
         // auto size & item options
         slides.forEach((slide, i) => {
             slide.forEach((_item, j) => {
+                const tItem = templateTextItems[j]
                 // specific outputs
-                if (templateTextItems[j]?.bindings) slides[i][j].bindings = templateTextItems[j].bindings
+                if (tItem?.bindings) slides[i][j].bindings = tItem.bindings
 
-                // auto size
-                if (!templateTextItems[j]?.auto || !slides[i][j].lines?.[0]?.text) return
+                // auto size — preserve the template's fit mode so verse text always shrinks to fit the
+                // template's textbox (never overflows/cuts). Templates like "Lower Third Blue" use
+                // textFit: "shrinkToFit" without the older `auto` flag, so check both.
+                const templateFits = tItem?.auto || tItem?.textFit === "shrinkToFit" || tItem?.textFit === "growToFit"
+                if (!templateFits || !slides[i][j].lines?.[0]?.text) return
 
-                slides[i][j].auto = true
-                if (templateTextItems[j]?.textFit) slides[i][j].textFit = templateTextItems[j]?.textFit
+                if (tItem?.auto) slides[i][j].auto = true
+                if (tItem?.textFit) slides[i][j].textFit = tItem.textFit
                 // slides[i][j].lines![0].text.forEach((_, k) => {
                 //     if (slides[i][j].lines![0].text[k].customType === "disableTemplate") return
                 //     // slides[i][j].lines![0].text[k].style += "font-size: " + autoSize + "px;"

@@ -143,9 +143,15 @@ export const contextMenuItems: { [key: string]: ContextMenuItem } = {
     edit_style: { label: "menu.edit", icon: "edit", iconColor: "#97c7ff" },
     recolor: { label: "actions.recolor", icon: "color", iconColor: "#6effbe" },
     actions: { label: "actions.slide_actions", icon: "actions", iconColor: "#d497ff", items: ["LOAD_actions"] },
+    add_action: { label: "actions.add_action", icon: "actions", iconColor: "#d497ff", items: ["LOAD_add_action"] },
+    clear_actions: { label: "actions.clear_actions", icon: "reset", iconColor: "#ff5454" },
     bind_to: { label: "actions.bind_to", icon: "bind", iconColor: "#d497ff", items: ["LOAD_bind_slide"] },
     remove_layers: { label: "actions.remove_layers", icon: "remove_layers", iconColor: "#ff5454", items: ["LOAD_remove_layers"] },
     set_key: { label: "actions.set_key", icon: "chords", items: ["LOAD_keys"] },
+    hot_key: { label: "popup.hotkey", icon: "shortcut", iconColor: "#fca4ff" },
+    apply_template: { label: "actions.apply_template", icon: "templates", iconColor: "#d497ff", items: ["LOAD_apply_template"] },
+    copy_text_style: { label: "actions.copy_text_style", icon: "copy", iconColor: "#97c7ff" },
+    paste_text_style: { label: "actions.paste_text_style", icon: "paste", iconColor: "#97c7ff" },
     chord_list: { label: "edit.chords", icon: "chords", items: ["LOAD_chord_list"] },
     custom_key: { label: "actions.custom_key", icon: "edit", iconColor: "#97c7ff" },
     // ITEM
@@ -360,8 +366,8 @@ export const contextMenuLayouts: { [key: string]: string[] } = {
 
     // SHOWS
     // , "copy", "paste"
-    slide: ["GROUP_edit", "quick_edit_slide", "slideGroups", "actions", "bind_to", "format", "remove_layers", "slide_transition", "disable", "SEPARATOR", "duplicate", "make_unique", "GROUP_slide_remove"],
-    slideChild: ["GROUP_edit", "quick_edit_slide", "slideGroups", "actions", "bind_to", "format", "remove_layers", "slide_transition", "disable", "SEPARATOR", "duplicate", "make_unique", "GROUP_slide_remove"],
+    slide: ["GROUP_edit", "quick_edit_slide", "slideGroups", "add_action", "clear_actions", "bind_to", "format", "remove_layers", "apply_template", "hot_key", "slide_transition", "disable", "SEPARATOR", "copy_text_style", "paste_text_style", "SEPARATOR", "duplicate", "make_unique", "GROUP_slide_remove"],
+    slideChild: ["GROUP_edit", "quick_edit_slide", "slideGroups", "add_action", "clear_actions", "bind_to", "format", "remove_layers", "apply_template", "hot_key", "slide_transition", "disable", "SEPARATOR", "copy_text_style", "paste_text_style", "SEPARATOR", "duplicate", "make_unique", "GROUP_slide_remove"],
     slideFocus: ["quick_edit_slide", "editSlideText"],
     group: ["GROUP_rename_recolor", "lock_group", "SEPARATOR", "selectAll", "SEPARATOR", "duplicate", "delete_group"],
     global_group: ["manage_groups"],

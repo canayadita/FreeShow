@@ -1,10 +1,10 @@
 <script type="ts">
     import { slide } from "svelte/transition"
-    import { activeEdit, activePage, activeProfile, activeProject, activeShow, cloudUsers, dictionary, drawSettings, drawTool, os, outputDisplay, outputs, paintCache, profiles, saved, settingsTab, shows } from "../../stores"
+    import { activeEdit, activePage, activeProfile, activeProject, activeShow, cloudUsers, dictionary, drawSettings, drawTool, os, outputDisplay, outputs, outputState, paintCache, profiles, saved, settingsTab, shows } from "../../stores"
     import { getCloudUsers } from "../../utils/cloudSync"
     import { translateText } from "../../utils/language"
     import Icon from "../helpers/Icon.svelte"
-    import { startRtmpStreaming, stopRtmpStreaming, toggleOutputs } from "../helpers/output"
+    import { getAllNormalOutputs, getAllStageOutputs, startRtmpStreaming, stopRtmpStreaming, toggleOutputs } from "../helpers/output"
     import T from "../helpers/T.svelte"
     import Button from "../inputs/Button.svelte"
     import TopButton from "../inputs/TopButton.svelte"
@@ -61,6 +61,50 @@
 
     $: noPhysicalOutputWindows = (!$outputDisplay && !physicalOutputWindows.length) || disableClick
 
+    // Audience / Stage output toggles.
+    // Wrapper takes $outputs so the list recomputes on enable/rename; live on/off state
+    // comes from $outputState (mirrors the PreviewOutputs indicator logic).
+    function getNormalOutputs(_outputs: any) {
+        return getAllNormalOutputs()
+    }
+    function getStageOutputs(_outputs: any) {
+        return getAllStageOutputs()
+    }
+    $: audienceOutputs = getNormalOutputs($outputs)
+    $: stageOutputs = getStageOutputs($outputs)
+    $: audienceOnCount = audienceOutputs.filter((a) => $outputState.find((s) => s.id === a.id)?.active === true).length
+    $: stageOnCount = stageOutputs.filter((a) => $outputState.find((s) => s.id === a.id)?.active === true).length
+    $: audienceActive = audienceOnCount > 0
+    $: stageActive = stageOnCount > 0
+
+    function toggleAudience(e: MouseEvent) {
+        // modifier-click opens output settings instead of toggling
+        if (e.shiftKey || e.metaKey || e.ctrlKey) {
+            openOutputSettings()
+            return
+        }
+        const ids = audienceOutputs.map((a) => a.id)
+        if (!ids.length) {
+            openOutputSettings()
+            return
+        }
+        toggleOutputs(ids, { state: !audienceActive })
+    }
+
+    function toggleStage(e: MouseEvent) {
+        // modifier-click opens output settings instead of toggling
+        if (e.shiftKey || e.metaKey || e.ctrlKey) {
+            openOutputSettings()
+            return
+        }
+        const ids = stageOutputs.map((a) => a.id)
+        if (!ids.length) {
+            openOutputSettings()
+            return
+        }
+        toggleOutputs(ids, { state: !stageActive })
+    }
+
     // RTMP stream button
     $: rtmpOutputEntry = Object.entries($outputs).find(([_, o]) => o.rtmp && o.rtmpData?.key)
     $: rtmpOutputId = rtmpOutputEntry?.[0] ?? ""
@@ -115,14 +159,22 @@
     </span>
     <span style="width: var(--navigation-width);justify-content: flex-end;">
         <TopButton id="draw" red={$drawTool === "fill" || ($drawTool === "zoom" && $drawSettings.zoom?.size !== 100) || !!($drawTool === "paint" && $paintCache?.length)} hideLabel />
+        <Button id="audience_output_button" title="Toggle audience output ({audienceOnCount}/{audienceOutputs.length} on)" on:click={toggleAudience} on:contextmenu={openOutputSettings} disabled={!audienceOutputs.length} class="outputToggle" style="min-width: 44px; position: relative;{audienceActive ? 'border-bottom: 2px solid #6dff85 !important;' : ''}{audienceOutputs.length ? '' : 'opacity: 0.4;'}">
+            <Icon id="profiles" size={1.4} white color={audienceActive ? "#6dff85" : ""} />
+        </Button>
+        <Button id="stage_output_button" title="Toggle stage output ({stageOnCount}/{stageOutputs.length} on)" on:click={toggleStage} on:contextmenu={openOutputSettings} disabled={!stageOutputs.length} class="outputToggle" style="min-width: 44px; position: relative;{stageActive ? 'border-bottom: 2px solid #6dff85 !important;' : ''}{stageOutputs.length ? '' : 'opacity: 0.4;'}">
+            <Icon id="stage" size={1.4} white color={stageActive ? "#6dff85" : ""} />
+        </Button>
         {#if !settingsDisabled}
             <TopButton id="settings" hideLabel />
         {/if}
         <Button
             title={isStreaming ? "Stop YouTube Stream" : rtmpOutputId ? "Start YouTube Stream" : "Setup RTMP stream in Settings → Outputs first"}
             on:click={() => {
-                if (!rtmpOutputId) { settingsTab.set("display_settings"); activePage.set("settings") }
-                else if (isStreaming) stopRtmpStreaming(rtmpOutputId, true)
+                if (!rtmpOutputId) {
+                    settingsTab.set("display_settings")
+                    activePage.set("settings")
+                } else if (isStreaming) stopRtmpStreaming(rtmpOutputId, true)
                 else startRtmpStreaming(rtmpOutputId)
             }}
             red={isStreaming}
@@ -254,8 +306,13 @@
     }
 
     @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.2; }
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.2;
+        }
     }
 
     .click_again {

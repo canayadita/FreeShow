@@ -246,6 +246,7 @@
 
             <!-- Smart split -->
             <MaterialToggleSwitch label="scripture.smart_split" style="margin-top: 10px;width: 100%;" checked={$scriptureSettings.smartSplit !== false} defaultValue={true} on:change={(e) => update("smartSplit", e.detail)} />
+            <p style="margin: 0 0 8px 0;font-size: 0.8rem;opacity: 0.6;white-space: normal;">Long verses are split into multiple slides based on the active template size, so they fit the lower-third box.</p>
 
             {#if $scriptureSettings.smartSplit === false}
                 <MaterialNumberInput label="scripture.max_verses" value={$scriptureSettings.versesPerSlide} defaultValue={3} min={1} max={100} on:change={(e) => update("versesPerSlide", e.detail)} hideWhenZero />

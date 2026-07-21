@@ -627,7 +627,10 @@
         // NOTE: Stage uses its own loading mechanism in SlideText.svelte (.loading class)
         // but for the first render, that mechanism shows nothing while the new content loads
         // We need to hide content until autosize is ready for stage too
-        if (preview || fontPreview) return false
+        // fontPreview (typography sample) always shows at its set size. Other previews — including the
+        // output-mirror preview — still hide until autosized, but only when there's no valid cache
+        // (checked below), so fresh content never flashes oversized while already-sized thumbnails stay.
+        if (fontPreview) return false
         const type = item?.type || "text"
         if (type !== "text") return false
 
@@ -846,6 +849,7 @@
     class:clickable={$currentWindow === "output" && (item?.button?.press || item?.button?.release)}
     class:reveal={(centerPreview || isStage) && item?.clickReveal && !clickRevealed}
     class:hidden
+    class:autosizeHiding={hideUntilAutosized}
     bind:this={itemElem}
     on:mousedown={press}
     on:mouseup={release}
@@ -928,6 +932,13 @@
 
     .item.hidden {
         visibility: hidden !important;
+        opacity: 0 !important;
+    }
+
+    /* keep the textbox invisible while autosize measures/shrinks so freshly generated content
+       (e.g. scripture verses) never flashes at its native/oversized font before fitting the box.
+       opacity (not visibility/display) keeps layout intact so measurement still works. */
+    .item.autosizeHiding {
         opacity: 0 !important;
     }
 
