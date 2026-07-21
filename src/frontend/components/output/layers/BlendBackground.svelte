@@ -30,9 +30,9 @@
                 {:else if layer.sourceType === "screen"}
                     <Window id={layer.sourceId || ""} class="media" style="width:100%;height:100%;" />
                 {:else if layer.sourceType === "ndi"}
-                    <NdiStream screen={{ id: layer.sourceId || "", name: "" }} background={false} {mirror} />
+                    <NdiStream screen={{ id: layer.sourceId || "", name: "" }} background {mirror} />
                 {:else if layer.sourceType === "blackmagic"}
-                    <BmdStream screen={{ id: layer.sourceId || "", name: "" }} background={false} {mirror} />
+                    <BmdStream screen={{ id: layer.sourceId || "", name: "" }} background {mirror} />
                 {:else if layer.sourceType === "video" || layer.sourceType === "image"}
                     <Media path={layer.sourcePath || ""} data={{ type: layer.sourceType, muted: true, loop: true }} mediaStyle={{ fit: "cover" }} {mirror} />
                 {/if}
@@ -63,9 +63,12 @@
 
     .layer :global(video),
     .layer :global(img),
-    .layer :global(.media) {
+    .layer :global(.media),
+    .layer :global(canvas) {
         width: 100% !important;
         height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
         object-fit: cover !important;
         position: absolute;
         top: 0;
