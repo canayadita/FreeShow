@@ -421,6 +421,7 @@ export type Popups =
     | "output_selector"
     | "set_time"
     | "assign_shortcut"
+    | "looks_edit"
     | "dynamic_values"
     | "conditions"
     | "translate"

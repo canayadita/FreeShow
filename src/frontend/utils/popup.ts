@@ -3,6 +3,7 @@ import { get } from "svelte/store"
 import type { Popups } from "../../types/Main"
 import About from "../components/main/popups/About.svelte"
 import Action from "../components/main/popups/Action.svelte"
+import LooksEdit from "../components/main/popups/LooksEdit.svelte"
 import ActionHistory from "../components/main/popups/ActionHistory.svelte"
 import Alert from "../components/main/popups/Alert.svelte"
 import AspectRatio from "../components/main/popups/AspectRatio.svelte"
@@ -138,6 +139,7 @@ export const popups: { [key in Popups]: ComponentType } = {
     output_selector: OutputSelector,
     set_time: SetTime,
     assign_shortcut: SlideShortcut,
+    looks_edit: LooksEdit,
     dynamic_values: DynamicValues,
     conditions: Conditions,
     translate: Translate,

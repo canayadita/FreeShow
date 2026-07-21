@@ -16,6 +16,7 @@
     import Button from "../../inputs/Button.svelte"
     import MaterialButton from "../../inputs/MaterialButton.svelte"
     import ShowActions from "../ShowActions.svelte"
+    import LooksBar from "./LooksBar.svelte"
     import Audio from "../tools/Audio.svelte"
     import MediaControls from "../tools/MediaControls.svelte"
     import NextTimer from "../tools/NextTimer.svelte"
@@ -272,6 +273,9 @@
         <div class="section" style="margin-bottom: 2px;" class:float={!isSplitted && $activePage !== "show" && $activePage !== "settings"} class:light class:isOptimized>
             <ShowActions {currentOutput} {ref} {linesIndex} {maxLines} />
         </div>
+        {#if $activePage === "show"}
+            <LooksBar />
+        {/if}
     {/if}
 
     {#if $activePage === "show"}

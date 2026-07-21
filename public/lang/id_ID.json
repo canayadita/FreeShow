@@ -506,6 +506,7 @@
         "cloud_method": "Lokasi data",
         "shortcuts": "Jalan Pintas",
         "hotkey": "Shortcut key",
+        "looks_edit": "Edit Look",
         "icon": "Ikon",
         "manage_groups": "Kelola grup",
         "manage_icons": "Kelola ikon",
@@ -570,6 +571,7 @@
     },
     "new": {
         "create": "Buat baru",
+        "look": "New Look",
         "show": "Show baru",
         "empty_show": "Show kosong baru",
         "show_convert": "Konversi menjadi show",

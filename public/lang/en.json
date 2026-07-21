@@ -540,6 +540,7 @@
         "cloud_method": "Data location",
         "shortcuts": "Shortcuts",
         "hotkey": "Shortcut key",
+        "looks_edit": "Edit Look",
         "icon": "Icons",
         "manage_groups": "Manage groups",
         "manage_icons": "Manage icons",
@@ -608,6 +609,7 @@
     },
     "new": {
         "create": "Create new",
+        "look": "New Look",
         "show": "New show",
         "empty_show": "New empty show",
         "show_convert": "Convert to show",
