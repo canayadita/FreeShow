@@ -2,6 +2,7 @@
     import { activeLook, activePopup, looks, popupData } from "../../../stores"
     import { keysToID, sortObjectNumbers } from "../../helpers/array"
     import { applyLook, createLookFromCurrent } from "../../helpers/looks"
+    import T from "../../helpers/T.svelte"
     import MaterialButton from "../../inputs/MaterialButton.svelte"
 
     $: lookList = sortObjectNumbers(keysToID($looks), "index")
@@ -17,6 +18,7 @@
 </script>
 
 <div class="looksBar">
+    <span class="barLabel"><T id="edit.looks" /></span>
     {#each lookList as look}
         <button class="look" class:active={$activeLook === look.id} title={look.name} on:click={() => applyLook(look.id)} on:contextmenu|preventDefault={() => openEdit(look.id)}>
             {#if look.color}<span class="dot" style="background:{look.color};" />{/if}
@@ -45,6 +47,13 @@
         border: 2px solid transparent;
         cursor: pointer;
         font-size: 0.8em;
+    }
+    .barLabel {
+        font-size: 0.7em;
+        opacity: 0.5;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding-inline-end: 3px;
     }
     .look.active {
         border-color: var(--secondary);
