@@ -164,7 +164,7 @@
         })
     }
 
-    $: blendOptions = [{ value: "", label: "example.none" }, ...sortByName(keysToID($blends)).map((b) => ({ value: b.id, label: b.name }))]
+    $: blendOptions = [{ value: "", label: translateText("main.none") }, ...sortByName(keysToID($blends)).map((b) => ({ value: b.id, label: b.name }))]
 
     function updateBackgroundImage(e: any) {
         if ((e?.detail ?? e?.target?.value ?? e) && currentStyle.backgroundBlend) updateStyle("", "backgroundBlend")
