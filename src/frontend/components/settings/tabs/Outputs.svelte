@@ -173,11 +173,11 @@
 
     // ndi
     const syphonResolutions = [
-        { id: "0", name: "Native (Full)" },
-        { id: "1920", name: "1080p (1920)" },
-        { id: "1600", name: "900p (1600)" },
-        { id: "1280", name: "720p (1280)" },
-        { id: "960", name: "540p (960)" }
+        { value: "0", label: "Native (Full)" },
+        { value: "1920", label: "1080p (1920)" },
+        { value: "1600", label: "900p (1600)" },
+        { value: "1280", label: "720p (1280)" },
+        { value: "960", label: "540p (960)" }
     ]
     function updateSyphonData(e: any) {
         let id = currentOutput?.id
