@@ -18,6 +18,7 @@
     import Camera from "../Camera.svelte"
     import OutputTransition from "../transitions/OutputTransition.svelte"
     import Window from "../Window.svelte"
+    import BlendBackground from "./BlendBackground.svelte"
     import Media from "./Media.svelte"
 
     export let outputId = ""
@@ -258,6 +259,8 @@
 <OutputTransition {transition} inTransition={transition.in} outTransition={transition.out} on:outrostart={() => (fadingOut = true)}>
     {#if type === "media"}
         <Media path={id} {data} {animationStyle} bind:video bind:videoData bind:videoTime {mirror} {mediaStyle} volume={videoVolumeProp} on:loaded on:ended={videoEnded} />
+    {:else if type === "blend"}
+        <BlendBackground blendId={id} {mirror} />
     {:else if type === "screen"}
         <Window {id} class="media" style="width: 100%;height: 100%;" on:loaded />
     {:else if type === "ndi"}
