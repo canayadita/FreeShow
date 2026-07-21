@@ -10,6 +10,7 @@ import type { Event } from "../types/Calendar"
 import type { Draw, DrawLine, DrawSettings, DrawTools } from "../types/Draw"
 import type { Effects } from "../types/Effects"
 import type { History, HistoryNew } from "../types/History"
+import type { Look } from "../types/Look"
 import type { ActiveEdit, Clipboard, Interaction, Media, MediaOptions, NumberObject, OS, Popups, Profiles, Selected, SlidesOptions, Variable } from "../types/Main"
 import type { Folders, Projects, ShowRef } from "../types/Projects"
 import type { Dictionary, Styles, Themes } from "../types/Settings"
@@ -66,6 +67,8 @@ export const activeRename: Writable<any> = writable(null)
 export const activeDrawerTab: Writable<DrawerTabIds> = writable("shows")
 export const drawerOpenedInEdit: Writable<boolean> = writable(false)
 export const activeStyle: Writable<string> = writable("")
+export const looks: Writable<{ [key: string]: Look }> = writable({})
+export const activeLook: Writable<string> = writable("") // session-only, not persisted
 export const selectedProfile: Writable<string | null> = writable(null)
 export const activeProfile: Writable<string | null> = writable(null)
 export const settingsTab: Writable<SettingsTabs> = writable("general")

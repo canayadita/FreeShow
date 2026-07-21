@@ -15,6 +15,7 @@ export type SaveListSyncedSettings =
     | "overlayCategories"
     | "templateCategories"
     | "styles"
+    | "looks"
     | "profiles"
     | "timers"
     | "variables"
