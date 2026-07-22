@@ -5,6 +5,7 @@
     import { blendModeOptions } from "../../edit/values/media"
     import { cameraManager } from "../../../media/cameraManager"
     import { ndiData } from "../../../stores"
+    import { translateText } from "../../../utils/language"
     import { imageExtensions, videoExtensions } from "../../../values/extensions"
     import MaterialButton from "../../inputs/MaterialButton.svelte"
     import MaterialColorInput from "../../inputs/MaterialColorInput.svelte"
@@ -32,6 +33,11 @@
 
     let cameraList: { value: string; label: string }[] = []
     $: ndiList = Object.keys($ndiData).map((id) => ({ value: id, label: id }))
+    // blendModeOptions' first entry is a raw "example.default" translation key (from the
+    // pre-existing single-media blend feature, whose own settings-editor layer normally
+    // translates labels before rendering) — MaterialDropdown here shows labels verbatim,
+    // so translate explicitly. translateText leaves plain words (e.g. "Screen") untouched.
+    $: translatedBlendModeOptions = blendModeOptions.map((o) => ({ ...o, label: translateText(o.label) }))
 
     onMount(async () => {
         const cameras = await cameraManager.getCamerasList()
@@ -68,7 +74,7 @@
             <MaterialDropdown label="NDI Source" value={layer.sourceId || ""} options={ndiList} on:change={(e) => update({ sourceId: e.detail?.value ?? e.detail })} />
         {/if}
 
-        <MaterialDropdown label="Blend Mode" value={layer.blendMode} options={blendModeOptions} on:change={(e) => update({ blendMode: e.detail?.value ?? e.detail })} />
+        <MaterialDropdown label="Blend Mode" value={layer.blendMode} options={translatedBlendModeOptions} on:change={(e) => update({ blendMode: e.detail?.value ?? e.detail })} />
         <MaterialNumberInput label="Opacity (%)" value={layer.opacity} min={0} max={100} step={1} scrub on:change={(e) => update({ opacity: Number(e.detail) })} />
     </div>
 </div>
