@@ -62,6 +62,9 @@
 
 <style>
     .quickStyleToolbar {
+        position: sticky;
+        top: 30px;
+        z-index: 199;
         display: flex;
         align-items: center;
         gap: 6px;
