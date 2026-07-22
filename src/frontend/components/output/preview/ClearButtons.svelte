@@ -69,7 +69,7 @@
     $: output = $outputs[outputId] || {}
     $: outputStyle = $styles[output.style || ""] || {}
     $: canDisplayStyleBG = !outputStyle.clearStyleBackgroundOnText || (!output.out?.slide && !output.out?.background)
-    $: styleBackground = backgroundCleared && !$outLocked && outputStyle.backgroundImage && canDisplayStyleBG
+    $: styleBackground = backgroundCleared && !$outLocked && (outputStyle.backgroundImage || outputStyle.backgroundBlend) && canDisplayStyleBG
     $: outBackground = output.out?.background || {}
     $: backgroundData = $media[outBackground.path || ""] || {}
 
