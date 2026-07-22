@@ -12,6 +12,25 @@ const croppingRows = splitIntoRows([
     { id: "cropping.left", type: "number", value: 0, values: { label: "screen.left", max: 10000, showSlider: true, sliderValues: { max: 500 } } }
 ])
 
+export const blendModeOptions = [
+    { value: "", label: "example.default" },
+    { value: "screen", label: "Screen" },
+    { value: "multiply", label: "Multiply" },
+    { value: "overlay", label: "Overlay" },
+    { value: "soft-light", label: "Soft Light" },
+    { value: "hard-light", label: "Hard Light" },
+    { value: "color-dodge", label: "Color Dodge (Add)" },
+    { value: "color-burn", label: "Color Burn" },
+    { value: "lighten", label: "Lighten" },
+    { value: "darken", label: "Darken" },
+    { value: "difference", label: "Difference" },
+    { value: "exclusion", label: "Exclusion" },
+    { value: "hue", label: "Hue" },
+    { value: "saturation", label: "Saturation" },
+    { value: "color", label: "Color" },
+    { value: "luminosity", label: "Luminosity" }
+]
+
 const defaultMedia = splitIntoRows([
     {
         id: "videoType", // can be image as well
@@ -38,24 +57,7 @@ const defaultMedia = splitIntoRows([
         values: {
             label: "Blend Mode",
             defaultValue: "",
-            options: [
-                { value: "", label: "example.default" },
-                { value: "screen", label: "Screen" },
-                { value: "multiply", label: "Multiply" },
-                { value: "overlay", label: "Overlay" },
-                { value: "soft-light", label: "Soft Light" },
-                { value: "hard-light", label: "Hard Light" },
-                { value: "color-dodge", label: "Color Dodge (Add)" },
-                { value: "color-burn", label: "Color Burn" },
-                { value: "lighten", label: "Lighten" },
-                { value: "darken", label: "Darken" },
-                { value: "difference", label: "Difference" },
-                { value: "exclusion", label: "Exclusion" },
-                { value: "hue", label: "Hue" },
-                { value: "saturation", label: "Saturation" },
-                { value: "color", label: "Color" },
-                { value: "luminosity", label: "Luminosity" }
-            ]
+            options: blendModeOptions
         }
     },
     { id: "blendColor", type: "color", value: "", values: { label: "Blend Color", allowGradients: true, allowOpacity: true, allowEmpty: true } }
