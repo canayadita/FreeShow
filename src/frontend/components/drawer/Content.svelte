@@ -6,6 +6,7 @@
     import Scripture from "./bible/Scripture.svelte"
     import Calendar from "./calendar/Calendar.svelte"
     import Media from "./media/Media.svelte"
+    import Mixer from "./mixer/Mixer.svelte"
     import PiP from "./pip/PiP.svelte"
     import Actions from "./pages/Actions.svelte"
     import Interactions from "./pages/Interactions.svelte"
@@ -82,6 +83,8 @@
         <Typography />
     {:else if id === "pip"}
         <PiP {active} />
+    {:else if id === "mixer"}
+        <Mixer {active} />
     {/if}
 </div>
 

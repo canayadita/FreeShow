@@ -11,7 +11,8 @@ export const drawerTabs = {
     functions: { name: "tabs.functions", icon: "functions", title: "" },
 
     typography: { name: "tabs.typography", icon: "text", title: "tabs.typography_info" },
-    pip: { name: "tabs.pip", icon: "pip", title: "tabs.pip_info" }
+    pip: { name: "tabs.pip", icon: "pip", title: "tabs.pip_info" },
+    mixer: { name: "tabs.mixer", icon: "mixer", title: "tabs.mixer_info" }
 }
 
 // export const drawerTabs = {

@@ -435,6 +435,8 @@
         "typography_info": "Preset typography + animation templates untuk text lyric. Pilih text item di Edit mode, lalu klik salah satu preset untuk apply.",
         "pip": "Picture-in-Picture",
         "pip_info": "Create multi-pane layouts with different content sources like camera, screen, video, and more.",
+        "mixer": "Mixer",
+        "mixer_info": "Blend multiple backgrounds together live using blend modes, like a VJ mixer.",
         "search_tip": "Drawer content search"
     },
     "category": {

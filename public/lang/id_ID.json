@@ -404,6 +404,8 @@
         "web": "Web",
         "pip": "Picture-in-Picture",
         "pip_info": "Buat layout multi-pane dengan berbagai sumber konten seperti kamera, layar, video, dan lainnya.",
+        "mixer": "Mixer",
+        "mixer_info": "Blend multiple backgrounds together live using blend modes, like a VJ mixer.",
         "search_tip": "Pencarian konten"
     },
     "category": {
