@@ -9,6 +9,7 @@
     import { removeTemplatesFromShow } from "../helpers/show"
     import T from "../helpers/T.svelte"
     import MaterialButton from "../inputs/MaterialButton.svelte"
+    import ShowQuickStyle from "./ShowQuickStyle.svelte"
 
     export let showId: string
     export let hideOptions = false
@@ -165,6 +166,8 @@
         {/if}
     </div>
 </div>
+
+<ShowQuickStyle {showId} />
 
 <style>
     /* header */
