@@ -84,6 +84,7 @@
 
 <svelte:window on:mousedown={mousedown} />
 
+<div class="stickyGroup">
 <div class="header" class:shadow={listScrollY > 0}>
     <div class="name-notes" data-title={currentShow?.name}>
         <div class="name">
@@ -168,13 +169,20 @@
 </div>
 
 <ShowQuickStyle {showId} />
+</div>
 
 <style>
+    /* sticky group: header + quick-style toolbar stick together as one unit, so the
+       toolbar never needs to guess the header's exact rendered height */
+    .stickyGroup {
+        position: sticky;
+        top: 0;
+        z-index: 200;
+    }
+
     /* header */
 
     .header {
-        position: sticky;
-        top: 0;
         left: 0;
         width: 100%;
 
@@ -194,7 +202,6 @@
 
         background-color: rgb(0 0 10 / 0.3);
 
-        z-index: 200;
         transition: box-shadow 0.2s ease;
     }
     .header.shadow {
