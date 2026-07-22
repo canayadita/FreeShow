@@ -12,7 +12,7 @@
 
     let scope: QuickStyleScope = "slide"
 
-    $: selectedIndex = $selected.id === "slide" ? ($selected.data[0]?.index ?? null) : null
+    $: selectedIndex = $selected.id === "slide" && $selected.data[0]?.showId === showId ? ($selected.data[0]?.index ?? null) : null
     $: previewSlideId = resolveTargetSlideIds(showId, "slide", selectedIndex)[0] || ""
     $: current = previewSlideId ? readCurrentStyle(showId, previewSlideId) : null
     $: disabled = scope === "slide" && selectedIndex === null
@@ -46,7 +46,7 @@
 
     <MaterialFontDropdown label="Font" value={current?.fontFamily || ""} on:change={(e) => changeFontFamily(e.detail?.value ?? e.detail)} />
     <MaterialColorInput label="Color" value={current?.color || "#FFFFFF"} defaultValue="#FFFFFF" disabled={disabled} on:input={(e) => changeColor(e.detail)} />
-    <MaterialNumberInput label="Size" value={Number(current?.fontSize) || 100} min={1} max={500} disabled={disabled} on:change={(e) => changeFontSize(Number(e.detail))} />
+    <MaterialNumberInput label="Size" value={parseFloat(current?.fontSize || "") || 100} min={1} max={500} disabled={disabled} on:change={(e) => changeFontSize(Number(e.detail))} />
 
     <div class="alignGroup">
         <MaterialButton {disabled} title="Align left" on:click={() => changeTextAlign("left")}><Icon id="alignLeft" white /></MaterialButton>
