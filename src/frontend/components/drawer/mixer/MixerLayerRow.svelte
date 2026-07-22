@@ -27,9 +27,7 @@
         { value: "video", label: "Video" },
         { value: "color", label: "Color" },
         { value: "camera", label: "Camera" },
-        { value: "ndi", label: "NDI" },
-        { value: "screen", label: "Screen" },
-        { value: "blackmagic", label: "Blackmagic" }
+        { value: "ndi", label: "NDI" }
     ]
 
     let cameraList: { value: string; label: string }[] = []
