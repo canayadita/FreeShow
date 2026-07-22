@@ -5,6 +5,7 @@
     import { keysToID, sortByName } from "../../helpers/array"
     import { createLayer, deleteBlend, saveBlend } from "../../helpers/blends"
     import { moveLayer } from "../../helpers/blendsMath"
+    import { getAllActiveOutputs, setOutput } from "../../helpers/output"
     import MaterialButton from "../../inputs/MaterialButton.svelte"
     import MaterialTextInput from "../../inputs/MaterialTextInput.svelte"
     import BlendBackground from "../../output/layers/BlendBackground.svelte"
@@ -45,6 +46,13 @@
 
     function save() {
         editingId = saveBlend(name, layers, editingId)
+    }
+
+    function showOnPrimary() {
+        editingId = saveBlend(name, layers, editingId)
+        getAllActiveOutputs().forEach((output) => {
+            setOutput("background", { type: "blend", id: editingId }, false, output.id)
+        })
     }
 
     function remove(id: string) {
@@ -90,6 +98,7 @@
     <div class="save-row">
         <MaterialTextInput label="Name" value={name} on:change={(e) => (name = e.detail)} />
         <MaterialButton icon="save" variant="outlined" on:click={save}>Save</MaterialButton>
+        <MaterialButton icon="play" variant="outlined" on:click={showOnPrimary}>Show on Primary</MaterialButton>
         {#if editingId}
             <MaterialButton icon="add" variant="outlined" on:click={newBlend}>New</MaterialButton>
         {/if}
@@ -143,6 +152,7 @@
         position: relative;
         width: 100%;
         aspect-ratio: 16 / 9;
+        flex-shrink: 0;
         background: #111;
         border-radius: 4px;
         overflow: hidden;
