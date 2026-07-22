@@ -102,10 +102,13 @@ import { getItemText, getSelectionRange } from "../edit/scripts/textStyle"
 import { clone, removeDuplicates, sortObjectNumbers } from "../helpers/array"
 import { copy, cut, deleteAction, duplicate, paste, selectAll } from "../helpers/clipboard"
 import { history, redo, undo } from "../helpers/history"
+import type { BlendLayer } from "../../../types/Blend"
+import { saveBlend } from "../helpers/blends"
 import { getExtension, getFileName, getMediaLayerType, getMediaStyle, getMediaType, removeExtension, splitPath } from "../helpers/media"
 import { defaultOutput, getCurrentStyle, getFirstActiveOutput, setOutput, toggleOutput, toggleOutputs } from "../helpers/output"
 import { select } from "../helpers/select"
 import { bindSlidesToOutput, checkName, formatToFileName, getLayoutRef, openShow, removeTemplatesFromShow, updateShowsList } from "../helpers/show"
+import { setDrawerTabData } from "../helpers/historyHelpers"
 import { sendMidi } from "../helpers/showActions"
 import { _show } from "../helpers/shows"
 import { getMenuTagId, openTagManager, toggleSelectionTags, toggleTagFilter } from "../helpers/tags"
@@ -690,6 +693,22 @@ const clickActions = {
         show.layouts[layoutId].slides = layoutSlides
 
         history({ id: "UPDATE", newData: { data: show, remember: { project: get(activeProject) } }, location: { page: "show", id: "show" } })
+    },
+    blend_selected: (obj: ObjData) => {
+        const data = obj.sel?.data || []
+        const layers: BlendLayer[] = data.map((item: any) => ({
+            id: uid(),
+            sourceType: item.type === "video" ? "video" : "image",
+            sourcePath: item.path,
+            blendMode: "",
+            opacity: 100,
+            visible: true
+        }))
+
+        const blendId = saveBlend("New Blend", layers)
+
+        setDrawerTabData("mixer", blendId)
+        activeDrawerTab.set("mixer")
     },
     lock_group: (obj: ObjData) => {
         if (obj.sel?.id !== "group") return

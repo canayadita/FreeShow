@@ -5,6 +5,7 @@
     import { keysToID, sortByName } from "../../helpers/array"
     import { createLayer, deleteBlend, saveBlend } from "../../helpers/blends"
     import { moveLayer } from "../../helpers/blendsMath"
+    import { setDrawerTabData } from "../../helpers/historyHelpers"
     import { getAllActiveOutputs, setOutput } from "../../helpers/output"
     import MaterialButton from "../../inputs/MaterialButton.svelte"
     import MaterialTextInput from "../../inputs/MaterialTextInput.svelte"
@@ -29,6 +30,15 @@
         editingId = id
         name = blend.name
         layers = blend.layers.map((l) => ({ ...l }))
+    }
+
+    // auto-load a Blend passed in via the Drawer tab system (e.g. from Media's "Blend Selected"
+    // action), then clear it — otherwise `active` would keep pointing at this same Blend on
+    // every future casual visit to the Mixer tab, since Content.svelte remounts Mixer fresh
+    // each time the Drawer switches to it.
+    $: if (active && $blends[active]) {
+        loadBlend(active)
+        setDrawerTabData("mixer", "")
     }
 
     function addLayer() {
