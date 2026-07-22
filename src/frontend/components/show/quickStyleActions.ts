@@ -1,5 +1,6 @@
 import type { Item } from "../../../types/Show"
 import { addStyle, addStyleString, getLineText } from "../edit/scripts/textStyle"
+import { getBoxStyle } from "../edit/scripts/itemClipboard"
 import { clone } from "../helpers/array"
 import { history } from "../helpers/history"
 import { getLayoutRef } from "../helpers/show"
@@ -27,8 +28,7 @@ export function readCurrentStyle(showId: string, slideId: string) {
     const item = getTextItems(showId, slideId)[0]?.item
     if (!item) return null
 
-    const runStyle = item.lines?.[0]?.text?.[0]?.style || item.style || ""
-    const styles = getStyles(runStyle)
+    const styles = getBoxStyle(item).style
 
     return {
         fontFamily: styles["font-family"] || "",
@@ -47,7 +47,9 @@ export async function applyTextStyle(showId: string, slideIds: string[], key: "f
         if (!textItems.length) continue
 
         const values = textItems.map(({ item }) => {
-            const selection = (item.lines || []).map((line) => ({ start: 0, end: getLineText(line).length }))
+            if (!item.lines) return addStyleString(item.style || "", [key, value])
+
+            const selection = item.lines.map((line) => ({ start: 0, end: getLineText(line).length }))
             return addStyle(selection, clone(item), [key, value]).lines!.map((line) => line.text)
         })
 
