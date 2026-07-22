@@ -998,6 +998,7 @@
         "changeGroup": "Change group",
         "createNew": "Create new",
         "create_slideshow": "Create slideshow",
+        "blend_selected": "Blend Selected",
         "selectAll": "Select all",
         "force_outputs": "Force outputs",
         "align_with_screen": "Align with screen",

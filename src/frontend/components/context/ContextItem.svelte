@@ -190,6 +190,9 @@
         createSlideshow: () => {
             hide = $selected.id !== "media" || $selected.data.length < 2
         },
+        blend_selected: () => {
+            hide = $selected.id !== "media" || $selected.data.length < 2
+        },
         play: () => {
             if ($selected.id === "global_timer") {
                 let timer = $timers[$selected.data[0]?.id]
