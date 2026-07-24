@@ -1,24 +1,21 @@
-# FreeShow+ v1.6.7-plus
+# FreeShow+ v1.6.8-plus
 
 Extra features for small churches, built on top of FreeShow.
 
 ## ✨ Added
 
-- **Syphon output for OBS (macOS)** — send any output straight into OBS, or any Syphon-capable app, with no extra software. Flexible published resolution per output (Native / 1080p / 900p / 720p / 540p) so it stays smooth on weaker Macs and sharp on powerful ones. (Windows/Linux keep using NDI.)
-- **4 ready-made template packs (48 templates)** — Elegant, Bright Playful, Modern Bold, and Warm Minimal. Each coordinated kit covers ~12 slots: heading, general text, lyrics, list, quote, scripture, lower-thirds, and more.
-- **Slide right-click menu** — new options: **Add action**, **Clear actions**, **Template** (apply any template to the selected slide), **Copy style / Paste style**, and **Shortcut key**.
-- **Audience & Stage output toggles** — one-tap on/off buttons in the top bar with a live green indicator; modifier-click opens Output settings.
-- **Quick Edit popup** — edit slide text right from the right-click menu without leaving your current view.
+- **Show tab quick-style toolbar** — a slim, always-visible toolbar under the Show tab's slide grid to change **Font, Color, Size, Bold, Italic, Underline, and Align** (horizontal + vertical) for a whole show's slides, without opening Edit. Hide/show it from the show's "⋮" menu.
+- **Mixer framing controls** — per-layer **Position** (pan), **Zoom**, **Crop** (per edge), and **Feather** (Rectangle / Circle / Ellipse vignette), so a background layer can be framed exactly instead of always fit-to-screen.
+- **Bible / Scripture — more languages & verses** — added **French (Louis Segond 1910)** and **Spanish (Reina-Valera 1909)** to the splash opening verse and the scrolling ticker, alongside Indonesian/English. Verse library expanded from 229 to **501** verses (public-domain sources).
+- **Enable/Disable Loop right-click** — on a **slide** it toggles looping for that slide's video background directly; on a **file in the Media tab** it sets a per-file preference (e.g. mark a clip "don't loop") that's inherited whenever the file is used as a background.
+- **Slide right-click "Clear all effects"** — one click clears a slide's custom actions, filters, overlay effects, *and* any Typography preset applied to its text.
 
 ## 🐛 Fixed
 
-- **Bible verses no longer overflow or get cut off** — verse text now shrinks to fit the template's text box on any template (lower-third or full-screen).
-- **No size flash** — verses appear already fitted instead of briefly flashing oversized/cut, in both the live output and the preview.
-- **One unified Next for scripture** — a single Next button steps through the split parts of a long verse, then continues to the next verse. The separate "Next chunk" button is gone, so navigation is simpler and never confusing.
-- **Readable context-menu labels** — the new slide menu items show proper names instead of raw translation keys.
-- **Output toggles reflect live state** — the Audience/Stage buttons now update their on/off indicator correctly.
-- **Stage output mirror no longer lags.**
-- **Audio playlist no longer stops after a single song.**
+- **Background video loops are seamless** — looping video backgrounds now use the browser's native video loop, so they loop with **no stutter and no frozen frame** at the loop point (replacing the old crossfade/"dissolve" approach, which itself caused a brief freeze at the seam).
+- **Output preview no longer freezes at the loop point** — the live output was already fine, but the in-app preview used to freeze for a moment at each loop; it now loops as smoothly as the real output.
+- **"Disable loop" now works in the preview too** — previously the preview never reflected the loop state, so the right-click toggle looked like it did nothing there.
+- **Mixer video layers now loop** instead of stopping when they reach the end.
 
 ---
 
