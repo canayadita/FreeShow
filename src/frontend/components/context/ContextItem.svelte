@@ -9,6 +9,7 @@
     import { getExtension, getMediaType } from "../helpers/media"
     import { getLayoutRef } from "../helpers/show"
     import { _show } from "../helpers/shows"
+    import { videoExtensions } from "../../values/extensions"
     import T from "../helpers/T.svelte"
     import { ContextMenuItem, contextMenuItems } from "./contextMenus"
     import { menuClick } from "./menuClick"
@@ -121,6 +122,40 @@
 
             enabled = isEnabled
             menu.label = isEnabled ? "actions.enable" : "actions.disable"
+        },
+        toggle_background_loop: () => {
+            if ($selected.id !== "slide" || !$activeShow) {
+                hide = true
+                return
+            }
+            const ref = getLayoutRef()
+            const backgroundId = ref[$selected.data[0]?.index]?.data?.background
+            // background is a key into the show's own media dict (not a raw file path — the
+            // path/loop flag live on that dict entry, mirroring Icons.svelte's `background` prop)
+            const backgroundMedia = backgroundId ? $showsCache[$activeShow.id]?.media?.[backgroundId] : null
+            if (!backgroundMedia?.path || !videoExtensions.includes(getExtension(backgroundMedia.path))) {
+                hide = true
+                return
+            }
+
+            const isLooping = backgroundMedia.loop !== false
+            enabled = isLooping
+            menu.label = isLooping ? "actions.disable_loop" : "actions.enable_loop"
+        },
+        toggle_media_loop: () => {
+            if ($selected.id !== "media") {
+                hide = true
+                return
+            }
+            const path = $selected.data[0]?.path || $selected.data[0]?.id
+            if (!path || !videoExtensions.includes(getExtension(path))) {
+                hide = true
+                return
+            }
+
+            const isLooping = $media[path]?.loop !== false
+            enabled = isLooping
+            menu.label = isLooping ? "actions.disable_loop" : "actions.enable_loop"
         },
         display_tags: () => {
             enabled = $special.displayTags

@@ -182,7 +182,6 @@ export interface MediaStyle {
     speed?: string
     fromTime?: number
     toTime?: number
-    softLoop?: number
     videoType?: string // default | "background" | "foreground"
     audioType?: AudioType // default | "music" | "effect"
     favourite?: boolean

@@ -90,7 +90,7 @@ import { confirmCustom } from "../../utils/popup"
 import { send } from "../../utils/request"
 import { initializeClosing, save } from "../../utils/save"
 import { updateThemeValues } from "../../utils/updateSettings"
-import { addSlideAction, clearSlideActions, getActionTriggerId } from "../actions/actions"
+import { addSlideAction, clearAllSlideEffects, getActionTriggerId } from "../actions/actions"
 import { moveStageConnection } from "../actions/apiHelper"
 import { createScriptureShow, openActiveInRouteBible } from "../drawer/bible/scripture"
 import { stopMediaRecorder } from "../drawer/live/recorder"
@@ -105,6 +105,7 @@ import { history, redo, undo } from "../helpers/history"
 import type { BlendLayer } from "../../../types/Blend"
 import { saveBlend } from "../helpers/blends"
 import { getExtension, getFileName, getMediaLayerType, getMediaStyle, getMediaType, removeExtension, splitPath } from "../helpers/media"
+import { videoExtensions } from "../../values/extensions"
 import { defaultOutput, getCurrentStyle, getFirstActiveOutput, setOutput, toggleOutput, toggleOutputs } from "../helpers/output"
 import { select } from "../helpers/select"
 import { bindSlidesToOutput, checkName, formatToFileName, getLayoutRef, openShow, removeTemplatesFromShow, updateShowsList } from "../helpers/show"
@@ -702,7 +703,9 @@ const clickActions = {
             sourcePath: item.path,
             blendMode: "",
             opacity: 100,
-            visible: true
+            visible: true,
+            position: { x: 0, y: 0 },
+            zoom: 100
         }))
 
         const blendId = saveBlend("New Blend", layers)
@@ -1124,10 +1127,37 @@ const clickActions = {
         })
     },
     clear_actions: (obj: ObjData) => {
-        // Remove all custom actions previously added to the selected slide(s).
+        // Remove everything applied to the selected slide(s): custom actions, filters,
+        // overlay effects, and every text item's Typography preset.
         const indexes: number[] = obj.sel?.data.map(({ index }) => index) || []
         indexes.forEach((slideIndex) => {
-            clearSlideActions(slideIndex)
+            clearAllSlideEffects(slideIndex)
+        })
+    },
+    toggle_background_loop: (obj: ObjData) => {
+        if (obj.sel?.id !== "slide") return
+        const showId = get(activeShow)?.id
+        if (!showId) return
+
+        const ref = getLayoutRef()
+        const indexes: number[] = obj.sel.data.map(({ index }) => index) || []
+        indexes.forEach((slideIndex) => {
+            const backgroundId = ref[slideIndex]?.data?.background
+            const backgroundMedia = backgroundId ? get(showsCache)[showId]?.media?.[backgroundId] : null
+            if (!backgroundMedia?.path || !videoExtensions.includes(getExtension(backgroundMedia.path))) return
+
+            const isLooping = backgroundMedia.loop !== false
+            _show(showId)
+                .media([backgroundId])
+                .set({ key: "loop", value: !isLooping })
+
+            const activeOutputId = getFirstActiveOutput()?.id
+            if (activeOutputId) {
+                const currentBg = get(outputs)[activeOutputId]?.out?.background
+                if (currentBg && (currentBg.path === backgroundMedia.path || currentBg.id === backgroundId)) {
+                    setOutput("background", { ...currentBg, loop: !isLooping }, false, activeOutputId)
+                }
+            }
         })
     },
     copy_text_style: (obj: ObjData) => {
@@ -1641,7 +1671,7 @@ const clickActions = {
         const mediaStyle: MediaStyle = getMediaStyle(get(media)[path], currentStyle)
 
         const type = getMediaType(getExtension(path))
-        setOutput("background", { path, ...mediaStyle, type, loop: true, muted: true })
+        setOutput("background", { path, ...mediaStyle, type, loop: get(media)[path]?.loop ?? true, muted: true })
     },
     play_no_filters: (obj: ObjData) => {
         if (get(outLocked)) return
@@ -1650,7 +1680,7 @@ const clickActions = {
         if (!path) return
 
         const videoType = getMediaLayerType(path, get(media)[path])
-        const loop = videoType === "foreground" ? false : true
+        const loop = get(media)[path]?.loop ?? videoType !== "foreground"
         const muted = videoType === "foreground" ? false : true
 
         const type = getMediaType(getExtension(path))
@@ -1680,6 +1710,39 @@ const clickActions = {
             })
             return a
         })
+    },
+    toggle_media_loop: (obj: ObjData) => {
+        if (!obj.sel) return
+
+        // per-file preference: inherited when this file is later dropped onto a slide as a
+        // background (dropActions.ts), not applied to instances already placed on a slide
+        // (use the slide's own right-click "Enable/Disable Loop" for that).
+        const isLooping = get(media)[obj.sel.data[0]?.path || obj.sel.data[0]?.id]?.loop !== false
+        media.update((a) => {
+            obj.sel!.data.forEach((card) => {
+                const path = card.path || card.id
+                if (!path) return
+                if (!a[path]) a[path] = { filter: "" }
+                a[path].loop = !isLooping
+            })
+            return a
+        })
+
+        // Also update active output if this media is currently playing as background
+        const activeOutputId = getFirstActiveOutput()?.id
+        if (activeOutputId) {
+            const currentBg = get(outputs)[activeOutputId]?.out?.background
+            if (currentBg) {
+                const bgPath = currentBg.path || currentBg.id || ""
+                const matchingCard = obj.sel.data.find((card) => {
+                    const cardPath = card.path || card.id || ""
+                    return cardPath === bgPath
+                })
+                if (matchingCard) {
+                    setOutput("background", { ...currentBg, loop: !isLooping }, false, activeOutputId)
+                }
+            }
+        }
     },
     effects_library_add: (obj: ObjData) => {
         if (!obj.sel) return

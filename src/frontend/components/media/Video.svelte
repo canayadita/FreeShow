@@ -3,7 +3,6 @@
     import type { MediaStyle } from "../../../types/Main"
     import { media } from "../../stores"
     import { enableSubtitle, encodeFilePath, isVideoSupported } from "../helpers/media"
-    import { SoftLoopManager } from "./softLoop"
     import { AudioAnalyser } from "../../audio/audioAnalyser"
 
     export let path: string
@@ -86,7 +85,6 @@
 
         cleanupVideo(video)
         cleanupVideo(blurVideo)
-        cleanupVideo(softLoopVideo)
     })
 
     // custom end time
@@ -96,9 +94,10 @@
     function checkIfEnded() {
         if (!videoTime || !endTime) return
         if (videoTime >= endTime) {
-            if (videoData.loop) {
-                if (!softLoopValue) videoTime = mediaStyle.fromTime || 0
-            } else dispatch("ended")
+            // custom end time (toTime): native <video loop> only restarts at the file's natural
+            // end, so a manual reset is still needed when looping within a trimmed range
+            if (videoData.loop) videoTime = mediaStyle.fromTime || 0
+            else dispatch("ended")
         }
     }
 
@@ -152,60 +151,20 @@
     // some videos don't like high playback speed (above 5.9)
     // https://issues.chromium.org/issues/40167938
 
-    // Soft loop
-    // WIP currently not working well in preview
-    const slManager = new SoftLoopManager()
-    const slUpdate = (res: any) => {
-        if (res.opacity !== undefined) softLoopOpacity = res.opacity
-        if (res.videoTime !== undefined) videoTime = res.videoTime
-        if (res.paused !== undefined) videoData.paused = res.paused
+    // Looping is handled purely by the native <video loop> attribute (see below), the same
+    // approach the media player in VideoShow.svelte uses — it loops seamlessly with no freeze.
+    // The old SoftLoopManager crossfade was removed: it seeked the visible video element at the
+    // loop point, and that seek was itself a ~0.5s frame freeze the crossfade never reliably hid.
+    $: if (video) {
+        video.volume = volume
+        video.loop = videoData.loop || false
+        AudioAnalyser.setSourceVolume(path, volume)
     }
-
-    let softLoopVideo: HTMLVideoElement | null = null
-    let softLoopOpacity = 0
-
-    $: softLoopValue = Number(mediaStyle.softLoop) > 0 ? Number(mediaStyle.softLoop) : 0
-    $: if (softLoopValue > 0 && softLoopVideo && playbackRate) softLoopVideo.playbackRate = playbackRate
-    $: actualEndTime = endTime || videoData.duration || 0
-    $: if (softLoopValue > 0) {
-        if (video) {
-            video.volume = volume * (1 - softLoopOpacity)
-            AudioAnalyser.setSourceVolume(path, video.volume)
-        }
-        if (softLoopVideo) {
-            softLoopVideo.volume = volume * softLoopOpacity
-            AudioAnalyser.setSourceVolume(path + "_softloop", softLoopVideo.volume)
-        }
-    } else {
-        if (video) {
-            video.volume = volume
-            AudioAnalyser.setSourceVolume(path, volume)
-        }
-        if (softLoopVideo) {
-            softLoopVideo.volume = 0
-            AudioAnalyser.setSourceVolume(path + "_softloop", 0)
-        }
-    }
-
-    $: slParams = {
-        video,
-        softLoopVideo,
-        softLoopValue,
-        actualEndTime,
-        mirror,
-        fromTime: mediaStyle.fromTime || 0,
-        loop: videoData.loop,
-        paused: videoData.paused,
-        onUpdate: slUpdate
-    }
-
-    function handleTimeUpdate() {
-        if (video) slManager.update(slParams)
-    }
-    $: if (video) slManager.update(slParams)
 
     function handleEnded() {
-        if (!slManager.handleEnded(slParams)) dispatch("ended")
+        // With native loop the browser restarts the video itself and `ended` never fires while
+        // looping; this only runs when loop is off, to clear the media / trigger next-after-media.
+        dispatch("ended")
     }
 </script>
 
@@ -213,13 +172,11 @@
     {#if mediaStyle.fit === "blur" && !perfectFit}
         <video class="media" style={mediaStyleBlurString} src={encodeFilePath(path)} bind:playbackRate bind:this={blurVideo} bind:paused={blurPausedState} muted loop={videoData.loop || false} />
     {/if}
-    <video class="media" style={mediaStyleString} bind:this={video} on:loadedmetadata={loaded} on:playing={playing} on:ended={handleEnded} on:error on:timeupdate={handleTimeUpdate} bind:playbackRate bind:currentTime={videoTime} bind:paused={videoData.paused} bind:duration={videoData.duration} muted={mirror ? true : (videoData.muted ?? true)} src={encodeFilePath(path)} autoplay loop={videoData.loop && !softLoopValue} volume={softLoopValue > 0 ? volume * (1 - softLoopOpacity) : volume}>
+    <!-- native loop = seamless, no freeze (same as VideoShow.svelte's player) -->
+    <video class="media" style={mediaStyleString} bind:this={video} on:loadedmetadata={loaded} on:playing={playing} on:ended={handleEnded} on:error bind:playbackRate bind:currentTime={videoTime} bind:paused={videoData.paused} bind:duration={videoData.duration} muted={mirror ? true : (videoData.muted ?? true)} src={encodeFilePath(path)} autoplay loop={videoData.loop} {volume}>
         <!-- bind:volume={audioVolume} -->
         {#each tracks as track}
             <track label={track.name} srclang={track.lang} kind="subtitles" src="data:text/vtt;charset=utf-8,{encodeURI(track.vtt)}" />
         {/each}
     </video>
-    {#if softLoopValue > 0 && videoData.loop}
-        <video class="media" style="{mediaStyleString} position: absolute; top: 0; left: 0; opacity: {softLoopOpacity}; pointer-events: none;" bind:this={softLoopVideo} bind:paused={videoData.paused} src={encodeFilePath(path)} muted={mirror ? true : (videoData.muted ?? true)} bind:playbackRate volume={softLoopValue > 0 ? volume * softLoopOpacity : 0} />
-    {/if}
 </div>

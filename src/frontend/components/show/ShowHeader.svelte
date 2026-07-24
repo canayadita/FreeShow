@@ -2,7 +2,7 @@
     import { fade } from "svelte/transition"
     import { Main } from "../../../types/IPC/Main"
     import { sendMain } from "../../IPC/main"
-    import { activePopup, openToolsTab, outputs, showNotesActive, shows, showsCache, special, styles, templates } from "../../stores"
+    import { activePopup, openToolsTab, outputs, showNotesActive, showQuickStyleActive, shows, showsCache, special, styles, templates } from "../../stores"
     import { translateText } from "../../utils/language"
     import Icon from "../helpers/Icon.svelte"
     import { allOutputsHasStyleTemplate, getFirstActiveOutput } from "../helpers/output"
@@ -135,6 +135,16 @@
                     <p><T id="tools.notes" /></p>
                 </MaterialButton>
 
+                <MaterialButton title="Toggle quick-style toolbar" on:click={() => showQuickStyleActive.set(!$showQuickStyleActive)}>
+                    <Icon id="styles" white={!$showQuickStyleActive} />
+
+                    {#if $showQuickStyleActive}
+                        <Icon id="check" size={0.7} white />
+                    {/if}
+
+                    <p>Quick Style Toolbar</p>
+                </MaterialButton>
+
                 <div class="DIVIDER"></div>
 
                 <MaterialButton title="timeline.toggle_timeline" on:click={() => special.update((a) => ({ ...a, timelineActive: !a.timelineActive }))}>
@@ -168,7 +178,9 @@
     </div>
 </div>
 
-<ShowQuickStyle {showId} />
+{#if $showQuickStyleActive}
+    <ShowQuickStyle {showId} on:hide={() => showQuickStyleActive.set(false)} />
+{/if}
 </div>
 
 <style>

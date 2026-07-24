@@ -57,8 +57,7 @@
     function updateValues() {
         if (fadingOut) return
 
-        videoData.muted = data.muted ?? true
-        videoData.loop = data.loop ?? styleBackground
+        videoData = { ...videoData, muted: data.muted ?? true, loop: data.loop ?? styleBackground }
     }
     // draw
 
@@ -66,27 +65,46 @@
     $: if (mirror && !styleBackground && $videosData[outputId]?.paused) videoData.paused = true
     $: if (mirror && !styleBackground && $videosData[outputId]?.paused === false) videoData.paused = false
 
+    // Keep the preview's loop state in sync with the real output. Without this the mirror <video>
+    // never gets native <video loop> (only the seek-sync faked it), which both froze the frame at
+    // the loop seam and made the right-click "disable loop" toggle look like it did nothing in the
+    // preview. With loop propagated, native loop carries the preview through the seam smoothly —
+    // the same reason the Edit media player (which uses <Media> with native loop) never freezes.
+    $: if (mirror && !styleBackground && $videosData[outputId]?.loop !== undefined && videoData.loop !== $videosData[outputId].loop) videoData.loop = $videosData[outputId].loop
+
     $: if (mirror && !styleBackground && $videosTime[outputId] !== undefined) setPreviewVideoTime()
     function setPreviewVideoTime() {
         // timeout in case video is going to fade out
         setTimeout(() => {
             if (fadingOut || (!videoData.paused && videoTime < 2)) return
 
-            const diff = Math.abs($videosTime[outputId] - videoTime)
+            const outputTime = $videosTime[outputId]
+            const diff = Math.abs(outputTime - videoTime)
             if (diff > 0.5) {
-                videoTime = $videosTime[outputId]
+                // At the loop seam the two <video> elements wrap independently, so for a brief
+                // moment their times disagree by nearly the whole duration. Force-seeking then is
+                // exactly the frozen frame seen at the loop point. When looping, detect the wrap in
+                // BOTH directions and skip the correction — let native <video loop> carry the
+                // preview through smoothly (same as the Edit media player). Only correct genuine
+                // mid-video drift/scrubbing away from the seam.
+                const dur = videoData.duration || 0
+                const isWrap = outputTime < 0.6 || (dur > 0 && (videoTime > dur - 0.6 || diff > dur - 0.6))
+                if (videoData.loop && isWrap) return
 
-                if (videoTime < 0.6) {
-                    videoData.paused = true // quick fix for preview stutter when video loops (should be a better fix)
-                } else {
-                    videoData.paused = $videosData[outputId]?.paused
-                }
+                videoTime = outputTime
+                videoData.paused = $videosData[outputId]?.paused
             }
         }, 50)
     }
 
     $: if (!mirror && !fadingOut) send(OUTPUT, ["MAIN_DATA"], { [outputId]: videoData })
-    $: if (!mirror && !fadingOut) sendVideoTime(videoTime)
+    $: if (!mirror && !fadingOut) {
+        if (videoTime < 0.5 && sendingTimeout) {
+            clearTimeout(sendingTimeout)
+            sendingTimeout = null
+        }
+        sendVideoTime(videoTime)
+    }
 
     let sendingTimeout: NodeJS.Timeout | null = null
     let timeUpdateTimeout = 220
@@ -146,7 +164,7 @@
     $: isVideo = videoExtensions.includes(getExtension(id))
 
     // call end just before (to make room for transition) - this also triggers video ended on loop
-    $: if (isVideo && videoData.duration && videoTime >= videoData.duration - (duration / 1000 + 0.1) && !mediaStyle.softLoop) {
+    $: if (isVideo && videoData.duration && videoTime >= videoData.duration - (duration / 1000 + 0.1)) {
         videoEnded()
     }
 

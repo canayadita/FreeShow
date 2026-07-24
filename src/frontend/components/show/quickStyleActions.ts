@@ -7,13 +7,11 @@ import { getLayoutRef } from "../helpers/show"
 import { _show } from "../helpers/shows"
 import { getStyles } from "../helpers/style"
 import { wait } from "../../utils/common"
-import { selectTargetSlideIdsFromRef, type QuickStyleScope } from "./quickStyleMath"
+import { getAllSlideIdsFromRef } from "./quickStyleMath"
 
-export type { QuickStyleScope }
-
-// Resolve which slide id(s) a quick-style change should apply to, given the current scope/selection.
-export function resolveTargetSlideIds(showId: string, scope: QuickStyleScope, selectedIndex: number | null): string[] {
-    return selectTargetSlideIdsFromRef(getLayoutRef(showId), scope, selectedIndex)
+// The quick-style toolbar always applies to every slide in the show's current layout.
+export function resolveTargetSlideIds(showId: string): string[] {
+    return getAllSlideIdsFromRef(getLayoutRef(showId))
 }
 
 function getTextItems(showId: string, slideId: string): { index: number; item: Item }[] {
@@ -23,8 +21,9 @@ function getTextItems(showId: string, slideId: string): { index: number; item: I
 
 // Read the current font-family/color/font-size/alignment from a slide's first text item,
 // to seed the toolbar's inputs when the target slide changes. Returns null if the slide
-// has no text item yet.
-export function readCurrentStyle(showId: string, slideId: string) {
+// has no text item yet. `_updateTrigger` isn't read directly, it just lets callers pass a
+// store value (e.g. $showsCache) so Svelte re-runs this whenever the slide data changes.
+export function readCurrentStyle(showId: string, slideId: string, _updateTrigger: any = null) {
     const item = getTextItems(showId, slideId)[0]?.item
     if (!item) return null
 
@@ -32,16 +31,19 @@ export function readCurrentStyle(showId: string, slideId: string) {
 
     return {
         fontFamily: styles["font-family"] || "",
-        color: styles["color"] || "",
+        color: styles.color || "",
         fontSize: styles["font-size"] || "",
+        fontWeight: styles["font-weight"] || "",
+        fontStyle: styles["font-style"] || "",
+        textDecoration: styles["text-decoration"] || "",
         textAlign: item.lines?.[0]?.align || "left",
         alignItems: getStyles(item.align || "")["align-items"] || "center"
     }
 }
 
-// Apply one font-family/color/font-size change to every text item on every target slide,
-// preserving every other style property already on each item.
-export async function applyTextStyle(showId: string, slideIds: string[], key: "font-family" | "color" | "font-size", value: string) {
+// Apply one font-family/color/font-size/font-weight/font-style/text-decoration change to every
+// text item on every target slide, preserving every other style property already on each item.
+export async function applyTextStyle(showId: string, slideIds: string[], key: "font-family" | "color" | "font-size" | "font-weight" | "font-style" | "text-decoration", value: string) {
     for (const slideId of slideIds) {
         const textItems = getTextItems(showId, slideId)
         if (!textItems.length) continue

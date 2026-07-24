@@ -2,7 +2,6 @@
     import { onDestroy, onMount } from "svelte"
     import { activePopup, activeProject, projects, projectView, quickSearchActive, showRecentlyUsedProjects, version } from "../../stores"
     import { history } from "../helpers/history"
-    import Icon from "../helpers/Icon.svelte"
     import T from "../helpers/T.svelte"
     import MaterialButton from "../inputs/MaterialButton.svelte"
     import Center from "../system/Center.svelte"
@@ -41,7 +40,9 @@
         <div class="verse-block">
             <p class="verse-id">{currentVerse.id}</p>
             <p class="verse-en">{currentVerse.en}</p>
-            <p class="verse-ref">— {currentVerse.ref} / {currentVerse.refEn}</p>
+            <p class="verse-fr">{currentVerse.fr}</p>
+            <p class="verse-es">{currentVerse.es}</p>
+            <p class="verse-ref">— {currentVerse.ref} / {currentVerse.refEn} / {currentVerse.refFr} / {currentVerse.refEs}</p>
         </div>
     {/if}
 
@@ -97,7 +98,9 @@
         word-break: break-word;
     }
 
-    .verse-en {
+    .verse-en,
+    .verse-fr,
+    .verse-es {
         font-size: 0.82em;
         line-height: 1.5;
         opacity: 0.65;
@@ -106,6 +109,11 @@
         white-space: normal;
         overflow: visible;
         word-break: break-word;
+    }
+
+    .verse-fr,
+    .verse-es {
+        opacity: 0.5;
     }
 
     .verse-ref {

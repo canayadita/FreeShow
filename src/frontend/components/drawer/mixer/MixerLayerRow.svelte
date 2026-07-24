@@ -1,7 +1,7 @@
 <!-- src/frontend/components/drawer/mixer/MixerLayerRow.svelte -->
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte"
-    import type { BlendLayer, BlendSourceType } from "../../../../types/Blend"
+    import type { BlendFeather, BlendFeatherShape, BlendLayer, BlendSourceType } from "../../../../types/Blend"
     import { blendModeOptions } from "../../edit/values/media"
     import { cameraManager } from "../../../media/cameraManager"
     import { ndiData } from "../../../stores"
@@ -21,6 +21,35 @@
 
     function update(changes: Partial<BlendLayer>) {
         dispatch("update", { ...layer, ...changes })
+    }
+
+    // position/zoom/crop don't apply to a flat color fill — only to actual visual media
+    $: framingApplies = layer.sourceType !== "color"
+
+    function updatePosition(axis: "x" | "y", value: number) {
+        update({ position: { x: layer.position?.x ?? 0, y: layer.position?.y ?? 0, [axis]: value } })
+    }
+
+    const emptyCrop = { left: 0, right: 0, top: 0, bottom: 0 }
+    function updateCrop(changes: Partial<typeof emptyCrop>) {
+        update({ crop: { ...emptyCrop, ...layer.crop, ...changes } })
+    }
+
+    const featherShapeOptions: { value: BlendFeatherShape; label: string }[] = [
+        { value: "rect", label: "Rectangle (per edge)" },
+        { value: "circle", label: "Circle" },
+        { value: "ellipse", label: "Ellipse" }
+    ]
+    const emptyFeather: BlendFeather = { shape: "rect", left: 0, right: 0, top: 0, bottom: 0, amount: 0 }
+    function updateFeatherShape(shape: string) {
+        if (!shape) {
+            update({ feather: undefined })
+            return
+        }
+        update({ feather: { ...emptyFeather, ...layer.feather, shape: shape as BlendFeatherShape } })
+    }
+    function updateFeather(changes: Partial<BlendFeather>) {
+        update({ feather: { ...emptyFeather, ...layer.feather, ...changes } })
     }
 
     const sourceTypeOptions: { value: BlendSourceType; label: string }[] = [
@@ -76,6 +105,39 @@
 
         <MaterialDropdown label="Blend Mode" value={layer.blendMode} options={translatedBlendModeOptions} on:change={(e) => update({ blendMode: e.detail?.value ?? e.detail })} />
         <MaterialNumberInput label="Opacity (%)" value={layer.opacity} min={0} max={100} step={1} scrub on:change={(e) => update({ opacity: Number(e.detail) })} />
+
+        {#if framingApplies}
+            <div class="controlRow">
+                <MaterialNumberInput label="Position X (%)" value={layer.position?.x ?? 0} min={-50} max={50} step={1} scrub on:change={(e) => updatePosition("x", Number(e.detail))} />
+                <MaterialNumberInput label="Position Y (%)" value={layer.position?.y ?? 0} min={-50} max={50} step={1} scrub on:change={(e) => updatePosition("y", Number(e.detail))} />
+            </div>
+            <MaterialNumberInput label="Zoom (%)" value={layer.zoom ?? 100} min={100} max={400} step={5} scrub on:change={(e) => update({ zoom: Number(e.detail) })} />
+
+            <span class="groupLabel">Crop</span>
+            <div class="controlRow">
+                <MaterialNumberInput label="Crop Left (%)" value={layer.crop?.left ?? 0} min={0} max={45} step={1} scrub on:change={(e) => updateCrop({ left: Number(e.detail) })} />
+                <MaterialNumberInput label="Crop Right (%)" value={layer.crop?.right ?? 0} min={0} max={45} step={1} scrub on:change={(e) => updateCrop({ right: Number(e.detail) })} />
+            </div>
+            <div class="controlRow">
+                <MaterialNumberInput label="Crop Top (%)" value={layer.crop?.top ?? 0} min={0} max={45} step={1} scrub on:change={(e) => updateCrop({ top: Number(e.detail) })} />
+                <MaterialNumberInput label="Crop Bottom (%)" value={layer.crop?.bottom ?? 0} min={0} max={45} step={1} scrub on:change={(e) => updateCrop({ bottom: Number(e.detail) })} />
+            </div>
+        {/if}
+
+        <span class="groupLabel">Feather</span>
+        <MaterialDropdown label="Feather Shape" value={layer.feather?.shape || ""} options={featherShapeOptions} allowEmpty on:change={(e) => updateFeatherShape(e.detail?.value ?? e.detail ?? "")} />
+        {#if layer.feather?.shape === "rect"}
+            <div class="controlRow">
+                <MaterialNumberInput label="Feather Left (%)" value={layer.feather?.left ?? 0} min={0} max={50} step={1} scrub on:change={(e) => updateFeather({ left: Number(e.detail) })} />
+                <MaterialNumberInput label="Feather Right (%)" value={layer.feather?.right ?? 0} min={0} max={50} step={1} scrub on:change={(e) => updateFeather({ right: Number(e.detail) })} />
+            </div>
+            <div class="controlRow">
+                <MaterialNumberInput label="Feather Top (%)" value={layer.feather?.top ?? 0} min={0} max={50} step={1} scrub on:change={(e) => updateFeather({ top: Number(e.detail) })} />
+                <MaterialNumberInput label="Feather Bottom (%)" value={layer.feather?.bottom ?? 0} min={0} max={50} step={1} scrub on:change={(e) => updateFeather({ bottom: Number(e.detail) })} />
+            </div>
+        {:else if layer.feather?.shape === "circle" || layer.feather?.shape === "ellipse"}
+            <MaterialNumberInput label="Feather Amount (%)" value={layer.feather?.amount ?? 0} min={0} max={50} step={1} scrub on:change={(e) => updateFeather({ amount: Number(e.detail) })} />
+        {/if}
     </div>
 </div>
 
@@ -105,5 +167,22 @@
         display: flex;
         flex-direction: column;
         gap: 6px;
+    }
+
+    .controlRow {
+        display: flex;
+        gap: 6px;
+    }
+    .controlRow > :global(*) {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .groupLabel {
+        margin-top: 4px;
+        font-size: 0.7em;
+        opacity: 0.5;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 </style>

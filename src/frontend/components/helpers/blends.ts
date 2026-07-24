@@ -5,7 +5,7 @@ import { blends } from "../../stores"
 import { hasValidSource } from "./blendsMath"
 
 export function createLayer(): BlendLayer {
-    return { id: uid(), sourceType: "image", blendMode: "", opacity: 100, visible: true }
+    return { id: uid(), sourceType: "image", blendMode: "", opacity: 100, visible: true, position: { x: 0, y: 0 }, zoom: 100 }
 }
 
 // Create or update a Blend from the Mixer's draft state. Layers with no source configured

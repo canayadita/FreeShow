@@ -604,11 +604,15 @@ const slideDrop = {
             delete a.id
 
             // "background" by default
-            let backgroundData = { muted: true, loop: true }
+            // a per-file loop preference (set via the Media tab's right-click "Enable/Disable
+            // Loop") takes priority over the type-based default, so e.g. a news clip marked
+            // "don't loop" stays that way wherever it's dropped as a background.
+            const loopPreference: boolean | undefined = get(media)[path]?.loop
+            let backgroundData = { muted: true, loop: loopPreference ?? true }
             const mediaStyle = getMediaStyle(get(media)[path], undefined)
             let type = getMediaLayerType(path, mediaStyle) || (shouldBeForeground ? "foreground" : "background")
             if (a.contentProvider) type = "foreground"
-            if (type === "foreground") backgroundData = { muted: false, loop: false }
+            if (type === "foreground") backgroundData = { muted: false, loop: loopPreference ?? false }
 
             return { ...a, path, ...(a.type === "video" ? backgroundData : {}) }
         })

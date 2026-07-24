@@ -145,6 +145,7 @@ export const contextMenuItems: { [key: string]: ContextMenuItem } = {
     actions: { label: "actions.slide_actions", icon: "actions", iconColor: "#d497ff", items: ["LOAD_actions"] },
     add_action: { label: "actions.add_action", icon: "actions", iconColor: "#d497ff", items: ["LOAD_add_action"] },
     clear_actions: { label: "actions.clear_actions", icon: "reset", iconColor: "#ff5454" },
+    toggle_background_loop: { label: "actions.disable_loop", icon: "loop", iconColor: "#6effbe" }, // label is overridden dynamically (see ContextItem.svelte conditions)
     bind_to: { label: "actions.bind_to", icon: "bind", iconColor: "#d497ff", items: ["LOAD_bind_slide"] },
     remove_layers: { label: "actions.remove_layers", icon: "remove_layers", iconColor: "#ff5454", items: ["LOAD_remove_layers"] },
     set_key: { label: "actions.set_key", icon: "chords", items: ["LOAD_keys"] },
@@ -188,6 +189,7 @@ export const contextMenuItems: { [key: string]: ContextMenuItem } = {
     play_no_audio: { label: "media.play_no_audio", icon: "play", iconColor: "#7d81ff" },
     play_no_filters: { label: "media.play_no_filters", icon: "play", iconColor: "#7d81ff" },
     favourite: { label: "media.favourite", icon: "star", iconColor: "#fff1ad" },
+    toggle_media_loop: { label: "actions.disable_loop", icon: "loop", iconColor: "#6effbe" }, // label overridden dynamically — see ContextItem.svelte conditions. A per-file preference: inherited by new background instances created from this file (see dropActions.ts), doesn't touch backgrounds already placed on a slide.
     effects_library_add: { label: "media.effects_library_add", icon: "effect", iconColor: "#fff1ad" },
     createSlideshow: { label: "context.create_slideshow", icon: "slide" },
     blend_selected: { label: "context.blend_selected", icon: "mixer" },
@@ -293,7 +295,7 @@ export const contextMenuLayouts: { [key: string]: string[] } = {
     // , "addToShow"
     // show_in_explorer!!
     media: ["manage_media_tags", "media_tag_filter", "sort_media_by"],
-    media_card: ["GROUP_open", "createSlideshow", "blend_selected", "play_no_audio", "play_no_filters", "SEPARATOR", "favourite", "SEPARATOR", "media_tag_set", "media_tag_filter", "sort_media_by", "SEPARATOR", "system_open"],
+    media_card: ["GROUP_open", "createSlideshow", "blend_selected", "play_no_audio", "play_no_filters", "SEPARATOR", "favourite", "toggle_media_loop", "SEPARATOR", "media_tag_set", "media_tag_filter", "sort_media_by", "SEPARATOR", "system_open"],
     // "addToFirstSlide",
     drawer_overlays: ["reset_defaults"],
     overlay_card: ["GROUP_open", "overlay_actions", "display_duration", "SEPARATOR", "lock_to_output", "place_under_slide", "SEPARATOR", "rename", "recolor", "duplicate", "delete"], // "GROUP_rename_color"
@@ -367,8 +369,8 @@ export const contextMenuLayouts: { [key: string]: string[] } = {
 
     // SHOWS
     // , "copy", "paste"
-    slide: ["GROUP_edit", "quick_edit_slide", "slideGroups", "add_action", "clear_actions", "bind_to", "format", "remove_layers", "apply_template", "hot_key", "slide_transition", "disable", "SEPARATOR", "copy_text_style", "paste_text_style", "SEPARATOR", "duplicate", "make_unique", "GROUP_slide_remove"],
-    slideChild: ["GROUP_edit", "quick_edit_slide", "slideGroups", "add_action", "clear_actions", "bind_to", "format", "remove_layers", "apply_template", "hot_key", "slide_transition", "disable", "SEPARATOR", "copy_text_style", "paste_text_style", "SEPARATOR", "duplicate", "make_unique", "GROUP_slide_remove"],
+    slide: ["GROUP_edit", "quick_edit_slide", "slideGroups", "add_action", "clear_actions", "toggle_background_loop", "bind_to", "format", "remove_layers", "apply_template", "hot_key", "slide_transition", "disable", "SEPARATOR", "copy_text_style", "paste_text_style", "SEPARATOR", "duplicate", "make_unique", "GROUP_slide_remove"],
+    slideChild: ["GROUP_edit", "quick_edit_slide", "slideGroups", "add_action", "clear_actions", "toggle_background_loop", "bind_to", "format", "remove_layers", "apply_template", "hot_key", "slide_transition", "disable", "SEPARATOR", "copy_text_style", "paste_text_style", "SEPARATOR", "duplicate", "make_unique", "GROUP_slide_remove"],
     slideFocus: ["quick_edit_slide", "editSlideText"],
     group: ["GROUP_rename_recolor", "lock_group", "SEPARATOR", "selectAll", "SEPARATOR", "duplicate", "delete_group"],
     global_group: ["manage_groups"],

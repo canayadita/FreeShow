@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onDestroy, onMount } from "svelte"
     import { getRandomBibleVerse, type BibleVerse } from "./votd"
 
     let currentVerse: BibleVerse = getRandomBibleVerse()
@@ -26,8 +25,6 @@
         node.style.animationDuration = `${animDuration}s`
         return {}
     }
-
-    onDestroy(() => {})
 </script>
 
 <section class="verse-bar">
@@ -42,9 +39,17 @@
                 <span class="sep"> &nbsp;·&nbsp; </span>
                 <span class="text-id">{currentVerse.id}</span>
                 <span class="sep"> &nbsp;&nbsp;|&nbsp;&nbsp; </span>
-                <span class="ref-en">{currentVerse.refEn}</span>
+                <span class="ref-secondary">{currentVerse.refEn}</span>
                 <span class="sep"> &nbsp;·&nbsp; </span>
-                <span class="text-en">{currentVerse.en}</span>
+                <span class="text-secondary">{currentVerse.en}</span>
+                <span class="sep"> &nbsp;&nbsp;|&nbsp;&nbsp; </span>
+                <span class="ref-secondary">{currentVerse.refFr}</span>
+                <span class="sep"> &nbsp;·&nbsp; </span>
+                <span class="text-secondary">{currentVerse.fr}</span>
+                <span class="sep"> &nbsp;&nbsp;|&nbsp;&nbsp; </span>
+                <span class="ref-secondary">{currentVerse.refEs}</span>
+                <span class="sep"> &nbsp;·&nbsp; </span>
+                <span class="text-secondary">{currentVerse.es}</span>
                 <span class="spacer">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
             </div>
         {/key}
@@ -95,7 +100,7 @@
         color: var(--secondary);
     }
 
-    .ref-en {
+    .ref-secondary {
         font-size: 0.72em;
         font-weight: 600;
         opacity: 0.45;
@@ -111,7 +116,7 @@
         opacity: 0.92;
     }
 
-    .text-en {
+    .text-secondary {
         font-size: 0.74em;
         opacity: 0.42;
         font-style: italic;

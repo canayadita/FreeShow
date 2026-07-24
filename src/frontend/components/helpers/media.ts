@@ -378,7 +378,6 @@ export function getMediaStyle(mediaObj: MediaStyle | undefined, currentStyle: St
         speed: "1",
         fromTime: 0,
         toTime: 0,
-        softLoop: 0,
         videoType: "",
         cropping: {},
         blendMode: "",
@@ -388,7 +387,8 @@ export function getMediaStyle(mediaObj: MediaStyle | undefined, currentStyle: St
     if (!mediaObj && !currentStyle) return mediaStyle
 
     Object.keys(mediaStyle).forEach((key) => {
-        if (!mediaObj?.[key]) return
+        // undefined-check (not falsy) so explicit 0/false/"" overrides aren't silently ignored
+        if (mediaObj?.[key] === undefined) return
         mediaStyle[key] = mediaObj[key]
     })
 

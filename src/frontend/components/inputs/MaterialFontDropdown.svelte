@@ -10,6 +10,7 @@
     export let fontStyleValue = ""
     export let enableFontStyles = false
     export let allowEmpty = false
+    export let disabled = false
 
     let systemFontsList: DropdownOptions = []
     let fontsStylesList: DropdownOptions = []
@@ -43,8 +44,8 @@
 </script>
 
 <InputRow style={$$props.style || ""}>
-    <MaterialDropdown {label} options={systemFontsList} value={quotedValue} style={fontStylesVisible ? "max-width: 85%;" : ""} on:change={change} {allowEmpty} />
+    <MaterialDropdown {label} options={systemFontsList} value={quotedValue} style={fontStylesVisible ? "max-width: 85%;" : ""} on:change={change} {allowEmpty} {disabled} />
     {#if fontStylesVisible}
-        <MaterialDropdown label="settings.font_style" disabled={fontsStylesList.length < 2} options={fontsStylesList} value={fontStyleValue || defaultFontStyleValue} on:change={styleChange} onlyArrow />
+        <MaterialDropdown label="settings.font_style" disabled={disabled || fontsStylesList.length < 2} options={fontsStylesList} value={fontStyleValue || defaultFontStyleValue} on:change={styleChange} onlyArrow />
     {/if}
 </InputRow>

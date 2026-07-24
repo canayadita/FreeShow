@@ -1,8 +1,12 @@
 import { get } from "svelte/store"
 import { uid } from "uid"
-import { actionHistory, actions, audioPlaylists, audioStreams, runningActions, shows, stageShows, styles } from "../../stores"
+import { actionHistory, actions, activeShow, audioPlaylists, audioStreams, runningActions, shows, stageShows, styles } from "../../stores"
 import { newToast, wait } from "../../utils/common"
+import { DEFAULT_ANIMATION_CONFIG } from "../../../types/animation"
+import { TEXT_PRESETS } from "../../../types/textPresets"
+import type { Item } from "../../../types/Show"
 import { getShowBPM } from "../drawer/audio/metronome"
+import { addStyleString } from "../edit/scripts/textStyle"
 import { getDynamicValue } from "../edit/scripts/itemHelpers"
 import { clone, keysToID } from "../helpers/array"
 import { history } from "../helpers/history"
@@ -203,6 +207,59 @@ export function clearSlideActions(slideIndex: number) {
 
     slideActions.slideActions = []
     history({ id: "SHOW_LAYOUT", newData: { key: "actions", data: slideActions, indexes: [slideIndex] } })
+}
+
+// every CSS property any Typography preset can set (types/textPresets.ts), so clearing stays
+// correct as new presets are added — computed once from the actual preset data, not hardcoded.
+const TYPOGRAPHY_STYLE_KEYS: string[] = [
+    ...new Set(
+        TEXT_PRESETS.flatMap((preset) => [preset.style.lineStyle || "", preset.style.textStyle || ""])
+            .join(";")
+            .split(";")
+            .map((s) => s.split(":")[0].trim())
+            .filter(Boolean)
+    )
+]
+
+// reset every text item on a slide back to "no Typography preset": default animation
+// (DEFAULT_ANIMATION_CONFIG, which also clears any background/decoration effect) and strip
+// just the CSS properties presets can set, leaving other item styling (font-size, color, etc.
+// set elsewhere, e.g. the Show tab's quick-style toolbar) untouched.
+function clearSlideTypography(slideIndex: number) {
+    const ref = getLayoutRef()
+    const slideId = ref[slideIndex]?.id
+    if (!slideId) return
+
+    const items: Item[] = _show().slides([slideId]).get()[0]?.items || []
+    const textItemIndexes: number[] = []
+    const newStyles: string[] = []
+    items.forEach((item, index) => {
+        if ((item.type || "text") !== "text") return
+        textItemIndexes.push(index)
+        newStyles.push(TYPOGRAPHY_STYLE_KEYS.reduce((style, key) => addStyleString(style, [key, null]), item.style || ""))
+    })
+    if (!textItemIndexes.length) return
+
+    const showId = get(activeShow)?.id || ""
+    const location = { page: "edit", show: { id: showId }, slide: slideId, items: textItemIndexes }
+    history({ id: "setItems", newData: { style: { key: "animationConfig", values: [DEFAULT_ANIMATION_CONFIG] } }, location })
+    history({ id: "setItems", newData: { style: { key: "style", values: newStyles } }, location })
+}
+
+// the slide right-click menu's single "clear everything applied to this slide" action:
+// custom slide actions, filters, overlay effects, and every text item's Typography preset.
+export function clearAllSlideEffects(slideIndex: number) {
+    if (slideIndex < 0) return
+
+    clearSlideActions(slideIndex)
+
+    const indexes = [slideIndex]
+    history({ id: "SHOW_LAYOUT", newData: { key: "filterEnabled", indexes } }) // pre 1.4.4
+    history({ id: "SHOW_LAYOUT", newData: { key: "filter", indexes } }) // pre 1.5.0
+    history({ id: "SHOW_LAYOUT", newData: { key: "backdrop-filter", indexes } })
+    history({ id: "SHOW_LAYOUT", newData: { key: "effects", indexes } })
+
+    clearSlideTypography(slideIndex)
 }
 
 export function slideHasAction(slideActions: any, key: string) {
